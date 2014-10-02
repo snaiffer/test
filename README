@@ -1,0 +1,17 @@
+
+echo "Installing python3.3..."
+sudo apt-get install python3.3 pip3
+
+echo "Setting virtualenv..."
+mkdir ~/.virtualenvs/
+cd ~/.virtualenvs/
+virtualenv -p python3.3 flask3
+source flask3/bin/activate
+
+echo "Setting hot commands..."
+echo "alias activate_flask3=\'source ~/.virtualenvs/flask3/bin/activate\' " >> ~/.bashrc
+
+echo "Installing plugins for Python..."
+pip install flask
+
+

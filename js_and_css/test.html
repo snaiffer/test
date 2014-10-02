@@ -1,0 +1,64 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="main.css">
+  </head>
+
+  <body>
+    <p id="demo1"></p>
+
+    <script>
+      document.getElementById("demo1").innerHTML = "Hello JavaScript!";
+    </script> 
+    <noscript>Sorry, your browser does not support JavaScript!</noscript>
+
+    <p class="awesome"> awesome0 </p>
+    <p class="awesome"> awesome1 </p>
+
+    <p id="awesome_byid"> awesome_byid0 </p>
+    <p id="awesome_byid"> awesome_byid3 </p>
+    <p>
+    <p id="demo">JavaScript can change the style of an HTML element.</p>
+
+    <script>
+    function myFunction() {
+        var x = document.getElementById("demo");
+        x.style.fontSize = "15";           
+        if ( x.style.color == "red") {
+            x.style.color = "green"; 
+        } else {
+            x.style.color = "red"; 
+        }
+    }
+
+    a = 5;
+    b = 6;
+    c = a + b;
+    console.log( "c = " + 15);
+    console.log( "hello world!" );
+
+    var mul2 = ( function multiplier(n) {
+      return function (k) { return n*k; }
+    } ) (2);
+    console.log( "mul2(4) * 2 = " + mul2(4) );
+    </script>
+    <button type="button" onclick="myFunction()">Click Me!</button>
+    <p>
+
+    <script>
+    function on_inputfield() {
+      console.log( "--> on_inputfield()" );
+      console.log( document.getElementById("numb").value );
+    }
+    </script>
+    <input id="numb" type="text" onclick="on_inputfield()">
+
+    <p id="cars">
+    <script>
+    var cars = ["Saab", "Volvo", "BMW"];
+    document.getElementById("cars").innerHTML = cars;
+    </script>
+
+    
+
+  </body>
+</html>
