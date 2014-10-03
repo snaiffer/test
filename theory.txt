@@ -1,14 +1,14 @@
 
 Operations:
-) Get a branch by URL (getBbyURL)
-  Ex.: "/b0/b00/b01/..."
+) Output a tree (recursive)
 ) Operations with a branch:
 )) Insert <newB>
 )) Update
 )) Delete
 )) Move <intoTargetB>
 ) Find B by "text" field"
-) Output a tree (recursive)
+) Get a branch by URL (getBbyURL)
+  Ex.: "/b0/b00/b01/..."
 
 ===== with hash =====
 
@@ -49,5 +49,24 @@ Operations:
     ...
 
 
+===== with ordinary tables =====
+Ordinary tables is good because of 
+  - simplicity
+  - possibility for fast full-text search
 
+Data structure:
+  Branch
+    subB_id = [ id_1, id_2, ...]
+    parent_id = id
+
+Operations:
+) Output a tree (recursive)
+) Operations with a branch:
+)) Insert <newB>
+)) Update
+)) Delete
+)) Move <intoTargetB>
+) Find B by "text" field"
+) Get a branch by URL (getBbyURL)
+  Ex.: "/b0/b00/b01/..."
 
