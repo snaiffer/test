@@ -1,0 +1,53 @@
+
+Operations:
+) Get a branch by URL (getBbyURL)
+  Ex.: "/b0/b00/b01/..."
+) Operations with a branch:
+)) Insert <newB>
+)) Update
+)) Delete
+)) Move <intoTargetB>
+) Find B by "text" field"
+) Output a tree (recursive)
+
+===== with hash =====
+
+Data structure:
+  Branch
+    subB = [hash1, hash2, ...]
+    url = "/b0/b00/b01/..."
+
+  Dict (hashTable)  
+     hash | Branch
+    ------+--------
+     ...  | ...
+
+
+Operations:
+) Get a branch by URL (getBbyURL)
+    hash(URL)
+    find in hash table
+) Operations with a branch:
+)) Insert <newB>
+    newHash = hash(B.url + newB.caption)
+    hashTable.insert(newHash, newB)
+    B.subB.insert( newHash )
+)) Update
+    change fields in B
+)) Delete
+    hashB = hash( B.url )
+    parentURL = get_parentURL( B.url )
+    hashParent = hash( parentURL )
+    parentB = hashTable[ hashParent ]
+    parentB.subB.delete( hashB )
+    hashTable.delete( hashB )
+)) Move <intoTargetB>
+    ...
+) Output a tree (recursive)
+    ...
+) Find B by "text" field"
+    ...
+
+
+
+
