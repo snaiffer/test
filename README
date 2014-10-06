@@ -12,6 +12,7 @@ echo "Setting hot commands..."
 echo "alias activate_flask3=\'source ~/.virtualenvs/flask3/bin/activate\' " >> ~/.bashrc
 
 echo "Installing plugins for Python..."
-pip install flask
+pip3 install flask
+pip3 install pymongo
 
 
