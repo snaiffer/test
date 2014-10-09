@@ -56,6 +56,10 @@ Ordinary tables is good because of
 
 Data structure:
   Branch
+    id
+    caption
+    text
+    main
     subB_id = [ id_1, id_2, ...]
     parent_id = id
 

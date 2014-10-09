@@ -2,11 +2,20 @@
 "  "
 
 import general
-from copy import deepcopy
+from copy import copy
+import psycopg2
+import psycopg2.extras
+
+"""
+branches_table
+
+def outputTree(root_id)
+
+"""
 
 class Branch():
   "  "
-  def __init__(self, text = "Unnamed", icon = 0, main = False, folded = False, type = 0, subBranches = [], data = [], usesNum = 0):
+  def __init__(self, text = "Unnamed", main = False, subB_id = [], parent_id = 1):
     """
     Name    DataType   Comment
     ------------------------------------------------------
@@ -24,35 +33,31 @@ class Branch():
     """
     self.text = text
     self.caption = self.create_caption()
-    self.icon = icon
     self.main = main
-    self.folded = folded
-    self.type = type
-    self.subBranches = deepcopy(subBranches)
-    self.data = deepcopy(data)
-    self.usesNum = usesNum
+    self.subB_id = copy(subB_id)
+    self.parent_id = parent_id
 
   def add_subBranch(self, subBranch):
-    self.subBranches.append(subBranch)
+    self.subB_id.append(subBranch)
 
   def getSubBranch_byCaption(self, caption):
-    for subtree in self.subBranches:
+    for subtree in self.subB_id:
       if subtree.caption == caption:
         return subtree
     raise notExist
 
   def __getitem__(self, index):
     try:
-      return self.subBranches[index]
+      return self.subB_id[index]
     except TypeError:
       pass
     return self.getSubBranch_byCaption(index)
 
   def __setitem__(self, index, value):
-    self.subBranches.insert(index, value)
+    self.subB_id.insert(index, value)
 
   def __len__(self):
-    return len(self.subBranches)
+    return len(self.subB_id)
 
   def create_caption(self):
     result = self.text
@@ -70,7 +75,7 @@ class notExist(Exception):
   pass
 
 def getBranch(tree, caption):
-  for subtree in tree.subBranches:
+  for subtree in tree.subB_id:
     if subtree.caption == caption:
       return subtree
     else:
