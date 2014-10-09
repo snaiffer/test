@@ -3,9 +3,7 @@
 import general
 import psycopg2
 import psycopg2.extras
-import re
 import tree
-
 
 class Forest():
   """
@@ -42,11 +40,6 @@ class Forest():
       self.__conn.close() 
       self.__conn = None
 
-  def _checkout(self, treename):
-    """ treename has to consist of alphabets and numbers otherwise "BadName" will be raised """
-    if treename != re.sub("[^a-zA-Z0-9]","",treename) :
-      raise BadName
-
   def list(self):
     """ Return the list of trees' names """
     try:
@@ -70,7 +63,8 @@ class Forest():
     Create (plant) a new tree
     "treename" has to consist of alphabets and numbers
     """
-    self._checkout(treename)
+    if not general.checkout(treename):
+      raise BadName
 
     if self.isExist(treename):
       raise dbAlreadyExist

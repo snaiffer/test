@@ -3,19 +3,12 @@
 import general
 import psycopg2
 import psycopg2.extras
-import re
-import forest
-
 
 class Tree():
   def __init__(self, treename):
     self.__conn = None
-    try:
-      with forest.Forest() as f:
-        if not f.isExist(treename):
-          raise TreeIsntExist
-    except forest.ForestException:
-      raise cantCheckTreename
+    if not general.checkout(treename):
+      raise BadName
     self.__treename = treename
     self._estable_con()
 
@@ -56,7 +49,7 @@ class Tree():
         raise CantExecuteQ(e, self.__conn)
       else:
         """ Create rootBranch """
-        self.insertB(None, self.__treename, main = True)
+        self.insertB(None, "root", main = True)
 
   def _create_caption(self, text):
     result = text
@@ -152,23 +145,20 @@ class dbConnectProblem(TreeException):
   def __init__(self, *args, **kwargs):
     self._output("Error: can't connect to the database!")
 
-class cantCheckTreename(TreeException):
-  def __init__(self, *args, **kwargs):
-    self._output("Error: can't checkout a treename!")
-
 class CantExecuteQ(TreeException):
   def __init__(self, *args, **kwargs):
     self._output("Error: can't execute the query!")
 
-class TreeIsntExist(TreeException):
+class BadName(TreeException):
   def __init__(self, *args, **kwargs):
-    self._output("Error: tree with such name isn't exist!")
+    self._output("Error: bad name!")
 
 
 if __name__ == '__main__':
   treename = "treemind2"
 
   # cleaning
+  import forest
   try:
     with forest.Forest() as f:
       f.removeTree(treename)

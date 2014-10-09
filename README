@@ -1,6 +1,11 @@
+#!/bin/bash
 
 echo "Installing python3.3..."
 sudo apt-get install python3.3 pip3
+
+echo "Installing PostgreSQL version >= 9.3..."
+echo -e "\t Do it by hand and press <Enter>"
+read
 
 echo "Setting virtualenv..."
 mkdir ~/.virtualenvs/
