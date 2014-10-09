@@ -60,7 +60,7 @@ Data structure:
     caption
     text
     main
-    subB_id = [ id_1, id_2, ...]
+    subb_id = [ id_1, id_2, ...]
     parent_id = id
 
 Operations:
