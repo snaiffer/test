@@ -102,17 +102,17 @@ class ForestException(Exception):
     print("Forest: " + str(msg))
 
 class dbConnectProblem(ForestException):
-  def __init__(self, *args, **kwargs):
+  def __init__(self, err=None, connection=None):
     ForestException.__init__(self, err, connection)
     self._output("Error: can't connect to the database!")
 
 class BadName(ForestException):
-  def __init__(self, *args, **kwargs):
+  def __init__(self, err=None, connection=None):
     ForestException.__init__(self, err, connection)
     self._output("Error: bad name!")
 
 class dbAlreadyExist(ForestException):
-  def __init__(self, *args, **kwargs):
+  def __init__(self, err=None, connection=None):
     ForestException.__init__(self, err, connection)
     self._output("Error: the db is already exist !")
 
