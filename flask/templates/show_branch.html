@@ -1,4 +1,23 @@
 <!doctype html>
 
-<p>Path: {{path}}</p>
-<p>Branch: {{branch}}</p>
+id: <input type="text" id="id"> <button id="show">SHOW</button><br>
+text: <input type="text" id="text"> <button id="update">UPDATE</button><br>
+
+<br>
+Branch: <div id="branch"></div>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script>
+  $(document).ready(function(){
+    $("#show").click(function(){
+      //console.log()
+      $("#branch").load("/branches/id=" + $("#id").val() + "/get_text");
+    });
+    $("#update").click(function(){
+      //console.log()
+      $("#branch").load("/branches/id=" + $("#id").val() + "/update_text/text=" + $("#text").val());
+    });
+  });
+</script>
+
+

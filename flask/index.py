@@ -1,49 +1,56 @@
 #!/usr/bin/env python3.3
 
+treename = "treemind2" #
+
+import general
+import forest as f
+import tree as t
+
 from flask import Flask
 app = Flask(__name__)
-
-@app.route('/abc/')
-def hello_world():
-  return 'Hello World!'
-
 from flask import render_template
 
-from branch import *
-@app.route('/TreeMind/')
-@app.route('/TreeMind/<path:path>')
-def hello(path=None):
-  root = Branch(text = "root", main = True)
+@app.route('/')
+def main():
+  return render_template('show_branch.html')
+  """
+  try:
+    with t.Tree(treename) as tree:
+  except t.TreeException:  
+    print("Error: TreeException has occured")
+  """
 
-  branch0 = Branch(text = "Branch0", main = True)
-  branch00 = Branch(text = "Branch00")
-  branch000 = Branch(text = "Branch000")
-  branch001 = Branch(text = "Branch001") #, folded = True)
-  branch0010 = Branch(text = "Branch0010")
-  branch01 = Branch(text = "Branch01")
-  branch1 = Branch(text = "Branch1", main = True)
-  root[0] = branch0
-  root[0][0] = branch00
-  root[0][0][0] = branch000
-  root[0][0][1] = branch001
-  root[0][0][1][0] = branch0010
-  root[0][1] = branch01
-  root[1] = branch1
+@app.route('/branches/id=<int:id>/<command>')
+@app.route('/branches/id=<int:id>/<command>/text=<text>')
+def treemind(id, command, text=None):
+  try:
+    with t.Tree(treename) as tree:
+      if command == "get_text":
+        return tree.get_text(id)
+      if command == "update_text":
+        tree.update_text(id, text)
+        return tree.get_text(id)
+  except t.TreeException:  
+    print("Error: TreeException has occured")
 
-  root.add_subBranch(Branch(
-    text = "qwertyuiopasdfghjklzxcvbnm1234567890"))
-  root.add_subBranch(Branch(
-    text = "qwertyuiopasdfghjklzxcvbnm1234567890",
-    main = True))
-
-  """ """
+def for_test():
+  try:
+    with f.Forest() as forest:
+      forest.removeTree(treename)
+      forest.plantTree(treename)
+  except f.ForestException:
+    print("Error: ForestException has occured")
 
   try:
-    branch = getBranch_byURL(root, path)
-    return render_template('show_branch.html', path=path, branch=branch.text)
-  except notExist:
-    return 'Branch isn\'t exist!'
+    with t.Tree(treename) as tree:
+      tree.insertB(general.rootB_id, 'branch1')
+      tree.insertB(general.rootB_id, 'branch2')
+      tree.insertB(2, 'branch11')
+      tree.insertB(2, 'branch12')
+  except t.TreeException:  
+    print("Error: TreeException has occured")
 
 if __name__ == '__main__':
+  for_test()
   app.debug = True
   app.run(host='0.0.0.0')
