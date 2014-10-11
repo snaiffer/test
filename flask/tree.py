@@ -110,6 +110,26 @@ class Tree():
       else:
         return cur.fetchone()['parent_id']
 
+  def get_text(self, id):  
+    """ Return "text" of the branch with id """
+    with self.__conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+      try:
+        cur.execute("SELECT text FROM branches WHERE id = %s", (id,) )
+        self.__conn.commit()
+      except psycopg2.Error as e:
+        raise CantExecuteQ(e, self.__conn)
+      else:
+        return cur.fetchone()['text']
+
+  def update_text(self, id, text):  
+    """ Update "text" of the branch with id """
+    with self.__conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+      try:
+        cur.execute("UPDATE branches set text = %s, caption = %s WHERE id = %s", (text,self._create_caption(text), id) )
+        self.__conn.commit()
+      except psycopg2.Error as e:
+        raise CantExecuteQ(e, self.__conn)
+
   def removeB(self, id):  
     """ Remove a branch by id """
     with self.__conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
@@ -142,15 +162,18 @@ class TreeException(Exception):
     print(str(msg))
 
 class dbConnectProblem(TreeException):
-  def __init__(self, *args, **kwargs):
+  def __init__(self, err=None, connection=None):
+    TreeException.__init__(self, err, connection)
     self._output("Error: can't connect to the database!")
 
 class CantExecuteQ(TreeException):
-  def __init__(self, *args, **kwargs):
+  def __init__(self, err=None, connection=None):
+    TreeException.__init__(self, err, connection)
     self._output("Error: can't execute the query!")
 
 class BadName(TreeException):
-  def __init__(self, *args, **kwargs):
+  def __init__(self, err=None, connection=None):
+    TreeException.__init__(self, err, connection)
     self._output("Error: bad name!")
 
 
@@ -173,6 +196,8 @@ if __name__ == '__main__':
       tree.insertB(general.rootB_id, 'branch2')
       tree.insertB(2, 'branch11')
       tree.insertB(2, 'branch12')
+      tree.get_text(2)
+      tree.update_text(3, 'b2')
   except TreeException:  
     print("Error: TreeException has occured")
     print("FAILD")
