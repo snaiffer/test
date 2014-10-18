@@ -134,7 +134,7 @@ if __name__ == '__main__':
   except ForestException:
     print("Error: ForestException has occured")
     print("FAILD")
-  except:
+  except ValueError:
     print("FAILD")
   else:
     print("OK")
