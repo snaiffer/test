@@ -13,7 +13,8 @@ class Tree():
       raise BadName
     self.__treename = treename
     self._estable_con()
-    self.accessibleAttrs = ("caption", "text", "main", "folded")
+    self.readableAttrs = ("caption", "text", "main", "folded")
+    self.writableAttrs = ("text", "main", "folded")
 
   def __del__(self):
     self.close_con()

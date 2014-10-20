@@ -6,14 +6,17 @@ import psycopg2.extras
 
 import tree
 
+baseAttrs = ("hostTree", "conn", "id")
+
 class Branch():
   def __init__(self, tree, id):
+    """ You have to add all names of attrs to "baseAttrs" tuple """
     self.hostTree = tree
     self.conn = tree.conn
     self.id = id
 
   def __getattr__(self, field):
-    if not field in self.hostTree.accessibleAttrs :
+    if not field in self.hostTree.readableAttrs :
       raise AttributeError
     with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
       try:
@@ -24,17 +27,29 @@ class Branch():
       else:
         return cur.fetchone()[field]
 
-  """
   def __setattr__(self, field, value):
-    if not field in self.hostTree.accessibleAttrs :
+    if field in baseAttrs:
+      super().__setattr__(field, value)
+      return
+
+    if not field in self.hostTree.writableAttrs :
       raise AttributeError
     with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
       try:
-        cur.execute("UPDATE branches set text = %s, caption = %s WHERE id = %s", (text,self._create_caption(text), id) )
+        cur.execute("UPDATE branches set " + field + " = %s WHERE id = %s", (value, self.id) ) # arg was operated from SQL injections
+        if field == "text":
+          cur.execute("UPDATE branches set caption = %s WHERE id = %s", (self._create_caption(value), self.id) )
         self.conn.commit()
       except psycopg2.Error as e:
         raise CantExecuteQ(e, self.conn)
-  """
+
+  def _create_caption(self, text):
+    result = text
+    if len(result) > general.MAX_captionLen :
+      return result[0:general.MAX_captionLen] + "..."
+    else :
+      return result
+
 
 class BranchException(Exception):
   def __init__(self, err=None, connection=None):
@@ -80,17 +95,18 @@ if __name__ == '__main__':
         print("FAILD")
 
       # get fields
+      b1.id
       b1.caption
-      b1.caption
-      #b1.text
-      #b1.folded
+      b1.text
+      b1.main
+      b1.folded
       """
       subbs_list = b1.subbs
       b3 = b1.subbs[0]
+      """
 
       # changing
       b1.text = "changed text"
-      """
 
   except BranchException:  
     print("Error: BranchException has occured")
