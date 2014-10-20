@@ -16,7 +16,7 @@ class Branch():
     self.id = id
 
   def __getattr__(self, field):
-    if not field in self.hostTree.readableAttrs :
+    if not field in self.hostTree.branchesFields :
       raise AttributeError
     with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
       try:
@@ -32,7 +32,7 @@ class Branch():
       super().__setattr__(field, value)
       return
 
-    if not field in self.hostTree.writableAttrs :
+    if not field in self.hostTree.branchesFields :
       raise AttributeError
     with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
       try:
@@ -49,6 +49,14 @@ class Branch():
       return result[0:general.MAX_captionLen] + "..."
     else :
       return result
+
+  def get_parentB(self):  
+    """ Return a parent branch of the current branch """
+    return self.hostTree.getB(self.parent_id)
+
+  def remove(self):
+    """ remove the current branch """
+    self.hostTree.removeB(self.id)
 
 
 class BranchException(Exception):
@@ -82,17 +90,15 @@ if __name__ == '__main__':
   try:
     with tree.Tree(treename) as t:
       # create test branches
-      t.insertB(general.rootB_id, 'branch1')
-      t.insertB(general.rootB_id, 'branch2')
-      t.insertB(2, 'branch11')
-      t.insertB(2, 'branch12')
+      t.insertB({'parent_id' : general.rootB_id, 'text' : 'branch1'})
+      t.insertB({'parent_id' : general.rootB_id, 'text' : 'branch2'})
+      t.insertB({'parent_id' : 2, 'text' : 'branch11'})
+      t.insertB({'parent_id' : 2, 'text' : 'branch12'})
 
       # get branch
-      rootb = t.get_rootb()
-      b1 = t.get_b(2)
+      rootb = t.getB_root()
+      b1 = t.getB(2)
       b2 = Branch(t, 3)
-      if b1.id != 2 or b2.id != 3:
-        print("FAILD")
 
       # get fields
       b1.id
@@ -100,13 +106,16 @@ if __name__ == '__main__':
       b1.text
       b1.main
       b1.folded
-      """
-      subbs_list = b1.subbs
-      b3 = b1.subbs[0]
-      """
+      subbs_list = b1.subbs_id
+      b3 = t.getB(b1.subbs_id[0])
+      if b1.get_parentB() == None:
+        print("FAILD")
 
       # changing
       b1.text = "changed text"
+      b1.subbs_id = [10,11,12]
+      b1.subbs_id = [4,5]
+      b1.remove()
 
   except BranchException:  
     print("Error: BranchException has occured")

@@ -13,8 +13,7 @@ class Tree():
       raise BadName
     self.__treename = treename
     self._estable_con()
-    self.readableAttrs = ("caption", "text", "main", "folded")
-    self.writableAttrs = ("text", "main", "folded")
+    self.branchesFields = ("id", "caption", "text", "main", "folded", "subbs_id", "parent_id")
 
   def __del__(self):
     self.close_con()
@@ -47,110 +46,61 @@ class Tree():
     with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
       """ Create tables """
       try:
-        cur.execute("CREATE TABLE branches (id serial PRIMARY KEY, caption text, text text, main bool, folded bool, subbs_id int[], parent_id int);")
+        cur.execute("CREATE TABLE branches (\
+            id serial PRIMARY KEY, \
+            caption text default 'New branch', \
+            text text default 'New branch', \
+            main bool default False, \
+            folded bool default False, \
+            subbs_id int[] default '{}', \
+            parent_id int default 1);")
         self.conn.commit()
       except psycopg2.Error as e:
         raise CantExecuteQ(e, self.conn)
       else:
         """ Create rootBranch """
-        self.insertB(None, "root", main = True)
+        self.insertB({'parent_id' : None, 'text' : 'root', 'main' : True})
 
-  def _create_caption(self, text):
-    result = text
-    if len(result) > general.MAX_captionLen :
-      return result[0:general.MAX_captionLen] + "..."
-    else :
-      return result
 
-  def _add_subb(self, b_id, subb_id):
-    """ Add the subbranch with "subb_id" to the branch with "b_id"  """
+  def insertB(self, kwargs):
+    """ insert a new branch """
     with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
       try:
-        cur.execute("update branches set subbs_id = array_append(subbs_id,%s) where id = %s;", (subb_id,b_id) )
-        self.conn.commit()
-      except psycopg2.Error as e:
-        raise CantExecuteQ(e, self.conn)
-
-
-  def insertB(self, parent_id = general.rootB_id, text = "Unname", main = False, folded = False):
-    """ 
-    Create a new branch 
-    return id of the branch
-    """
-    with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-      try:
-        """ add a record """
-        cur.execute("INSERT INTO branches (caption, text, main, folded, subbs_id, parent_id) VALUES (%s,%s,%s,%s,%s,%s) RETURNING id", (text, self._create_caption(text),main,folded,[],parent_id) )
-
-        """ add id of the record to the parent """
+        """ create an empty branch """
+        cur.execute("INSERT INTO branches DEFAULT VALUES RETURNING id")
         b_id = cur.fetchone()['id']
-        if parent_id != None:
-          self._add_subb(parent_id, b_id)
-
         self.conn.commit()
-        return b_id
-      except psycopg2.Error as e:
-        raise CantExecuteQ(e, self.conn)
-
-  def get_subbs(self, id):  
-    """ Return list of subbranches of the branch with id """
-    with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-      try:
-        cur.execute("SELECT subbs_id FROM branches WHERE id = %s", (id,) )
-        self.conn.commit()
+        newB = self.getB(b_id)
       except psycopg2.Error as e:
         raise CantExecuteQ(e, self.conn)
       else:
-        return cur.fetchone()['subbs_id']
+        try:
+          """ fill in the new branch """
+          for key in kwargs :
+            newB.__setattr__(key, kwargs[key])
 
-  def get_parent(self, id):  
-    """ Return "parent_id" of the branch with id """
+          if newB.parent_id != None:
+            """ couple the new branch to the tree """
+            parentB = self.getB(newB.parent_id)
+            parentB.subbs_id = parentB.subbs_id + [newB.id]
+        except:
+          self.removeB(newB.id)
+          raise CantExecuteQ()
+
+  def removeB(self, b_id):
+    """ remove the branch with "b_id" id """
+    branch = self.getB(b_id)
+    """ remove subbranches """
+    for curB_id in branch.subbs_id:
+      self.removeB(curB_id)
+
+    """ remove id of the branch from parent """
+    self.getB(branch.parent_id).subbs_id.remove(branch.id)
+
+    """ remove the record """
     with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
       try:
-        cur.execute("SELECT parent_id FROM branches WHERE id = %s", (id,) )
-        self.conn.commit()
-      except psycopg2.Error as e:
-        raise CantExecuteQ(e, self.conn)
-      else:
-        return cur.fetchone()['parent_id']
-
-  def get_text(self, id):  
-    """ Return "text" of the branch with id """
-    with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-      try:
-        cur.execute("SELECT text FROM branches WHERE id = %s", (id,) )
-        self.conn.commit()
-      except psycopg2.Error as e:
-        raise CantExecuteQ(e, self.conn)
-      else:
-        return cur.fetchone()['text']
-
-  def update_text(self, id, text):  
-    """ Update "text" of the branch with id """
-    with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-      try:
-        cur.execute("UPDATE branches set text = %s, caption = %s WHERE id = %s", (text,self._create_caption(text), id) )
-        self.conn.commit()
-      except psycopg2.Error as e:
-        raise CantExecuteQ(e, self.conn)
-
-  def removeB(self, id):  
-    """ Remove a branch by id """
-    with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-      try:
-        """ remove subbranches """
-        subbs = self.get_subbs(id)
-        if subbs != None:
-          for cur_subb in subbs:
-            self.removeB(cur_subb)
-
-        """ remove id of the branch from parent """
-        parent_id = self.get_parent(id)
-        cur.execute("update branches set subbs_id = array_remove(subbs_id, %s) where id = %s", (id, parent_id))
-        
-        """ remove the record """
-        cur.execute("DELETE FROM branches WHERE id = %s", (id,) )
-
+        cur.execute("DELETE FROM branches WHERE id = %s", (branch.id,) )
         self.conn.commit()
       except psycopg2.Error as e:
         raise CantExecuteQ(e, self.conn)
@@ -175,18 +125,15 @@ class Tree():
         else:
           raise idNotUnique
 
-  def get_rootb(self):
-    """ return Branch() of root if it's exist otherwise return None """
-    return self.get_b(general.rootB_id)
+  def getB_root(self):
+    """ return Branch() of root if it's exist otherwise raise branchNotExist """
+    return self.getB(general.rootB_id)
 
-  def get_b(self, id = general.rootB_id):
-    """ return Branch() with the "id" if it's exist otherwise return None """
+  def getB(self, id = general.rootB_id):
+    """ return Branch() with the "id" if it's exist otherwise raise branchNotExist """
     if self._isExist_b(id):
       return branch.Branch(self, id)
-    return None
-
-
-
+    raise branchNotExist
 
 
 class TreeException(Exception):
@@ -213,10 +160,15 @@ class BadName(TreeException):
     TreeException.__init__(self, err, connection)
     self._output("Error: bad name!")
 
-class idNotUnique(TreeException):
+class idnotunique(TreeException):
   def __init__(self, err=None, connection=None):
     TreeException.__init__(self, err, connection)
     self._output("Error: id isn't unique!")
+
+class branchNotExist(TreeException):
+  def __init__(self, err=None, connection=None):
+    TreeException.__init__(self, err, connection)
+    self._output("Error: branch isn't exist!")
 
 
 if __name__ == '__main__':
@@ -234,39 +186,24 @@ if __name__ == '__main__':
   print("Test:")
   try:
     with Tree(treename) as tree:
-      tree.insertB(general.rootB_id, 'branch1')
-      tree.insertB(general.rootB_id, 'branch2')
-      tree.insertB(2, 'branch11')
-      tree.insertB(2, 'branch12')
-      tree.get_text(2)
-      tree.update_text(3, 'b2')
-
-      if [4,5] != tree.get_subbs(2):
-        raise
-      tree.removeB(5)
-      if [4,] != tree.get_subbs(2):
-        raise
+      tree.insertB({'parent_id' : general.rootB_id, 'text' : 'branch1'})
+      tree.insertB({'parent_id' : general.rootB_id, 'text' : 'branch2'})
+      tree.insertB({'parent_id' : 2, 'text' : 'branch11'})
+      tree.insertB({'parent_id' : 2, 'text' : 'branch12'})
 
       if not tree._isExist_b(1):
         print("FAILD")
       if tree._isExist_b(1000):
         print("FAILD")
       
-      rootb = tree.get_rootb()
-      if rootb == None or rootb.id != general.rootB_id:
-        print("FAILD")
-      b1 = tree.get_b(2)
-      if rootb == None or b1.id != 2:
-        print("FAILD")
-      b1000 = tree.get_b(1000)
-      if b1000 != None:
-        print("FAILD")
+      rootb = tree.getB_root()
+      b1 = tree.getB(2)
+
+      tree.removeB(2)
 
   except TreeException:  
     print("Error: TreeException has occured")
     print("FAILD")
   else:
     print("OK")
-
-
 
