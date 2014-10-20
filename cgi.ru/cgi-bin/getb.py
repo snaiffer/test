@@ -6,19 +6,8 @@ import general
 import forest as f
 import tree as t
 
+import json
 
-"""
-def treemind(id, command, text=None):
-  try:
-    with t.Tree(treename) as tree:
-      if command == "get_text":
-        return tree.get_text(id)
-      if command == "update_text":
-        tree.update_text(id, text)
-        return tree.get_text(id)
-  except t.TreeException:  
-    print("Error: TreeException has occured")
-"""
 
 def for_test():
   try:
@@ -30,10 +19,10 @@ def for_test():
 
   try:
     with t.Tree(treename) as tree:
-      tree.insertB(general.rootB_id, 'branch1')
-      tree.insertB(general.rootB_id, 'branch2')
-      tree.insertB(2, 'branch11')
-      tree.insertB(2, 'branch12')
+      tree.insertB({'parent_id' : general.rootB_id, 'text' : 'branch1'})
+      tree.insertB({'parent_id' : general.rootB_id, 'text' : 'branch2'})
+      tree.insertB({'parent_id' : 2, 'text' : 'branch11'})
+      tree.insertB({'parent_id' : 2, 'text' : 'branch12'})
   except t.TreeException:  
     print("Error: TreeException has occured")
 
@@ -45,38 +34,40 @@ form = cgi.FieldStorage()
 id = form.getvalue('id')
 
 print("Content-Type: text/html\n") 
+
+"""
+def getDict(branch):
+  dict = {}
+  dict['id'] = branch.id
+  dict['text'] = branch.caption
+  if branch.subbs_id != [] :
+    dict['state'] = {}
+    dict['state']['opened'] = branch.folded ^ True
+    if dict['state']['opened'] == True:
+      dict['children'] = []
+      dict['children'].append()
+    else:
+      dict['children'] = True
+  return dict  
+
 try:
   with t.Tree(treename) as tree:
+    print(json.dumps(getDict(tree.getB_root())))
+except BranchException:  
+  print("Error: BranchException has occured")
+except tree.TreeException:  
+  print("Error: TreeException has occured")
+"""
 
 
 
 print("\
 [{\
-    \"id\":1,\"text\":\"Root node\",\"children\":[\
+\"id\":1,\"text\":\"Root node\", \"state\" : {\"opened\" : true } ,\"children\":[\
           {\"id\":2,\"text\":\"Child node 1\", \"children\" : true},\
           {\"id\":3,\"text\":\"Child node 2\"}\
       ]\
 }]\
 ")
-
-
-"""
-name = form.getvalue('fname')
-print("Name of the user is: " + str(name) + "<br>")
-
-
-try:
-  with t.Tree(treename) as tree:
-    print()
-    if command == "get_text":
-      return tree.get_text(id)
-    if command == "update_text":
-      tree.update_text(id, text)
-      return tree.get_text(id)
-except t.TreeException:  
-  print("Error: TreeException has occured")
-
-"""
-
 
 

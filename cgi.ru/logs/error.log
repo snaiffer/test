@@ -190,3 +190,13 @@
 [Sat Oct 18 15:10:38 2014] [error] [client 192.168.10.1] File does not exist: /var/www/cgi.ru/favicon.ico
 [Sat Oct 18 15:11:04 2014] [error] [client 192.168.10.1] File does not exist: /var/www/cgi.ru/favicon.ico
 [Sat Oct 18 15:11:52 2014] [error] [client 192.168.10.1] File does not exist: /var/www/cgi.ru/favicon.ico
+[Mon Oct 20 17:20:34 2014] [error] [client 192.168.10.1]   File "/var/www/cgi.ru/cgi-bin/getb.py", line 53, referer: http://www.cgi.ru/
+[Mon Oct 20 17:20:34 2014] [error] [client 192.168.10.1]     print("\\, referer: http://www.cgi.ru/
+[Mon Oct 20 17:20:34 2014] [error] [client 192.168.10.1]     ^, referer: http://www.cgi.ru/
+[Mon Oct 20 17:20:34 2014] [error] [client 192.168.10.1] IndentationError: expected an indented block, referer: http://www.cgi.ru/
+[Mon Oct 20 17:20:34 2014] [error] [client 192.168.10.1] Premature end of script headers: getb.py, referer: http://www.cgi.ru/
+[Mon Oct 20 17:21:41 2014] [error] [client 192.168.10.1]   File "/var/www/cgi.ru/cgi-bin/getb.py", line 53, referer: http://www.cgi.ru/
+[Mon Oct 20 17:21:41 2014] [error] [client 192.168.10.1]     print("\\, referer: http://www.cgi.ru/
+[Mon Oct 20 17:21:41 2014] [error] [client 192.168.10.1]     ^, referer: http://www.cgi.ru/
+[Mon Oct 20 17:21:41 2014] [error] [client 192.168.10.1] IndentationError: expected an indented block, referer: http://www.cgi.ru/
+[Mon Oct 20 17:21:41 2014] [error] [client 192.168.10.1] Premature end of script headers: getb.py, referer: http://www.cgi.ru/
