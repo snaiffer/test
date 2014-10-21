@@ -6,67 +6,9 @@
 <script src="http://cdnjs.cloudflare.com/ajax/libs/jstree/3.0.4/jstree.min.js"></script>
 
 
-
-<!--
-<div id="container">
-  <ul>
-    <li>Root node
-      <ul>
-        <li>Child node 1</li>
-        <li>Child node 2</li>
-      </ul>
-    </li>
-  </ul>
-</div>
-<script>
-$(function() {
-  $('#container').jstree();
-});
-</script>
-
 <div id="container"></div>
-<script>
-$(document).ready(function() {
-  $('#container').jstree({
-    'core' : {
-      'data' : [
-        { "text" : "Root node", "state" : {"opened" : true}, "children" : [
-            { "text" : "Child node 1" },
-            { "text" : "Child node 2" }
-          ]
-        }
-      ]
-    }
-  });
-});
-</script>
--->
 
-<!--
-<div id="container"></div>
-<script>
-$(function() {
-  $('#container').jstree({
-    'core' : {
-      'data' : {
-        //"url" : "/cgi-bin/getb.py?id=",
-        "url" : function( node ){
-            console.log(node.id)
-            if( node.id == '#' ){
-              return "/cgi-bin/getb.py?parentid=1"
-            } else {
-              return "/cgi-bin/getb.py?parentid=" + node.id;
-            }
-          },
-        "dataType" : "json" // needed only if you do not supply JSON headers
-      }
-    }
-  });
-});
-</script>
--->
-
-<div id="container"></div>
+<div id="text">text</div>
 <script>
 $(function() {
   $('#container').jstree({
@@ -85,29 +27,13 @@ $(function() {
       }
     }
   });
-});
-</script>
-
-<!--
-<div id="container"></div>
-<script>
-$(function() {
-  $('#container').jstree({
-    'core' : {
-      'data' : {
-        "url" : "http://127.0.0.1/cgi.ru/cgi-bin/resp.txt",
-        "data" : function (node) {
-          return { "id" : node.id };
-        },
-        "dataType" : "json" // needed only if you do not supply JSON headers
-      }
-    }
-  });
 
   $('#container').on("changed.jstree", function (e, data) {
     console.log("The selected nodes are:");
     console.log(data.selected);
+    $(".text").load("/cgi-bin/gettext.py?id=" + data.selected);
   });
 });
+
 </script>
--->
+

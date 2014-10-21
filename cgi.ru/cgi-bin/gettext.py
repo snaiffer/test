@@ -36,36 +36,10 @@ for_test()
 form = cgi.FieldStorage()
 id = form.getvalue('id', general.rootB_id)
 
-print("Content-Type: text/html\n") 
-
-def getDict(branch):
-  dict = {}
-  dict['id'] = branch.id
-  dict['text'] = branch.caption
-  if branch.subbs_id != [] :
-    dict['state'] = {}
-    dict['state']['opened'] = branch.folded ^ True
-    if dict['state']['opened'] == True:
-      dict['children'] = []
-      for cur_subb in branch.subbs:
-        dict['children'].append(getDict(cur_subb))
-    else:
-      dict['children'] = True
-  return dict  
-
-def getList_subbsOf(branch):
-  list = []
-  if branch.subbs_id != [] :
-    for cur_subb in branch.subbs:
-      list.append(getDict(cur_subb))
-  return list    
 
 try:
   with t.Tree(treename) as tree:
-    if id == None or id == general.rootB_id:
-      print(json.dumps(getDict(tree.getB(general.rootB_id))))
-    else:  
-      print(json.dumps(getList_subbsOf(tree.getB(id))))
+    print(tree.getB(id).text)
 except b.BranchException:  
   print("Error: BranchException has occured")
 except t.TreeException:  
