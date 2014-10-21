@@ -43,7 +43,6 @@ $(document).ready(function() {
 -->
 
 <!--
--->
 <div id="container"></div>
 <script>
 $(function() {
@@ -57,6 +56,29 @@ $(function() {
               return "/cgi-bin/getb.py?parentid=1"
             } else {
               return "/cgi-bin/getb.py?parentid=" + node.id;
+            }
+          },
+        "dataType" : "json" // needed only if you do not supply JSON headers
+      }
+    }
+  });
+});
+</script>
+-->
+
+<div id="container"></div>
+<script>
+$(function() {
+  $('#container').jstree({
+    'core' : {
+      'data' : {
+        "url" : "/cgi-bin/getb.py?id=",
+        "data" : function (node) {
+            console.log(node.id)
+            if( node.id == '#' ){
+              return { "id" : 1 };
+            } else {
+              return { "id" : node.id };
             }
           },
         "dataType" : "json" // needed only if you do not supply JSON headers
