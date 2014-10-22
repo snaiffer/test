@@ -16,6 +16,15 @@ class Branch():
     self.id = id
 
   def __getattr__(self, field):
+    if field == 'parent':
+      return self.hostTree.getB(self.parent_id)
+    if field == 'subbs':
+      subbs = []
+      subbs_id = self.subbs_id
+      for cur_subb_id in subbs_id:
+        subbs.append(self.hostTree.getB(cur_subb_id))
+      return subbs
+
     if not field in self.hostTree.branchesFields :
       raise AttributeError
     with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
@@ -49,10 +58,6 @@ class Branch():
       return result[0:general.MAX_captionLen] + "..."
     else :
       return result
-
-  def get_parentB(self):  
-    """ Return a parent branch of the current branch """
-    return self.hostTree.getB(self.parent_id)
 
   def remove(self):
     """ remove the current branch """
@@ -90,10 +95,10 @@ if __name__ == '__main__':
   try:
     with tree.Tree(treename) as t:
       # create test branches
-      t.insertB({'parent_id' : general.rootB_id, 'text' : 'branch1'})
-      t.insertB({'parent_id' : general.rootB_id, 'text' : 'branch2'})
-      t.insertB({'parent_id' : 2, 'text' : 'branch11'})
-      t.insertB({'parent_id' : 2, 'text' : 'branch12'})
+      b1 = t.insertB({'parent_id' : general.rootB_id, 'text' : 'branch1'})
+      b2 = t.insertB({'parent_id' : general.rootB_id, 'text' : 'branch2'})
+      b11 = t.insertB({'parent_id' : b1.id, 'text' : 'branch11'})
+      b12 = t.insertB({'parent_id' : b1.id, 'text' : 'branch12'})
 
       # get branch
       rootb = t.getB_root()
@@ -108,8 +113,9 @@ if __name__ == '__main__':
       b1.folded
       subbs_list = b1.subbs_id
       b3 = t.getB(b1.subbs_id[0])
-      if b1.get_parentB() == None:
-        print("FAILD")
+      b1.parent
+      for curB in b1.subbs:
+        curB.caption
 
       # changing
       b1.text = "changed text"

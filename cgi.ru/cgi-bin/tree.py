@@ -63,7 +63,10 @@ class Tree():
 
 
   def insertB(self, kwargs):
-    """ insert a new branch """
+    """ 
+    Insert a new branch 
+    Return the new branch in case of success
+    """
     with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
       try:
         """ create an empty branch """
@@ -83,19 +86,24 @@ class Tree():
             """ couple the new branch to the tree """
             parentB = self.getB(newB.parent_id)
             parentB.subbs_id = parentB.subbs_id + [newB.id]
+
+          return newB  
         except:
           self.removeB(newB.id)
           raise CantExecuteQ()
 
   def removeB(self, b_id):
     """ remove the branch with "b_id" id """
+
     branch = self.getB(b_id)
     """ remove subbranches """
     for curB_id in branch.subbs_id:
       self.removeB(curB_id)
 
     """ remove id of the branch from parent """
-    self.getB(branch.parent_id).subbs_id.remove(branch.id)
+    b_subbs_id = self.getB(branch.parent_id).subbs_id
+    b_subbs_id.remove(branch.id)
+    self.getB(branch.parent_id).subbs_id = b_subbs_id
 
     """ remove the record """
     with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
@@ -186,10 +194,10 @@ if __name__ == '__main__':
   print("Test:")
   try:
     with Tree(treename) as tree:
-      tree.insertB({'parent_id' : general.rootB_id, 'text' : 'branch1'})
-      tree.insertB({'parent_id' : general.rootB_id, 'text' : 'branch2'})
-      tree.insertB({'parent_id' : 2, 'text' : 'branch11'})
-      tree.insertB({'parent_id' : 2, 'text' : 'branch12'})
+      b1 = tree.insertB({'parent_id' : general.rootB_id, 'text' : 'branch1'})
+      b2 = tree.insertB({'parent_id' : general.rootB_id, 'text' : 'branch2'})
+      b11 = tree.insertB({'parent_id' : b1.id, 'text' : 'branch11'})
+      b12 = tree.insertB({'parent_id' : b1.id, 'text' : 'branch12'})
 
       if not tree._isExist_b(1):
         print("FAILD")
@@ -200,6 +208,8 @@ if __name__ == '__main__':
       b1 = tree.getB(2)
 
       tree.removeB(2)
+      if tree.getB_root().subbs_id != [3,]:
+        print("FAILD")
 
   except TreeException:  
     print("Error: TreeException has occured")

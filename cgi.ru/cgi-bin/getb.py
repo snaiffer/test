@@ -19,10 +19,10 @@ def for_test():
 
   try:
     with t.Tree(treename) as tree:
-      tree.insertB({'parent_id' : general.rootB_id, 'text' : 'branch1'})
-      tree.insertB({'parent_id' : general.rootB_id, 'text' : 'branch2'})
-      tree.insertB({'parent_id' : 2, 'text' : 'branch11'})
-      tree.insertB({'parent_id' : 2, 'text' : 'branch12'})
+      b1 = tree.insertB({'parent_id' : general.rootB_id, 'text' : 'branch1', 'folded' : True})
+      b2 = tree.insertB({'parent_id' : general.rootB_id, 'text' : 'branch2'})
+      b11 = tree.insertB({'parent_id' : b1.id, 'text' : 'branch11'})
+      b12 = tree.insertB({'parent_id' : b1.id, 'text' : 'branch12'})
   except t.TreeException:  
     print("Error: TreeException has occured")
 
@@ -32,10 +32,11 @@ for_test()
 
 form = cgi.FieldStorage()
 id = form.getvalue('id')
+if id == None:
+  id = general.rootB_id
 
 print("Content-Type: text/html\n") 
 
-"""
 def getDict(branch):
   dict = {}
   dict['id'] = branch.id
@@ -45,22 +46,23 @@ def getDict(branch):
     dict['state']['opened'] = branch.folded ^ True
     if dict['state']['opened'] == True:
       dict['children'] = []
-      dict['children'].append()
+      for cur_subb in branch.subbs:
+        dict['children'].append(getDict(cur_subb))
     else:
       dict['children'] = True
   return dict  
 
 try:
   with t.Tree(treename) as tree:
-    print(json.dumps(getDict(tree.getB_root())))
+    print(json.dumps(getDict(tree.getB(id))))
 except BranchException:  
   print("Error: BranchException has occured")
 except tree.TreeException:  
   print("Error: TreeException has occured")
+
+
+
 """
-
-
-
 print("\
 [{\
 \"id\":1,\"text\":\"Root node\", \"state\" : {\"opened\" : true } ,\"children\":[\
@@ -69,5 +71,6 @@ print("\
       ]\
 }]\
 ")
+"""
 
 
