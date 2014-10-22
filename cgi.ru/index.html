@@ -6,15 +6,16 @@
 <script src="http://cdnjs.cloudflare.com/ajax/libs/jstree/3.0.4/jstree.min.js"></script>
 
 
+
 <div id="container"></div>
 
-<div id="text">text</div>
+<div id="text">None</div>
 <script>
 $(function() {
   $('#container').jstree({
     'core' : {
       'data' : {
-        "url" : "/cgi-bin/getb.py?id=",
+        "url" : "/cgi-bin/treemind.py?cmd=load_subbs&id=",
         "data" : function (node) {
             console.log(node.id)
             if( node.id == '#' ){
@@ -23,15 +24,15 @@ $(function() {
               return { "id" : node.id };
             }
           },
-        "dataType" : "json" // needed only if you do not supply JSON headers
+        "dataType" : "json"
       }
     }
   });
 
   $('#container').on("changed.jstree", function (e, data) {
-    console.log("The selected nodes are:");
-    console.log(data.selected);
-    $(".text").load("/cgi-bin/gettext.py?id=" + data.selected);
+    $.get("/cgi-bin/treemind.py?cmd=load_text&id=" + data.selected, function(data) {
+      document.getElementById("text").innerHTML=data;
+    });
   });
 });
 
