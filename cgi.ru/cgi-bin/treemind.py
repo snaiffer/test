@@ -54,7 +54,7 @@ def getList_subbsOf(branch):
 
 
 import cgi
-for_test()
+#for_test()
 
 form = cgi.FieldStorage()
 cmd = form.getvalue('cmd', general.rootB_id)
@@ -65,8 +65,11 @@ try:
   with t.Tree(treename) as tree:
     if cmd == "load_subbs":
       print(json.dumps(getList_subbsOf(tree.getB(id))))
-    if cmd == "load_text":
+    if cmd == "load_data":
       print(tree.getB(id).text)
+    if cmd == "save_data":
+      data = form.getvalue('data', "")
+      tree.getB(id).text = data
 except b.BranchException:  
   print("Error: BranchException has occured")
 except t.TreeException:  

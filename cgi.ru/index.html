@@ -1,40 +1,59 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <script src="libs/jquery-1.11.1.min.js"></script>
+    <script src="libs/jstree/jstree.min.js"></script>
+    <link rel="stylesheet" href="libs/jstree/themes/default/style.min.css" />
+  </head>
+
+  <body>
+    <div id="tree"></div>
+    <textarea id="data">None</textarea>
+
+    <script>
+    $(function() {
+      $('#tree').jstree({
+        'core' : {
+          'data' : {
+            "url" : "/cgi-bin/treemind.py?cmd=load_subbs&id=",
+            "data" : function (node) {
+                if( node.id == '#' ){
+                  return { "id" : 1 };
+                } else {
+                  return { "id" : node.id };
+                }
+              },
+            "dataType" : "json"
+          }
+        }
+      });
 
 
-<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+      $('#tree').on("changed.jstree", function (e, data) {
+        $.get("/cgi-bin/treemind.py?cmd=load_data&id=" + data.selected, function(data) {
+          $('#data').val(data)
+        });
+        $('#data').attr("id_intree", data.selected)
+      });
 
-<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/jstree/3.0.4/themes/default/style.min.css" />
-<script src="http://cdnjs.cloudflare.com/ajax/libs/jstree/3.0.4/jstree.min.js"></script>
 
+      $('#tree').jstree(true).select_node('2');
 
+      $("#data")
+        /*
+        .focus(function(){
+          console.log($(this).attr("id_intree"))
+        })
+        */
+        // save data after editting
+        .blur(function(){
+          $.post("/cgi-bin/treemind.py", { cmd : "save_data", id : $(this).attr("id_intree"), data : $(this).val() })
+          console.log($(this).attr("id_intree"))
+        });
 
-<div id="container"></div>
-
-<div id="text">None</div>
-<script>
-$(function() {
-  $('#container').jstree({
-    'core' : {
-      'data' : {
-        "url" : "/cgi-bin/treemind.py?cmd=load_subbs&id=",
-        "data" : function (node) {
-            console.log(node.id)
-            if( node.id == '#' ){
-              return { "id" : 1 };
-            } else {
-              return { "id" : node.id };
-            }
-          },
-        "dataType" : "json"
-      }
-    }
-  });
-
-  $('#container').on("changed.jstree", function (e, data) {
-    $.get("/cgi-bin/treemind.py?cmd=load_text&id=" + data.selected, function(data) {
-      document.getElementById("text").innerHTML=data;
     });
-  });
-});
 
-</script>
-
+    </script>
+  </body>
+</html>
