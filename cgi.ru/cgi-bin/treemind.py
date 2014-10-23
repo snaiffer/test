@@ -54,7 +54,7 @@ def getList_subbsOf(branch):
 
 
 import cgi
-#for_test()
+for_test()
 
 form = cgi.FieldStorage()
 cmd = form.getvalue('cmd', general.rootB_id)
@@ -74,6 +74,9 @@ try:
       parent_id = form.getvalue('parent_id', general.rootB_id)
       parentB = tree.getB(parent_id)
       print(str( parentB.insertB().id ))
+    if cmd == "delete_node":
+      branch = tree.getB(id)
+      branch.remove()
     if cmd == "rename_node":
       caption = form.getvalue('caption', "")
       tree.getB(id).caption = caption
