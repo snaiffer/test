@@ -62,7 +62,7 @@ class Tree():
         self.insertB({'parent_id' : None, 'text' : 'root', 'main' : True})
 
 
-  def insertB(self, kwargs):
+  def insertB(self, kwargs = {} ):
     """ 
     Insert a new branch 
     Return the new branch in case of success

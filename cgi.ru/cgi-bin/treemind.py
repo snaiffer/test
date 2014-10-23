@@ -70,6 +70,13 @@ try:
     if cmd == "save_data":
       data = form.getvalue('data', "")
       tree.getB(id).text = data
+    if cmd == "create_node":
+      parent_id = form.getvalue('parent_id', general.rootB_id)
+      parentB = tree.getB(parent_id)
+      print(str( parentB.insertB().id ))
+    if cmd == "rename_node":
+      caption = form.getvalue('caption', "")
+      tree.getB(id).caption = caption
 except b.BranchException:  
   print("Error: BranchException has occured")
 except t.TreeException:  

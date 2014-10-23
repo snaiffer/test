@@ -63,6 +63,11 @@ class Branch():
     """ remove the current branch """
     self.hostTree.removeB(self.id)
 
+  def insertB(self, kwargs = {} ):
+    """ Insert a new branch as subbranch for current one """
+    kwargs['parent_id'] = self.id
+    return self.hostTree.insertB(kwargs)
+
 
 class BranchException(Exception):
   def __init__(self, err=None, connection=None):
@@ -99,6 +104,9 @@ if __name__ == '__main__':
       b2 = t.insertB({'parent_id' : general.rootB_id, 'text' : 'branch2'})
       b11 = t.insertB({'parent_id' : b1.id, 'text' : 'branch11'})
       b12 = t.insertB({'parent_id' : b1.id, 'text' : 'branch12'})
+      b21 = b2.insertB({'text' : 'branch21',})
+      b22 = b2.insertB({'text' : 'branch22',})
+      b23 = b2.insertB()
 
       # get branch
       rootb = t.getB_root()
