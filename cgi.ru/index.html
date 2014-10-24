@@ -5,12 +5,21 @@
     <script src="libs/jquery-1.11.1.min.js"></script>
     <script src="libs/jstree/jstree.min.js"></script>
     <link rel="stylesheet" href="libs/jstree/themes/default/style.min.css" />
+    <link rel="stylesheet" href="main.css">
   </head>
 
   <body>
-    <div id="tree"></div>
-    <textarea id="data">None</textarea>
-    <p id="test"> test </p>
+    <div id="wrapper">
+      <div id="first">
+        <div id="tree"></div>
+      </div>
+      <div id="second">
+        <textarea id="data">None</textarea>
+        <!--<p id="test"> test </p>-->
+      </div>
+    </div>
+
+
 
     <script>
     $(function() {
@@ -41,11 +50,14 @@
         });
 
       $('#tree').on("create_node.jstree", function (e, data) {
-        console.log(data.parent)
-        // There is some bugs here
         $.get("/cgi-bin/treemind.py?cmd=" + "create_node&parent_id=" + data.parent, function(id) {
           data.node.id = id
+          $("#tree").jstree().load_node(data.parent) //we changed id so we need reload this node
         })
+      });
+
+      $('#tree').on("delete_node.jstree", function (e, data) {
+        $.get("/cgi-bin/treemind.py?cmd=delete_node&id=" + data.node.id)
       });
 
       $('#tree').on("rename_node.jstree", function (e, data) {
@@ -66,6 +78,10 @@
         .blur(function(){
           $.post("/cgi-bin/treemind.py", { cmd : "save_data", id : $(this).attr("id_intree"), data : $(this).val() })
         });
+
+      $("#test").click(function() {
+        $("#tree").jstree().load_node(2)
+      })  
 
     });
 
