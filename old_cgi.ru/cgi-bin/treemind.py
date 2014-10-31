@@ -1,10 +1,10 @@
 #!/usr/bin/env python3.2
 
-treename = "test" #
+treename = "treemind2" #
 
 import general
 import forest as f
-import tree
+import tree as t
 import branch as b
 
 import json
@@ -17,26 +17,8 @@ def for_test():
   except f.ForestException:
     print("Error: ForestException has occured")
 
-  with Tree(treename) as curtree:
-    rootb = curtree.getB_root()
-
-    # create branches for test
-    b1 = Branch(caption="branch1", parent=rootb)
-    b2 = Branch(caption="branch2", parent=rootb)
-    b11 = Branch(caption="branch11", parent=b1)
-    b12 = Branch(caption="branch12", parent=b1)
-
-    b21 = Branch(caption="branch21")
-    b2.add_subb(b21)
-
-    b22 = Branch(caption="branch22")
-    b23 = Branch(caption="branch23")
-    b2.add_subbs([b22, b23])
-
-    curtree.add(rootb)
-  """  
   try:
-    with tree.Tree(treename) as tree:
+    with t.Tree(treename) as tree:
       b1 = tree.insertB({'parent_id' : general.rootB_id, 'text' : 'branch1', 'folded' : False})
       b2 = tree.insertB({'parent_id' : general.rootB_id, 'text' : 'branch2'})
       b11 = tree.insertB({'parent_id' : b1.id, 'text' : 'branch11'})
@@ -44,9 +26,8 @@ def for_test():
       b121 = tree.insertB({'parent_id' : b12.id, 'text' : 'branch121'})
       b122 = tree.insertB({'parent_id' : b12.id, 'text' : 'branch122'})
       b123 = tree.insertB({'parent_id' : b12.id, 'text' : 'branch123'})
-  except tree.TreeException:  
+  except t.TreeException:  
     print("Error: TreeException has occured")
-  """  
 
 def getList_subbsOf(branch):
   """ getList of subbranches of "branch" in format for jstree """
@@ -73,32 +54,31 @@ def getList_subbsOf(branch):
 
 
 import cgi
-for_test()
+#for_test()
 
 form = cgi.FieldStorage()
 cmd = form.getvalue('cmd', general.rootB_id)
 id = form.getvalue('id', general.rootB_id)
 
 print("Content-Type: text/html\n") 
-with tree.Tree(treename) as curtree:
-  if cmd == "load_subbs":
-    print(json.dumps(getList_subbsOf(curtree.getB(id))))
-  if cmd == "load_data":
-    print(curtree.getB(id).text)
-  if cmd == "save_data":
-    data = form.getvalue('data', "")
-    curtree.getB(id).text = data
-  if cmd == "create_node":
-    parent_id = form.getvalue('parent_id', general.rootB_id)
-    parentB = curtree.getB(parent_id)
-    newB = tree.Branch()
-    parentB.add_subb(newB)
-    curtree.add(parentB)
-    print(str( newB.id ))
-  if cmd == "delete_node":
-    branch = curtree.getB(id)
-    curtree.remove(branch)
-  if cmd == "rename_node":
-    caption = form.getvalue('caption', "")
-    curtree.getB(id).caption = caption
+try:
+  with t.Tree(treename) as tree:
+    if cmd == "load_subbs":
+      print(json.dumps(getList_subbsOf(tree.getB(id))))
+    if cmd == "load_data":
+      print(tree.getB(id).text)
+    if cmd == "save_data":
+      data = form.getvalue('data', "")
+      tree.getB(id).text = data
+    if cmd == "create_node":
+      parent_id = form.getvalue('parent_id', general.rootB_id)
+      parentB = tree.getB(parent_id)
+      print(str( parentB.insertB().id ))
+    if cmd == "rename_node":
+      caption = form.getvalue('caption', "")
+      tree.getB(id).caption = caption
+except b.BranchException:  
+  print("Error: BranchException has occured")
+except t.TreeException:  
+  print("Error: TreeException has occured")
 

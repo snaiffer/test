@@ -1,186 +1,100 @@
 #!/usr/bin/env python3.2
 
+from sqlalchemy import *
+from sqlalchemy.orm import *
+from sqlalchemy.orm.collections import attribute_mapped_collection
+from sqlalchemy.ext.declarative import declarative_base
 import general
-import psycopg2
-import psycopg2.extras
 
-import branch
+Base = declarative_base()
 
 class Tree():
-  def __init__(self, treename):
-    self.conn = None
-    if not general.checkout(treename):
-      raise BadName
-    self.__treename = treename
-    self._estable_con()
-    self.branchesFields = ("id", "caption", "text", "main", "folded", "subbs_id", "parent_id")
-
-  def __del__(self):
-    self.close_con()
+  def __init__(self, name, session = None):
+    self.name = name
+    self.session = session
 
   def __enter__(self, *args):
+    if self.session:
+      return self.session
+    engine = create_engine(
+        str(general.dbtype) + "://" + 
+        str(general.dbuser_login) + ":" + 
+        str(general.dbuser_passwd) + "@" + 
+        str(general.dbaddr) + "/" + 
+        self.name)
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+    self.session = Session()
     return self
 
   def __exit__(self, *args):
-    self.close_con()
-
-  def _estable_con(self):
-    """ Establish a connection to the db """
-    try:
-      self.conn = psycopg2.connect(
-          "dbname = '"    + str(self.__treename) +
-          "' user='"      + str(general.dbuser_login) +
-          "' password='"  + str(general.dbuser_passwd) +
-          "'")
-    except psycopg2.Error as e:
-      raise dbConnectProblem(e)
-
-  def close_con(self):  
-    """ Close the connection to the db """
-    if self.conn != None:
-      self.conn.close()
-      self.conn = None
+    self.session.commit()
+    self.session.close()
 
   def init(self):
-    """ Initialize tables and create root branch in the new tree """
-    with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-      """ Create tables """
-      try:
-        cur.execute("CREATE TABLE branches (\
-            id serial PRIMARY KEY, \
-            caption text default 'New branch', \
-            text text default 'New branch', \
-            main bool default False, \
-            folded bool default False, \
-            subbs_id int[] default '{}', \
-            parent_id int default 1);")
-        self.conn.commit()
-      except psycopg2.Error as e:
-        raise CantExecuteQ(e, self.conn)
-      else:
-        """ Create rootBranch """
-        self.insertB({'parent_id' : None, 'text' : 'root', 'main' : True})
+    rootb = Branch(caption = "root", text = "root", main = True)
+    self.session.add(rootb)
 
+  def add(self, branch):
+    self.session.add(branch)
+    self.session.commit()
 
-  def insertB(self, kwargs = {} ):
-    """ 
-    Insert a new branch 
-    Return the new branch in case of success
-    """
-    with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-      try:
-        """ create an empty branch """
-        cur.execute("INSERT INTO branches DEFAULT VALUES RETURNING id")
-        b_id = cur.fetchone()['id']
-        self.conn.commit()
-        newB = self.getB(b_id)
-      except psycopg2.Error as e:
-        raise CantExecuteQ(e, self.conn)
-      else:
-        try:
-          """ fill in the new branch """
-          for key in kwargs :
-            newB.__setattr__(key, kwargs[key])
-
-          if newB.parent_id != None:
-            """ couple the new branch to the tree """
-            parentB = self.getB(newB.parent_id)
-            parentB.subbs_id = parentB.subbs_id + [newB.id]
-
-          return newB  
-        except:
-          self.removeB(newB.id)
-          raise CantExecuteQ()
-
-  def removeB(self, b_id):
-    """ remove the branch with "b_id" id """
-
-    branch = self.getB(b_id)
-    """ remove subbranches """
-    for curB_id in branch.subbs_id:
-      self.removeB(curB_id)
-
-    """ remove id of the branch from parent """
-    b_subbs_id = self.getB(branch.parent_id).subbs_id
-    b_subbs_id.remove(branch.id)
-    self.getB(branch.parent_id).subbs_id = b_subbs_id
-
-    """ remove the record """
-    with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-      try:
-        cur.execute("DELETE FROM branches WHERE id = %s", (branch.id,) )
-        self.conn.commit()
-      except psycopg2.Error as e:
-        raise CantExecuteQ(e, self.conn)
-
-  def _isExist_b(self, id):  
-    """ 
-    find out if the branch with such id is exist. 
-    Return "True" of "False". In case of multi the same ids it'll raise idNotUnique
-    """
-    with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-      try:
-        cur.execute("SELECT id FROM branches WHERE id = %s", (id,) )
-        self.conn.commit()
-      except psycopg2.Error as e:
-        raise CantExecuteQ(e, self.conn)
-      else:
-        rows_len = len(cur.fetchall())
-        if rows_len == 0:
-          return False
-        elif rows_len == 1:
-          return True
-        else:
-          raise idNotUnique
+  def remove(self, branch):
+    self.session.delete(branch)
+    self.session.commit()
+    
+  def getB(self, id):  
+    return self.session.query(Branch).filter_by(id=id).scalar()
 
   def getB_root(self):
-    """ return Branch() of root if it's exist otherwise raise branchNotExist """
     return self.getB(general.rootB_id)
 
-  def getB(self, id = general.rootB_id):
-    """ return Branch() with the "id" if it's exist otherwise raise branchNotExist """
-    if self._isExist_b(id):
-      return branch.Branch(self, id)
-    raise branchNotExist
 
+class Branch(Base):
+  __tablename__ = 'branches'
+  id = Column(Integer, primary_key=True)
+  caption = Column(String, default='New branch')
+  text = Column(String, default='New branch')
+  main = Column(Boolean, default='False')
+  folded = Column(Boolean, default='False')
+  parent_id = Column(Integer, ForeignKey(id))
+  subbs = relationship('Branch',
+    # cascade deletions
+    cascade="all, delete-orphan",
 
-class TreeException(Exception):
-  def __init__(self, err=None, connection=None):
-    if hasattr(connection, 'rollback') and connection != None:
-      connection.rollback()
-    if hasattr(err, 'pgerror') and err.pgerror != None:
-      print(str(err.pgerror))
-  def _output(self, msg):    
-    print(str(msg))
+    # many to one + adjacency list - remote_side
+    # is required to reference the 'remote' 
+    # column in the join condition.
+    backref=backref("parent", remote_side=id),
+    )
 
-class dbConnectProblem(TreeException):
-  def __init__(self, err=None, connection=None):
-    TreeException.__init__(self, err, connection)
-    self._output("Error: can't connect to the database!")
+  def __init__(self, caption='New branch', text='New branch', main=False, folded=False, parent=None, parent_id=None):
+    self.caption = caption
+    self.text = text
+    self.main = main
+    self.folded = folded
+    self.parent = parent
+    self.parent_id = parent_id
 
-class CantExecuteQ(TreeException):
-  def __init__(self, err=None, connection=None):
-    TreeException.__init__(self, err, connection)
-    self._output("Error: can't execute the query!")
+  def add_subb(self, branch):
+    """ Add a new subbranch """
+    branch.parent = self
 
-class BadName(TreeException):
-  def __init__(self, err=None, connection=None):
-    TreeException.__init__(self, err, connection)
-    self._output("Error: bad name!")
+  def add_subbs(self, branches):
+    """ Add a new subbranches """
+    for curb in branches:
+      curb.parent = self
 
-class idnotunique(TreeException):
-  def __init__(self, err=None, connection=None):
-    TreeException.__init__(self, err, connection)
-    self._output("Error: id isn't unique!")
+  def __repr__(self):
+    return self.caption
 
-class branchNotExist(TreeException):
-  def __init__(self, err=None, connection=None):
-    TreeException.__init__(self, err, connection)
-    self._output("Error: branch isn't exist!")
+  def __str__(self):
+    return self.caption
+
 
 
 if __name__ == '__main__':
-  treename = "treemind2"
+  treename = "test"
 
   # cleaning
   import forest
@@ -193,27 +107,47 @@ if __name__ == '__main__':
 
   print("Test:")
   try:
-    with Tree(treename) as tree:
-      b1 = tree.insertB({'parent_id' : general.rootB_id, 'text' : 'branch1'})
-      b2 = tree.insertB({'parent_id' : general.rootB_id, 'text' : 'branch2'})
-      b11 = tree.insertB({'parent_id' : b1.id, 'text' : 'branch11'})
-      b12 = tree.insertB({'parent_id' : b1.id, 'text' : 'branch12'})
+    with Tree(treename) as curtree:
+      rootb = curtree.getB_root()
 
-      if not tree._isExist_b(1):
-        print("FAILD")
-      if tree._isExist_b(1000):
-        print("FAILD")
-      
-      rootb = tree.getB_root()
-      b1 = tree.getB(2)
+      # create branches for test
+      b1 = Branch(caption="branch1", parent=rootb)
+      b2 = Branch(caption="branch2", parent=rootb)
+      b11 = Branch(caption="branch11", parent=b1)
+      b12 = Branch(caption="branch12", parent=b1)
 
-      tree.removeB(2)
-      if tree.getB_root().subbs_id != [3,]:
-        print("FAILD")
+      b21 = Branch(caption="branch21")
+      b2.add_subb(b21)
 
-  except TreeException:  
-    print("Error: TreeException has occured")
+      b22 = Branch(caption="branch22")
+      b23 = Branch(caption="branch23")
+      b2.add_subbs([b22, b23])
+
+      curtree.add(rootb)
+
+      # get branch
+      rootb = curtree.getB_root()
+      b1 = curtree.getB(2)
+
+      # get fields
+      b1.id
+      b1.caption
+      b1.text
+      b1.main
+      b1.folded
+      b1.subbs
+      b12 = curtree.getB(b1.subbs[0].id)
+      b1.parent
+      for curB in b1.subbs:
+        curB.caption
+
+      # changing
+      b1.text = "TEST"
+      curtree.remove(b1)
+      #curtree.remove(b2)
+  except:
     print("FAILD")
   else:
     print("OK")
+
 

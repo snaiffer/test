@@ -6,8 +6,6 @@ import re
 MAX_captionLen = 29 #30
 rootB_id = 1
 
-dbtype = "postgresql"
-dbaddr = "localhost"
 
 dbadmin_db      = "postgres"
 dbadmin_login   = "postgres"

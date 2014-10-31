@@ -123,7 +123,7 @@ class dbAlreadyExist(ForestException):
 
 
 if __name__ == '__main__':
-  treename = "test"
+  treename = "treemind2"
 
   print("Tests:")
   try:
