@@ -3,18 +3,17 @@
 treename = "test" #
 
 import general
-import forest as f
-import tree
-import branch as b
+from forest import Forest
+from tree import Tree, Branch
 
 import json
 
 def for_test():
   try:
-    with f.Forest() as forest:
+    with Forest() as forest:
       forest.removeTree(treename)
       forest.plantTree(treename)
-  except f.ForestException:
+  except ForestException:
     print("Error: ForestException has occured")
 
   with Tree(treename) as curtree:
@@ -54,7 +53,7 @@ def getList_subbsOf(branch):
     dict = {}
     dict['id'] = branch.id
     dict['text'] = branch.caption
-    if branch.subbs_id != [] :
+    if branch.subbs != [] :
       dict['state'] = {}
       dict['state']['opened'] = branch.folded ^ True
       if dict['state']['opened'] == True:
@@ -66,21 +65,21 @@ def getList_subbsOf(branch):
     return dict  
 
   list = []
-  if branch.subbs_id != [] :
+  if branch.subbs != [] :
     for cur_subb in branch.subbs:
       list.append(getDict(cur_subb))
   return list    
 
 
 import cgi
-for_test()
+#for_test()
 
 form = cgi.FieldStorage()
 cmd = form.getvalue('cmd', general.rootB_id)
 id = form.getvalue('id', general.rootB_id)
 
 print("Content-Type: text/html\n") 
-with tree.Tree(treename) as curtree:
+with Tree(treename) as curtree:
   if cmd == "load_subbs":
     print(json.dumps(getList_subbsOf(curtree.getB(id))))
   if cmd == "load_data":
@@ -91,7 +90,7 @@ with tree.Tree(treename) as curtree:
   if cmd == "create_node":
     parent_id = form.getvalue('parent_id', general.rootB_id)
     parentB = curtree.getB(parent_id)
-    newB = tree.Branch()
+    newB = Branch()
     parentB.add_subb(newB)
     curtree.add(parentB)
     print(str( newB.id ))
