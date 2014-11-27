@@ -51,8 +51,8 @@
 
       $('#tree').on("create_node.jstree", function (e, data) {
         $.get("/cgi-bin/treemind.py?cmd=" + "create_node&parent_id=" + data.parent, function(id) {
-          data.node.id = id
-          $("#tree").jstree().load_node(data.parent) //we changed id so we need reload this node
+          id = Number(id);
+          $("#tree").jstree().set_id(data.node, id);
         })
       });
 
@@ -81,7 +81,7 @@
 
       $("#test").click(function() {
         $("#tree").jstree().load_node(2)
-      })  
+      });
 
     });
 
