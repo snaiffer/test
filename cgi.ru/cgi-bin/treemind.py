@@ -62,42 +62,45 @@ def getList_subbsOf(branch):
           dict['children'].append(getDict(cur_subb))
       else:
         dict['children'] = True
-    return dict  
+    return dict
 
   list = []
   if branch.subbs != [] :
     for cur_subb in branch.subbs:
       list.append(getDict(cur_subb))
-  return list    
+  return list
 
 
 import cgi
 #for_test()
 
 form = cgi.FieldStorage()
-cmd = form.getvalue('cmd', general.rootB_id)
+cmd = form.getvalue('cmd', "")
 id = form.getvalue('id', general.rootB_id)
 
 print("Content-Type: text/html\n") 
-with Tree(treename) as curtree:
-  if cmd == "load_subbs":
-    print(json.dumps(getList_subbsOf(curtree.getB(id))))
-  if cmd == "load_data":
-    print(curtree.getB(id).text)
-  if cmd == "save_data":
-    data = form.getvalue('data', "")
-    curtree.getB(id).text = data
-  if cmd == "create_node":
-    parent_id = form.getvalue('parent_id', general.rootB_id)
-    parentB = curtree.getB(parent_id)
-    newB = Branch()
-    parentB.add_subb(newB)
-    curtree.add(parentB)
-    print(str( newB.id ))
-  if cmd == "delete_node":
-    branch = curtree.getB(id)
-    curtree.remove(branch)
-  if cmd == "rename_node":
-    caption = form.getvalue('caption', "")
-    curtree.getB(id).caption = caption
-
+if cmd != "" :
+  with Tree(treename) as curtree:
+    if cmd == "load_subbs":
+      print(json.dumps(getList_subbsOf(curtree.getB(id))))
+    if cmd == "load_data":
+      print(curtree.getB(id).text)
+    if cmd == "save_data":
+      data = form.getvalue('data', "")
+      curtree.getB(id).text = data
+    if cmd == "create_node":
+      parent_id = form.getvalue('parent_id', general.rootB_id)
+      parentB = curtree.getB(parent_id)
+      newB = Branch()
+      parentB.add_subb(newB)
+      curtree.add(parentB)
+      print(str( newB.id ))
+    if cmd == "delete_node":
+      branch = curtree.getB(id)
+      curtree.remove(branch)
+    if cmd == "rename_node":
+      caption = form.getvalue('caption', "")
+      curtree.getB(id).caption = caption
+    if cmd == "move_node":
+      new_parent_id = form.getvalue('new_parent', general.rootB_id)
+      curtree.getB(id).parent_id = new_parent_id

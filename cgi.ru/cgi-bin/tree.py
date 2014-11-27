@@ -145,6 +145,11 @@ if __name__ == '__main__':
       b1.text = "TEST"
       curtree.remove(b1)
       #curtree.remove(b2)
+
+      # moving
+      b23.parent_id = rootb.id
+      if b23.parent_id != rootb.id:
+        raise "Moving problem" 
   except:
     print("FAILD")
   else:

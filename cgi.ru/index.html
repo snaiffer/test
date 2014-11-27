@@ -73,6 +73,11 @@
         }
       });
 
+      $('#tree').on("move_node.jstree", function (e, data) {
+        $.get("/cgi-bin/treemind.py?cmd=move_node&id=" + data.node.id +
+          "&new_parent=" + data.parent)
+      });
+
       $("#data")
         // save data after editting
         .blur(function(){
