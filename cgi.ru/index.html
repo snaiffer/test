@@ -3,25 +3,30 @@
 <html>
   <head>
     <script src="libs/jquery-1.11.1.min.js"></script>
+
     <script src="libs/jstree/jstree.min.js"></script>
     <link rel="stylesheet" href="libs/jstree/themes/default/style.min.css" />
-    <link rel="stylesheet" href="main.css">
+
+    <script src="libs/splitter/jquery.splitter-0.14.0.js"></script>
+    <link rel="stylesheet" href="libs/splitter/themes/default/jquery.splitter.css" />
   </head>
 
   <body>
     <div id="wrapper">
-      <div id="first">
+      <div id="left_field">
         <div id="tree"></div>
       </div>
-      <div id="second">
+      <div id="right_field">
         <textarea id="data">None</textarea>
         <!--<p id="test"> test </p>-->
       </div>
     </div>
 
-
-
     <script>
+    jQuery(function($) {
+      $('#wrapper').width($(document).width()).height($(document).height()).split({orientation:'vertical', limit:100, position:'38%'});
+    });
+
     $(function() {
       $('#tree')
         // invoked after jstree has loaded
