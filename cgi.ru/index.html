@@ -79,8 +79,12 @@
       });
 
       $('#tree').on("move_node.jstree", function (e, data) {
+        console.log(data.position)
+
         $.get("/cgi-bin/treemind.py?cmd=move_node&id=" + data.node.id +
-          "&new_parent=" + data.parent)
+          "&new_parent=" + data.parent +
+          "&position=" + data.position
+          )
       });
 
       $("#data")

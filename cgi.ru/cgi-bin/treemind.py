@@ -90,5 +90,7 @@ if cmd != "" :
       caption = form.getvalue('caption', "")
       curtree.getB(id).caption = caption
     if cmd == "move_node":
+      b = curtree.getB(id)
       new_parent_id = form.getvalue('new_parent', general.rootB_id)
-      curtree.getB(id).parent_id = new_parent_id
+      position = int(form.getvalue('position', -1))
+      curtree.moveB(b, new_parent_id, position)

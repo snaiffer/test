@@ -68,6 +68,11 @@ class Tree():
       if pos > 0:
         leftNeighB = self.session.query(Branch).filter_by(parent_id = branch.parent_id).order_by('orderb').offset(pos-1).limit(1).first()
         leftNeigh = leftNeighB.orderb
+        # if the branch is moved down we have to increment pos (to ommit the branch)
+        if leftNeigh >= branch.orderb :
+          pos += 1
+          leftNeighB = self.session.query(Branch).filter_by(parent_id = branch.parent_id).order_by('orderb').offset(pos-1).limit(1).first()
+          leftNeigh = leftNeighB.orderb
       rightNeighB = self.session.query(Branch).filter_by(parent_id = branch.parent_id).order_by('orderb').offset(pos).limit(1).first()
       rightNeigh = rightNeighB.orderb
       addit = (rightNeigh - leftNeigh) / 2
@@ -201,6 +206,13 @@ if __name__ == '__main__':
         raise BaseException("Moving problem")
       curtree.moveB(b23)
       if b23.orderb != (7 * general.orderb_step):
+        raise BaseException("Moving problem")
+
+      b31 = Branch(tree=curtree, caption="branch31", parent=b3)
+      b32 = Branch(tree=curtree, caption="branch32", parent=b3)
+      b33 = Branch(tree=curtree, caption="branch33", parent=b3)
+      curtree.moveB(b31, pos = 1)
+      if b31.orderb != (2.5 * general.orderb_step):
         raise BaseException("Moving problem")
 
       # get branch
