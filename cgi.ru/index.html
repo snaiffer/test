@@ -4,11 +4,13 @@
   <head>
     <script src="libs/jquery-1.11.1.min.js"></script>
 
-    <script src="libs/jstree/jstree.min.js"></script>
-    <link rel="stylesheet" href="libs/jstree/themes/default/style.min.css" />
+    <script src="libs/jstree/jstree.js"></script>
+    <link rel="stylesheet" href="libs/jstree/themes/default/style.css" />
 
     <script src="libs/splitter/jquery.splitter-0.14.0.js"></script>
     <link rel="stylesheet" href="libs/splitter/themes/default/jquery.splitter.css" />
+
+    <script src="libs/ckeditor/ckeditor.js"></script>
   </head>
 
   <body>
@@ -19,6 +21,9 @@
       <div id="right_field">
         <textarea id="data">None</textarea>
         <!--<p id="test"> test </p>-->
+        <div id="nestedocs"></div>
+    <div contenteditable="true">div_1</div>
+
       </div>
     </div>
 
@@ -28,6 +33,25 @@
     });
 
     $(function() {
+      $('#nestedocs').jstree({
+        'core' : {
+          'data' : [
+            { "text" : "Root node", "children" : [
+                { "text" : "Child node 1" },
+                { "text" : "Child node 2" }
+            ]},
+            { "text" : "Root node", "children" : [
+                { "text" : "Child node 1" },
+                { "text" : "Child node 2" }
+            ]}
+          ],
+        },
+        "plugins" : ["wholerow", "contextmenu", "dnd", "search", "ckeditor_support" ],
+        "dnd" : {
+          "is_draggable" : true
+        }
+      });
+
       $('#tree')
         // invoked after jstree has loaded
         .bind('loaded.jstree', function(e, data) {
@@ -52,50 +76,44 @@
           "dnd" : {
             "is_draggable" : true
           }
-        });
-
-      $('#tree').on("create_node.jstree", function (e, data) {
-        $.get("/cgi-bin/treemind.py?cmd=" + "create_node&parent_id=" + data.parent, function(id) {
-          id = Number(id);
-          $("#tree").jstree().set_id(data.node, id);
         })
-      });
+        .on("create_node.jstree", function (e, data) {
+          $.get("/cgi-bin/treemind.py?cmd=" + "create_node&parent_id=" + data.parent, function(id) {
+            id = Number(id);
+            $("#tree").jstree().set_id(data.node, id);
+          })
+        })
+        .on("delete_node.jstree", function (e, data) {
+          $.get("/cgi-bin/treemind.py?cmd=delete_node&id=" + data.node.id)
+        })
+        .on("rename_node.jstree", function (e, data) {
+          $.post("/cgi-bin/treemind.py", { cmd : "rename_node", id : data.node.id, caption : data.text })
+        })
+        .on("changed.jstree", function (e, data) {
+          if (data.selected.length == 1) {
+            $.get("/cgi-bin/treemind.py?cmd=load_data&id=" + data.selected, function(data) {
+              $('#data').val(data)
+            });
+            $('#data').attr("id_intree", data.selected)
+          }
+        })
+        .on("move_node.jstree", function (e, data) {
+          console.log(data.position)
 
-      $('#tree').on("delete_node.jstree", function (e, data) {
-        $.get("/cgi-bin/treemind.py?cmd=delete_node&id=" + data.node.id)
-      });
-
-      $('#tree').on("rename_node.jstree", function (e, data) {
-        $.post("/cgi-bin/treemind.py", { cmd : "rename_node", id : data.node.id, caption : data.text })
-      });
-
-      $('#tree').on("changed.jstree", function (e, data) {
-        if (data.selected.length == 1) {
-          $.get("/cgi-bin/treemind.py?cmd=load_data&id=" + data.selected, function(data) {
-            $('#data').val(data)
-          });
-          $('#data').attr("id_intree", data.selected)
-        }
-      });
-
-      $('#tree').on("move_node.jstree", function (e, data) {
-        console.log(data.position)
-
-        $.get("/cgi-bin/treemind.py?cmd=move_node&id=" + data.node.id +
-          "&new_parent=" + data.parent +
-          "&position=" + data.position
-          )
-      });
+          $.get("/cgi-bin/treemind.py?cmd=move_node&id=" + data.node.id +
+            "&new_parent=" + data.parent +
+            "&position=" + data.position
+            )
+        })
+        .click(function() {
+          $("#tree").jstree().load_node(2)
+        });
 
       $("#data")
         // save data after editting
         .blur(function(){
           $.post("/cgi-bin/treemind.py", { cmd : "save_data", id : $(this).attr("id_intree"), data : $(this).val() })
         });
-
-      $("#test").click(function() {
-        $("#tree").jstree().load_node(2)
-      });
 
     });
 

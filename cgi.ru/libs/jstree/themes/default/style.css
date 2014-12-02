@@ -12,7 +12,7 @@
   white-space: nowrap;
 }
 .jstree-anchor {
-  display: inline-block;
+  /*display: inline-block;*/
   color: black;
   white-space: nowrap;
   padding: 0 4px 0 1px;
@@ -1047,4 +1047,16 @@
     margin-left: 0;
     margin-right: 0;
   }
+}
+
+.jstree-editable {
+  display: inline-block;
+  width: 90%;
+  border: groove 2px transparent;
+  padding: 10px;
+  border-radius: 10px;
+  background: linear-gradient(#ECECEB, white);
+}
+.jstree-editable:hover {
+  border-color: orange;
 }
