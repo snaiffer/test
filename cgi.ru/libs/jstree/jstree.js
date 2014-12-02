@@ -7080,6 +7080,9 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
           var id = this.id;
           $("#" + id).focus();
         })
+        .on('contextmenu', function(e) {
+          return false;
+        })
         .on('blur', function (e) {
           // save text to DB
           var data = {

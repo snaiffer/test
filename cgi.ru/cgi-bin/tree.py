@@ -186,13 +186,13 @@ if __name__ == '__main__':
 
       # create branches for test
       b1 = Branch(tree=curtree, caption="branch1", parent=rootb)
-      b2 = Branch(tree=curtree, caption="branch2", parent=rootb)
-      b3 = Branch(tree=curtree, caption="branch3", parent=rootb)
+      b2 = Branch(tree=curtree, caption="branch2", main=True, parent=rootb)
+      b3 = Branch(tree=curtree, caption="branch3", main=True, parent=rootb)
       b11 = Branch(tree=curtree, caption="branch11", parent=b1)
       b12 = Branch(tree=curtree, caption="branch12", parent=b1)
 
       # moving
-      b21 = Branch(tree=curtree, caption="branch21")
+      b21 = Branch(tree=curtree, caption="branch21", main=True)
       curtree.moveB(b2, b21.id)
 
       b22 = Branch(tree=curtree, caption="branch22")
