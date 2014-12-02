@@ -21,6 +21,8 @@ dbadmin_passwd  = "123456"
 dbuser_login   = "postgres"
 dbuser_passwd  = "123456"
 
+testdb = "test"
+
 def checkout(text):
   """ Checkout if "text" consist of alphabets and numbers otherwise """
   if text == re.sub("[^a-zA-Z0-9]", "", text) :
@@ -29,12 +31,17 @@ def checkout(text):
 
 
 if __name__ == '__main__':
+  print("Settings:")
+  print("========================================")
   print("MAX_captionLen = " + str(MAX_captionLen))
   print("rootB_id = " + str(rootB_id))
   print()
   print("orderb_step = " + str(orderb_step))
   print("orderb_MIN = " + str(orderb_MIN))
   print("orderb_MAX = " + str(orderb_MAX))
+  print()
+  print("testdb = " + str(testdb))
+  print("========================================")
 
   print("\nTests:")
   if checkout("asdf893") and checkout("345fgfsddf34fd") and not checkout(";sdf()sdf]\[\;/;sd"):

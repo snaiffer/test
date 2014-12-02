@@ -1,6 +1,7 @@
 #!/usr/bin/env python3.2
 
-treename = "test" #
+import general
+treename = general.testdb
 
 import general
 from forest import Forest

@@ -123,14 +123,13 @@ class dbAlreadyExist(ForestException):
 
 
 if __name__ == '__main__':
-  treename = "test"
 
   print("Tests:")
   try:
     with Forest() as forest:
-      forest.removeTree(treename)
-      forest.plantTree(treename)
-      forest.isExist(forest.list().index(treename))
+      forest.removeTree(general.testdb)
+      forest.plantTree(general.testdb)
+      forest.isExist(forest.list().index(general.testdb))
   except ForestException:
     print("Error: ForestException has occured")
     print("FAILD")

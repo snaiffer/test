@@ -169,20 +169,19 @@ class Branch(Base):
 
 
 if __name__ == '__main__':
-  treename = "test"
 
   # cleaning
   import forest
   try:
     with forest.Forest() as f:
-      f.removeTree(treename)
-      f.plantTree(treename)
+      f.removeTree(general.testdb)
+      f.plantTree(general.testdb)
   except forest.ForestException:
     print("Error: ForestException has occured")
 
   print("Test:")
   try:
-    with Tree(treename) as curtree:
+    with Tree(general.testdb) as curtree:
       rootb = curtree.getB_root()
 
       # create branches for test
