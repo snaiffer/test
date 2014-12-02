@@ -17,10 +17,10 @@ class Tree():
     if self.session:
       return self.session
     engine = create_engine(
-        str(general.dbtype) + "://" + 
-        str(general.dbuser_login) + ":" + 
-        str(general.dbuser_passwd) + "@" + 
-        str(general.dbaddr) + "/" + 
+        str(general.dbtype) + "://" +
+        str(general.dbuser_login) + ":" +
+        str(general.dbuser_passwd) + "@" +
+        str(general.dbaddr) + "/" +
         self.name)
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
@@ -32,23 +32,92 @@ class Tree():
     self.session.close()
 
   def init(self):
-    rootb = Branch(caption = "root", text = "root", main = True)
-    self.session.add(rootb)
+    rootb = Branch(tree=self, caption = "root", text = "root", main = True, parent_id = None)
 
-  def add(self, branch):
+  def reindexing_orderb(self, parent_id):
+    """ Reindex orderb column for branches under parent_id """
+    listB = self.session.query(Branch).filter_by(parent_id = parent_id).order_by('orderb').all()
+    cur_orderb = 0
+    for curB in listB:
+      cur_orderb += general.orderb_step
+      if cur_orderb >= general.orderb_MAX :
+        raise NumOforedersIsExpired
+      curB.orderb = cur_orderb
+
+  def moveB(self, branch, parent_id = None, pos = -1):
+    """
+    Move branch to the position of branch under parent_id with id = parent_id
+    parent_id == None   --parent of the branche won't be changed
+    pos >= 0
+    pos == -1  --move branch to the end
+    in other case will be raised "NegativePosition" exception
+    """
+    if parent_id :
+      branch.parent_id = parent_id
+      self.session.commit()
+
+    if pos == -1:
+      lowestb = self.session.query(Branch).filter_by(parent_id = branch.parent_id).order_by(desc('orderb')).first()
+      if lowestb.orderb >= general.orderb_MAX :
+        self.reindexing_orderb(branch.parent_id)
+        self.moveB(branch, parent_id, pos)
+        return
+      branch.orderb = lowestb.orderb + general.orderb_step
+    elif pos >= 0:
+      leftNeigh = 0
+      if pos > 0:
+        leftNeighB = self.session.query(Branch).filter_by(parent_id = branch.parent_id).order_by('orderb').offset(pos-1).limit(1).first()
+        leftNeigh = leftNeighB.orderb
+      rightNeighB = self.session.query(Branch).filter_by(parent_id = branch.parent_id).order_by('orderb').offset(pos).limit(1).first()
+      rightNeigh = rightNeighB.orderb
+      addit = (rightNeigh - leftNeigh) / 2
+      if int(addit) <= 1:
+        self.reindexing_orderb(branch.parent_id)
+        self.moveB(branch, parent_id, pos)
+        return
+      branch.orderb = int(leftNeigh + addit)
+    else:
+      raise NegativePosition(connection=self.session)
+    self.session.commit()
+
+  def _add(self, branch):
     self.session.add(branch)
     self.session.commit()
+    self.moveB(branch, pos = -1)
+
+  def _add_all(self, *branches):
+    for curb in branches:
+      self._add(curb)
 
   def remove(self, branch):
     self.session.delete(branch)
     self.session.commit()
-    
-  def getB(self, id):  
+
+  def getB(self, id):
     return self.session.query(Branch).filter_by(id=id).scalar()
 
   def getB_root(self):
     return self.getB(general.rootB_id)
 
+  def getSubBs(self, branch):
+    return self.session.query(Branch).filter_by(parent_id=branch.id).order_by('orderb').all()
+
+class TreeException(Exception):
+  def __init__(self, connection=None):
+    if hasattr(connection, 'rollback') and connection != None:
+      connection.rollback()
+  def _output(self, msg):
+    print("Tree: " + str(msg))
+
+class NegativePosition(TreeException):
+  def __init__(self, connection=None):
+    TreeException.__init__(self, connection)
+    self._output("Error: the position of the branch can't be negative!")
+
+class NumOforedersIsExpired(TreeException):
+  def __init__(self, connection=None):
+    TreeException.__init__(self, connection)
+    self._output("Error: numbers of orderb is expired!\n  Note: you can decrease general.orderb_step to solve this problem")
 
 class Branch(Base):
   __tablename__ = 'branches'
@@ -58,6 +127,7 @@ class Branch(Base):
   main = Column(Boolean, default='False')
   folded = Column(Boolean, default='False')
   parent_id = Column(Integer, ForeignKey(id))
+  orderb = Column(Integer, index=True, default=0)
   subbs = relationship('Branch',
     # cascade deletions
     cascade="all, delete-orphan",
@@ -68,29 +138,24 @@ class Branch(Base):
     backref=backref("parent", remote_side=id),
     )
 
-  def __init__(self, caption='New branch', text='New branch', main=False, folded=False, parent=None, parent_id=None):
+  def __init__(self, tree, caption='New branch', text='New branch', main=False, folded=False, parent=None, parent_id=general.rootB_id):
+    self.tree = tree
     self.caption = caption
     self.text = text
     self.main = main
     self.folded = folded
     self.parent = parent
     self.parent_id = parent_id
+    self.tree._add(self)
 
-  def add_subb(self, branch):
-    """ Add a new subbranch """
-    branch.parent = self
-
-  def add_subbs(self, branches):
-    """ Add a new subbranches """
-    for curb in branches:
-      curb.parent = self
+  def get_subbs(self):
+    return self.tree.getSubBs(self)
 
   def __repr__(self):
     return self.caption
 
   def __str__(self):
     return self.caption
-
 
 
 if __name__ == '__main__':
@@ -111,19 +176,27 @@ if __name__ == '__main__':
       rootb = curtree.getB_root()
 
       # create branches for test
-      b1 = Branch(caption="branch1", parent=rootb)
-      b2 = Branch(caption="branch2", parent=rootb)
-      b11 = Branch(caption="branch11", parent=b1)
-      b12 = Branch(caption="branch12", parent=b1)
+      b1 = Branch(tree=curtree, caption="branch1", parent=rootb)
+      b2 = Branch(tree=curtree, caption="branch2", parent=rootb)
+      b3 = Branch(tree=curtree, caption="branch3", parent=rootb)
+      b11 = Branch(tree=curtree, caption="branch11", parent=b1)
+      b12 = Branch(tree=curtree, caption="branch12", parent=b1)
 
-      b21 = Branch(caption="branch21")
-      b2.add_subb(b21)
+      # moving
+      b21 = Branch(tree=curtree, caption="branch21")
+      curtree.moveB(b2, b21.id)
 
-      b22 = Branch(caption="branch22")
-      b23 = Branch(caption="branch23")
-      b2.add_subbs([b22, b23])
+      b22 = Branch(tree=curtree, caption="branch22")
+      b23 = Branch(tree=curtree, caption="branch23")
+      curtree.moveB(b22, parent_id = b2.id)
+      curtree.moveB(b23, parent_id = b2.id)
 
-      curtree.add(rootb)
+      curtree.moveB(b23, pos = 0)
+      if b23.orderb != (3 * general.orderb_step):
+        raise BaseException("Moving problem")
+      curtree.moveB(b23)
+      if b23.orderb != (7 * general.orderb_step):
+        raise BaseException("Moving problem")
 
       # get branch
       rootb = curtree.getB_root()
@@ -135,24 +208,32 @@ if __name__ == '__main__':
       b1.text
       b1.main
       b1.folded
-      b1.subbs
-      b12 = curtree.getB(b1.subbs[0].id)
+      b1.get_subbs()
+      b12 = curtree.getB(b1.get_subbs()[0].id)
       b1.parent
-      for curB in b1.subbs:
+      for curB in b1.get_subbs():
         curB.caption
 
       # changing
       b1.text = "TEST"
       curtree.remove(b1)
-      #curtree.remove(b2)
 
-      # moving
-      b23.parent_id = rootb.id
-      if b23.parent_id != rootb.id:
-        raise "Moving problem" 
-  except:
+      # reindexing orderb
+      b24 = Branch(tree=curtree, caption="branch24", parent=b2)
+      b25 = Branch(tree=curtree, caption="branch25", parent=b2)
+
+      b23.orderb = general.orderb_MAX
+      curtree.moveB(b22)
+      if b23.orderb != (4 * general.orderb_step) :
+        raise BaseException("Reindexing problem")
+
+      b24.orderb = b25.orderb - general.orderb_MIN
+      curtree.moveB(b23, pos = 1)
+      if b24.orderb != (1 * general.orderb_step) :
+        raise BaseException("Reindexing problem")
+
+  except BaseException as e:
+    print(e)
     print("FAILD")
   else:
     print("OK")
-
-

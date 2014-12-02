@@ -6,6 +6,11 @@ import re
 MAX_captionLen = 29 #30
 rootB_id = 1
 
+
+orderb_step = 1000000
+orderb_MIN = 1
+orderb_MAX = 2147000000 - orderb_step
+
 dbtype = "postgresql"
 dbaddr = "localhost"
 
@@ -26,9 +31,13 @@ def checkout(text):
 if __name__ == '__main__':
   print("MAX_captionLen = " + str(MAX_captionLen))
   print("rootB_id = " + str(rootB_id))
+  print()
+  print("orderb_step = " + str(orderb_step))
+  print("orderb_MIN = " + str(orderb_MIN))
+  print("orderb_MAX = " + str(orderb_MAX))
 
   print("\nTests:")
   if checkout("asdf893") and checkout("345fgfsddf34fd") and not checkout(";sdf()sdf]\[\;/;sd"):
     print("OK")
-  else:  
+  else:
     print("FAILD")

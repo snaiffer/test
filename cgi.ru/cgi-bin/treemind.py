@@ -33,7 +33,7 @@ def for_test():
     b2.add_subbs([b22, b23])
 
     curtree.add(rootb)
-  """  
+  """
   try:
     with tree.Tree(treename) as tree:
       b1 = tree.insertB({'parent_id' : general.rootB_id, 'text' : 'branch1', 'folded' : False})
@@ -43,9 +43,9 @@ def for_test():
       b121 = tree.insertB({'parent_id' : b12.id, 'text' : 'branch121'})
       b122 = tree.insertB({'parent_id' : b12.id, 'text' : 'branch122'})
       b123 = tree.insertB({'parent_id' : b12.id, 'text' : 'branch123'})
-  except tree.TreeException:  
+  except tree.TreeException:
     print("Error: TreeException has occured")
-  """  
+  """
 
 def getList_subbsOf(branch):
   """ getList of subbranches of "branch" in format for jstree """
@@ -53,20 +53,20 @@ def getList_subbsOf(branch):
     dict = {}
     dict['id'] = branch.id
     dict['text'] = branch.caption
-    if branch.subbs != [] :
+    if branch.get_subbs() != [] :
       dict['state'] = {}
       dict['state']['opened'] = branch.folded ^ True
       if dict['state']['opened'] == True:
         dict['children'] = []
-        for cur_subb in branch.subbs:
+        for cur_subb in branch.get_subbs():
           dict['children'].append(getDict(cur_subb))
       else:
         dict['children'] = True
     return dict
 
   list = []
-  if branch.subbs != [] :
-    for cur_subb in branch.subbs:
+  if branch.get_subbs() != [] :
+    for cur_subb in branch.get_subbs():
       list.append(getDict(cur_subb))
   return list
 
@@ -78,7 +78,7 @@ form = cgi.FieldStorage()
 cmd = form.getvalue('cmd', "")
 id = form.getvalue('id', general.rootB_id)
 
-print("Content-Type: text/html\n") 
+print("Content-Type: text/html\n")
 if cmd != "" :
   with Tree(treename) as curtree:
     if cmd == "load_subbs":

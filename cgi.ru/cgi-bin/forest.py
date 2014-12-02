@@ -34,10 +34,10 @@ class Forest():
     except psycopg2.Error as e:
       raise dbConnectProblem(e)
 
-  def close_conn(self):  
+  def close_conn(self):
     """ Close the connection to the db """
     if self.__conn != None:
-      self.__conn.close() 
+      self.__conn.close()
       self.__conn = None
 
   def list(self):
@@ -73,7 +73,7 @@ class Forest():
       with self.__conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
         self.__conn.set_isolation_level(0)
         cur.execute("CREATE DATABASE %s;" % treename) # arg was operated from SQL injections
-      with tree.Tree(treename) as newtree:  
+      with tree.Tree(treename) as newtree:
         newtree.init()
     except (psycopg2.Error, tree.TreeException) as e:
       self.removeTree(treename)
@@ -98,7 +98,7 @@ class ForestException(Exception):
       connection.rollback()
     if hasattr(err, 'pgerror') and err.pgerror != None:
       print(str(err.pgerror))
-  def _output(self, msg):    
+  def _output(self, msg):
     print("Forest: " + str(msg))
 
 class CantExecuteQ(ForestException):
@@ -138,6 +138,3 @@ if __name__ == '__main__':
     print("FAILD")
   else:
     print("OK")
-
-
-
