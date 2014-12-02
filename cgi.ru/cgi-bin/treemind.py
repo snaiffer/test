@@ -20,32 +20,20 @@ def for_test():
     rootb = curtree.getB_root()
 
     # create branches for test
-    b1 = Branch(caption="branch1", parent=rootb)
-    b2 = Branch(caption="branch2", parent=rootb)
-    b11 = Branch(caption="branch11", parent=b1)
-    b12 = Branch(caption="branch12", parent=b1)
+    b1 = Branch(tree=curtree, caption="branch1", parent=rootb)
+    b2 = Branch(tree=curtree, caption="branch2", parent=rootb)
+    b3 = Branch(tree=curtree, caption="branch3", parent=rootb)
+    b11 = Branch(tree=curtree, caption="branch11", parent=b1)
+    b12 = Branch(tree=curtree, caption="branch12", parent=b1)
 
-    b21 = Branch(caption="branch21")
-    b2.add_subb(b21)
+    # moving
+    b21 = Branch(tree=curtree, caption="branch21")
+    curtree.moveB(b2, b21.id)
 
-    b22 = Branch(caption="branch22")
-    b23 = Branch(caption="branch23")
-    b2.add_subbs([b22, b23])
-
-    curtree.add(rootb)
-  """
-  try:
-    with tree.Tree(treename) as tree:
-      b1 = tree.insertB({'parent_id' : general.rootB_id, 'text' : 'branch1', 'folded' : False})
-      b2 = tree.insertB({'parent_id' : general.rootB_id, 'text' : 'branch2'})
-      b11 = tree.insertB({'parent_id' : b1.id, 'text' : 'branch11'})
-      b12 = tree.insertB({'parent_id' : b1.id, 'text' : 'branch12', 'folded' : True})
-      b121 = tree.insertB({'parent_id' : b12.id, 'text' : 'branch121'})
-      b122 = tree.insertB({'parent_id' : b12.id, 'text' : 'branch122'})
-      b123 = tree.insertB({'parent_id' : b12.id, 'text' : 'branch123'})
-  except tree.TreeException:
-    print("Error: TreeException has occured")
-  """
+    b22 = Branch(tree=curtree, caption="branch22")
+    b23 = Branch(tree=curtree, caption="branch23")
+    curtree.moveB(b22, parent_id = b2.id)
+    curtree.moveB(b23, parent_id = b2.id)
 
 def getList_subbsOf(branch):
   """ getList of subbranches of "branch" in format for jstree """

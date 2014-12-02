@@ -94,13 +94,18 @@ class Tree():
     self.session.commit()
 
   def getB(self, id):
-    return self.session.query(Branch).filter_by(id=id).scalar()
+    resB = self.session.query(Branch).filter_by(id=id).scalar()
+    resB.tree = self
+    return resB
 
   def getB_root(self):
     return self.getB(general.rootB_id)
 
   def getSubBs(self, branch):
-    return self.session.query(Branch).filter_by(parent_id=branch.id).order_by('orderb').all()
+    subbs = self.session.query(Branch).filter_by(parent_id=branch.id).order_by('orderb').all()
+    for curb in subbs:
+      curb.tree = self
+    return subbs
 
 class TreeException(Exception):
   def __init__(self, connection=None):
