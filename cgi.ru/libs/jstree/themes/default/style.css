@@ -1049,25 +1049,22 @@
   }
 }
 
-.jstree-editable {
-  display: inline-block;
-  width: calc(100% - 50px);
-  border: groove 2px transparent;
-  padding: 10px;
-  border-radius: 10px;
-  background: linear-gradient(#ECECEB, white);
-}
-.jstree-containerdoc:hover {
-  border-color: orange;
-}
-p {
-  margin: 0px;
-}
 .jstree-sameheight {
   float: left;
   display: inline-block;
   padding-bottom: 1000px;
   margin-bottom: -1000px;
+}
+.jstree-editable {
+  display: inline-block;
+  width: calc(100% - 50px);
+  padding: 10px;
+}
+.jstree-dragblock {
+  width:20px;
+  background-image: url("drag.png");
+  background-repeat: repeat-y;
+  background-size: 100%;
 }
 .jstree-containerdoc {
   overflow: hidden;
@@ -1077,4 +1074,11 @@ p {
   padding-bottom: 10px;
   border-radius: 10px;
   background: linear-gradient(#ECECEB, white);
+}
+.jstree-containerdoc:hover {
+  border-color: orange;
+  background-color: orange;
+}
+p {
+  margin: 0px;
 }
