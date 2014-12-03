@@ -1049,12 +1049,6 @@
   }
 }
 
-.jstree-sameheight {
-  float: left;
-  display: inline-block;
-  padding-bottom: 1000px;
-  margin-bottom: -1000px;
-}
 .jstree-editable {
   display: inline-block;
   width: calc(100% - 50px);
@@ -1062,9 +1056,16 @@
 }
 .jstree-dragblock {
   width:20px;
+  background-color: white;
   background-image: url("drag.png");
   background-repeat: repeat-y;
   background-size: 100%;
+}
+.jstree-sameheight {
+  float: left;
+  display: inline-block;
+  padding-bottom: 1000px;
+  margin-bottom: -1000px;
 }
 .jstree-containerdoc {
   overflow: hidden;
@@ -1077,7 +1078,7 @@
 }
 .jstree-containerdoc:hover {
   border-color: orange;
-  background-color: orange;
+  background: linear-gradient(#FFEBD6, white);
 }
 p {
   margin: 0px;
