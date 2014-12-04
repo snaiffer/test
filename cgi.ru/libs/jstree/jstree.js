@@ -5140,15 +5140,26 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 */
 		items : function (o, cb) { // Could be an object directly
 			return {
-				"create" : {
+				"add_branch" : {
 					"separator_before"	: false,
 					"separator_after"	: true,
 					"_disabled"			: false, //(this.check("create_node", data.reference, {}, "last")),
-					"label"				: "Create",
+					"label"				: "Add branch",
 					"action"			: function (data) {
 						var inst = $.jstree.reference(data.reference),
 							obj = inst.get_node(data.reference);
-						inst.create_node(obj, {}, "last");
+            inst.create_node(inst.get_parent(obj), {}, "last");
+					}
+				},
+				"add_subbranch" : {
+					"separator_before"	: false,
+					"separator_after"	: true,
+					"_disabled"			: false, //(this.check("create_node", data.reference, {}, "last")),
+					"label"				: "Add sub-branch",
+					"action"			: function (data) {
+						var inst = $.jstree.reference(data.reference),
+							obj = inst.get_node(data.reference);
+            inst.create_node(obj, {}, "last");
 					}
 				},
 				"rename" : {
