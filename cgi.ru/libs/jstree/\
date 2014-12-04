@@ -3298,13 +3298,10 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
       // we change the main id, so we need to redraw node to change supported ids
       this.redraw_node(id);
       this.trigger("set_id");
-      this.deselect_all(true);
-      if (this.element.attr("cke_sup")) {
-        $("#" + id + "_edit").focus();
-      } else {
-        this.edit(id);
-      }
+      this.activate_node(this.get_node(id));
+              console.log(this.get_node(id));
       //
+      console.log("set_id = " + id);
 
 			return true;
 		},
@@ -3493,6 +3490,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			par.children = tmp;
 
 			var newid  = this.redraw_node(par, true);
+              console.log("newid = " + newid.id);
 			if(callback) { callback.call(this, this.get_node(node)); }
 			/**
 			 * triggered when a node is created
@@ -5148,7 +5146,14 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 					"action"			: function (data) {
 						var inst = $.jstree.reference(data.reference),
 							obj = inst.get_node(data.reference);
-						inst.create_node(obj, {}, "last");
+						inst.create_node(obj, {}, "last", function (new_node) {
+							setTimeout(function () {
+                if ( inst.element[0].hasAttribute("cke_sup") ) {
+                } else {
+                  //inst.edit(new_node);
+                }
+              },0);
+						});
 					}
 				},
 				"rename" : {
