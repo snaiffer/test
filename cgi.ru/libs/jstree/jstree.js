@@ -516,7 +516,7 @@
 					return this.nodeType === 3 && (!this.nodeValue || /^\s+$/.test(this.nodeValue));
 				})
 				.remove();
-			this.element.html("<"+"ul class='jstree-container-ul jstree-children' role='group'><"+"li id='j"+this._id+"_loading' class='jstree-initial-node jstree-loading jstree-leaf jstree-last' role='tree-item'><i class='jstree-icon jstree-ocl'></i><"+"a class='jstree-anchor' href='#'><i class='jstree-icon jstree-themeicon-hidden'></i>" + this.get_string("Loading123 ...") + "</a></li></ul>");
+			this.element.html("<"+"ul class='jstree-container-ul jstree-children' role='group'><"+"li id='j"+this._id+"_loading' class='jstree-initial-node jstree-loading jstree-leaf jstree-last' role='tree-item'><i class='jstree-icon jstree-ocl'></i><"+"a class='jstree-anchor' href='#'><i class='jstree-icon jstree-themeicon-hidden'></i>" + this.get_string("Loading ...") + "</a></li></ul>");
 			this.element.attr('aria-activedescendant','j' + this._id + '_loading');
 			this._data.core.li_height = this.get_container_ul().children("li").first().height() || 24;
 			/**
@@ -586,6 +586,7 @@
 						this.toggle_node(e.target);
 					}, this))
 				.on("click.jstree", ".jstree-anchor", $.proxy(function (e) {
+          console.log("123");
 						e.preventDefault();
 						if(e.currentTarget !== document.activeElement) { $(e.currentTarget).focus(); }
 						this.activate_node(e.currentTarget, e);
@@ -1278,7 +1279,6 @@
 			var s = this.settings.core.data, t;
 			// use original HTML
 			if(!s) {
-        console.log("!s");
 				if(obj.id === '#') {
 					return this._append_html_data(obj, this._data.core.original_container_html.clone(true), function (status) {
 						callback.call(this, status);
@@ -1290,7 +1290,6 @@
 				// return callback.call(this, obj.id === '#' ? this._append_html_data(obj, this._data.core.original_container_html.clone(true)) : false);
 			}
 			if($.isFunction(s)) {
-        console.log("isFunctions");
 				return s.call(this, obj, $.proxy(function (d) {
 					if(d === false) {
 						callback.call(this, false);
@@ -1302,9 +1301,7 @@
 				}, this));
 			}
 			if(typeof s === 'object') {
-        console.log("object");
 				if(s.url) {
-          console.log("url");
 					s = $.extend(true, {}, s);
 					if($.isFunction(s.url)) {
 						s.url = s.url.call(this, obj);
@@ -1347,7 +1344,6 @@
 				//return callback.call(this, (obj.id === "#" ? this._append_json_data(obj, t) : false) );
 			}
 			if(typeof s === 'string') {
-        console.log("string");
 				if(obj.id === '#') {
 					return this._append_html_data(obj, $(s), function (status) {
 						callback.call(this, status);
@@ -1875,7 +1871,6 @@
 			tmp = d.children("a").first().length ? d.children("a").first().clone() : d.clone();
 			tmp.children("ins, i, ul").remove();
 			tmp = tmp.html();
-      console.log(tmp);
       tmp = "<textarea>" + tmp + "</textarea>";
 			tmp = $('<div />').html(tmp);
 			data.text = this.settings.core.force_text ? tmp.text() : tmp.html();
@@ -7051,35 +7046,36 @@
 	$.jstree.plugins.ckeditor_support = function (options, parent) {
 		this.bind = function () {
 			parent.bind.call(this);
+      this.element.off("click.jstree", ".jstree-anchor");
       this.element
+				.on("click.jstree", ".jstree-anchor", $.proxy(function (e) {
+						e.preventDefault();
+						this.activate_node(e.currentTarget, e);
+					}, this))
         .on('ready.jstree set_state.jstree', $.proxy(function () {
             this.hide_dots();
+            CKEDITOR.inlineAll();
           }, this));
     };
 
     this._load_node = function (obj, callback) {
-      console.log("BBBBBBBBB");
       function wrap_text(nodes) {
         for (var i = 0; i < nodes.length; i++) {
           var cur_node = nodes[i];
           var puretext = cur_node.text;
           //cur_node.text = "<div class='jstree-editable' contenteditable='true' style='width: 100%'>" + puretext + "</div>";
-          console.log("cur_node");
-          console.log(cur_node);
-          cur_node.text = "<div id='id1' class='jstree-editable' contenteditable='true'>" + puretext + "</div>";
+          cur_node.text = "<div class='jstree-editable' contenteditable='true'>" + puretext + "</div>";
           if ( cur_node.children ) {
             wrap_text(cur_node.children);
           }
         }
       }
       if (this.settings.core.data) {
-        console.log(this.settings.core.data);
         wrap_text(this.settings.core.data);
       }
 			var s = this.settings.core.data, t;
 			// use original HTML
 			if(!s) {
-        console.log("!s");
 				if(obj.id === '#') {
 					return this._append_html_data(obj, this._data.core.original_container_html.clone(true), function (status) {
 						callback.call(this, status);
@@ -7091,7 +7087,6 @@
 				// return callback.call(this, obj.id === '#' ? this._append_html_data(obj, this._data.core.original_container_html.clone(true)) : false);
 			}
 			if($.isFunction(s)) {
-        console.log("isFunctions");
 				return s.call(this, obj, $.proxy(function (d) {
 					if(d === false) {
 						callback.call(this, false);
@@ -7103,9 +7098,7 @@
 				}, this));
 			}
 			if(typeof s === 'object') {
-        console.log("object");
 				if(s.url) {
-          console.log("url");
 					s = $.extend(true, {}, s);
 					if($.isFunction(s.url)) {
 						s.url = s.url.call(this, obj);
@@ -7148,7 +7141,6 @@
 				//return callback.call(this, (obj.id === "#" ? this._append_json_data(obj, t) : false) );
 			}
 			if(typeof s === 'string') {
-        console.log("string");
 				if(obj.id === '#') {
 					return this._append_html_data(obj, $(s), function (status) {
 						callback.call(this, status);
