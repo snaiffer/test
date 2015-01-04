@@ -7052,27 +7052,29 @@
 						e.preventDefault();
 						this.activate_node(e.currentTarget, e);
 					}, this))
-				.on('keydown.jstree', '.jstree-editable', $.proxy(function (e) {
-						switch(e.which) {
-							case 9:   // tab
-                e.preventDefault();
-                CKEDITOR.instances[id].insertText('\t');
-								break;
-            }
-					}, this))
         // activate when the tree is loaded
         .on('ready.jstree set_state.jstree', $.proxy(function () {
             this.hide_dots();
+            this.hide_icons();
 
             $(".jstree-editable")
               // Run ckeditor by one click on element instead mousedown
               .on('click', function(e) {
                 var id = this.id;
                 $("#" + id).focus();
-                })
+              })
               .on('blur', function (e) {
                 // save text to DB
-                });
+              })
+              .on('keydown', function (e) {
+                var id = this.id;
+                switch(e.which) {
+                  case 9:   // tab
+                    e.preventDefault();
+                    CKEDITOR.instances[id].insertText('\t');
+                    break;
+                }
+              });
             CKEDITOR.inlineAll();
 
           }, this));
