@@ -20,17 +20,15 @@
       </div>
       <div id="right_field">
         <textarea id="data">None</textarea>
-        <!--<p id="test"> test </p>-->
         <div id="nestedocs"></div>
+        <div id="click_absorbent"><a>.</a></div>
       </div>
     </div>
 
     <script>
-    jQuery(function($) {
-      $('#wrapper').width($(document).width()).height($(document).height()).split({orientation:'vertical', limit:100, position:'38%'});
-    });
-
     $(function() {
+      $('#wrapper').width($(document).width()).height($(document).height()).split({orientation:'vertical', limit:100, position:'38%'});
+
       $('#nestedocs').jstree({
         'core' : {
           'data' : [
@@ -44,12 +42,12 @@
             ]}
           ],
         },
-        "plugins" : ["ckeditor_support" ],
-        /*
-        "plugins" : ["wholerow", "contextmenu", "dnd", "search", "ckeditor_support" ],
+        "plugins" : ["dnd", "ckeditor_support" ],
         "dnd" : {
           "is_draggable" : true
         }
+        /*
+        "plugins" : ["wholerow", "contextmenu", "dnd", "search", "ckeditor_support" ],
         */
       });
 
@@ -117,7 +115,6 @@
         });
 
     });
-
     </script>
   </body>
 </html>

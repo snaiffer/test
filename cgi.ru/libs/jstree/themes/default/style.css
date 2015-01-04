@@ -1060,3 +1060,6 @@
 .jstree-editable:hover {
   border-color: orange;
 }
+p {
+  margin: 0px;
+}
