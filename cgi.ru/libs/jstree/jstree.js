@@ -7056,62 +7056,24 @@
 						switch(e.which) {
 							case 9:   // tab
                 e.preventDefault();
-                CKEDITOR.instances.edit.insertText('\t');
+                CKEDITOR.instances[id].insertText('\t');
 								break;
             }
 					}, this))
         // activate when the tree is loaded
         .on('ready.jstree set_state.jstree', $.proxy(function () {
             this.hide_dots();
+
+            $(".jstree-editable")
+              // Run ckeditor by one click on element instead mousedown
+              .on('click', function(e) {
+                var id = this.id;
+                $("#" + id).focus();
+                })
+              .on('blur', function (e) {
+                // save text to DB
+                });
             CKEDITOR.inlineAll();
-
-            // Run ckeditor by one click on element instead mousedown
-            var ed = {
-              ck_active_block: 0,
-              ck_block_data: '',
-              init: function(){
-                ed.block();
-                CKEDITOR.disableAutoInline = true;
-              },
-              block: function(){
-                $(".block")
-                  .on('mouseenter', function(){
-                    $(".block").removeClass("hover");
-                    $(this).addClass("hover");
-                  }).on('mouseleave', function(){
-                    $(".block").removeClass("hover");
-                  }).on('click', function(e){
-                    e.preventDefault();
-                    e.stopPropagation();
-                    ed.ck_restore();
-                    ed.ck_active_block = $(this).attr("id");
-                    ed.ck_block_data = $(this).html();
-                    var block_width = $(this).css("width"); 
-                    var block_height = $(this).css("height");
-                    var block_padding_top = $(this).css("padding-top");
-                    var block_padding_right = $(this).css("padding-right");
-                    var block_padding_bottom = $(this).css("padding-bottom");
-                    var block_padding_left = $(this).css("padding-left");
-                    var padding = 'padding-top: '+block_padding_top+';padding-right: '+block_padding_right+';padding-bottom: '+block_padding_bottom+';padding-left: '+block_padding_left+';';
-                    var editor = '<div id="edit" contenteditable="true" style="margin-top: -'+block_padding_top+'; margin-left: -'+block_padding_left+';'+padding+' width: '+block_width+'; height: '+block_height+';background-color: #fff;position: absolute;">'+ed.ck_block_data+'</div>';
-                    $("#"+ed.ck_active_block).prepend(editor);
-                    if (CKEDITOR.instances.edit) {
-                      CKEDITOR.instances.edit.destroy();
-                    }
-                    CKEDITOR.inline("edit");
-                    $("#edit").focus();
-                  });
-              },
-              ck_restore: function(){
-                if (ed.ck_active_block != "0") {
-                  ed.ck_block_data = $("#edit").html();
-                  $("#"+ed.ck_active_block).html(ed.ck_block_data);
-                }
-              }
-            };
-            ed.init();
-            //
-
 
           }, this));
     };
@@ -7123,7 +7085,7 @@
           var puretext = cur_node.text;
           //cur_node.text = "<div class='jstree-editable' contenteditable='true' style='width: 100%'>" + puretext + "</div>";
           //cur_node.text = "<div class='jstree-editable' contenteditable='true'>" + puretext + "</div>";
-          cur_node.text = "<div id='alpha' class='jstree-editable block' contenteditable='false'>" + puretext + "</div>";
+          cur_node.text = "<div id='alpha' class='jstree-editable' contenteditable='true'>" + puretext + "</div>";
           if ( cur_node.children ) {
             wrap_text(cur_node.children);
           }
