@@ -655,7 +655,7 @@
 							case 46:
 								e.preventDefault();
 								o = this.get_node(e.currentTarget);
-								if(o && o.id && o.id !== '#') {
+						=		if(o && o.id && o.id !== '#') {
 									o = this.is_selected(o) ? this.get_selected() : o;
 									this.delete_node(o);
 								}
@@ -7052,6 +7052,15 @@
 						e.preventDefault();
 						this.activate_node(e.currentTarget, e);
 					}, this))
+				.on('keydown.jstree', '.jstree-editable', $.proxy(function (e) {
+						switch(e.which) {
+							case 9:   // tab
+                e.preventDefault();
+                CKEDITOR.instances.edit.insertText('\t');
+								break;
+            }
+					}, this))
+        // activate when the tree is loaded
         .on('ready.jstree set_state.jstree', $.proxy(function () {
             this.hide_dots();
             CKEDITOR.inlineAll();
