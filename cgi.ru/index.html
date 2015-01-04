@@ -31,7 +31,20 @@
 
       $('#nestedocs').jstree({
         'core' : {
-          'data' : [
+          'data' : {
+            "url" : "/cgi-bin/treemind.py?cmd=load_subbs&id=",
+            "data" : function (node) {
+                if( node.id == '#' ){
+                  return { "id" : 1 };
+                } else {
+                  return { "id" : node.id };
+                }
+              },
+            "dataType" : "json"
+          },
+          'check_callback' : true // access all operations with tree
+            /*
+            'data' : [
             { "text" : "Root node", "children" : [
                 { "text" : "Child node 1" },
                 { "text" : "Child node 2" }
@@ -39,8 +52,9 @@
             { "text" : "Root node", "children" : [
                 { "text" : "Child node 1" },
                 { "text" : "Child node 2" }
-            ]}
-          ],
+            ]
+            ]
+                */
         },
         "plugins" : ["dnd", "ckeditor_support" ],
         "dnd" : {
@@ -51,6 +65,7 @@
         */
       });
 
+      /*
       $('#tree')
         // invoked after jstree has loaded
         .bind('loaded.jstree', function(e, data) {
@@ -107,6 +122,7 @@
         .click(function() {
           $("#tree").jstree().load_node(2)
         });
+        */
 
       $("#data")
         // save data after editting
