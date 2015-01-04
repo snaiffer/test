@@ -1,4 +1,4 @@
-/*globals jQuery, define, exports, require, window, document, postMessage */
+$/*globals jQuery, define, exports, require, window, document, postMessage */
 (function (factory) {
 	"use strict";
 	if (typeof define === 'function' && define.amd) {
@@ -1722,9 +1722,18 @@
 					}
 				},
 				rslt = function (rslt, worker) {
+          // wrap up for ckeditor
+          if ( this.element.attr("cke_sup") ) {
+            $.each(rslt.mod, function( key, value ) {
+              if ( key != '#' ) {
+              var newtext = "hello";
+              value.text = newtext;
+              value.original.text = newtext;
+              }
+            });
+          }
 					this._cnt = rslt.cnt;
 					this._model.data = rslt.mod; // breaks the reference in load_node - careful
-
 					if(worker) {
 						var i, j, a = rslt.add, r = rslt.sel, s = this._data.core.selected.slice(), m = this._model.data;
 						// if selection was changed while calculating in worker
@@ -5656,7 +5665,6 @@
 								e.preventDefault();
 								break;
 							default:
-								//console.log(e.which);
 								break;
 						}
 					})
@@ -7044,6 +7052,8 @@
  */
 	$.jstree.plugins.ckeditor_support = function (options, parent) {
 		this.bind = function () {
+      this.element.attr("cke_sup", "true");
+
 			parent.bind.call(this);
       this.element.off('keydown.jstree', '.jstree-anchor');
       this.element.off("click.jstree", ".jstree-anchor");
