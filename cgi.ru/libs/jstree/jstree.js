@@ -710,7 +710,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 								 */
 								setTimeout($.proxy(function () { this.trigger("ready"); }, this), 0);
 							}
-              this.trigger("branch_loaded", data);
 						}
 					}, this))
 				// quick searching when the tree is focused
@@ -7056,11 +7055,26 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
  * Plugin for support ckeditor plugin
  */
 	$.jstree.plugins.ckeditor_support = function (options, parent) {
-    this.jstree_editable_setup = function () {
+    this.jstree_editable = {
+      init : function () {
+        // inline() only those elements which haven't been inlined
+        $.each($(".jstree-editable"), function( key, value ) {
+          if ( key != '#' ) {
+            if ( ! $("#" + value.id).hasClass("cke_editable") ) {
+              if (CKEDITOR.instances[value.id]) {
+                CKEDITOR.instances[value.id].destroy();
+              }
+              CKEDITOR.inline(value.id);
+            }
+          }
+        });
+        this.setup();
+      },
+
+      setup : function () {
       $(".jstree-editable")
         // Run ckeditor by one click on element instead mousedown
         .on('click', function(e) {
-          console.log("click");
           var id = this.id;
           $("#" + id).focus();
         })
@@ -7076,10 +7090,11 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
               break;
           }
         });
+      }
     };
+
 		this.bind = function () {
       this.element.attr("cke_sup", "true");
-
 
 			parent.bind.call(this);
       this.element.off('keydown.jstree', '.jstree-anchor');
@@ -7089,42 +7104,15 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						e.preventDefault();
 						this.activate_node(e.currentTarget, e);
         }, this))
-									//t.trigger("after_open", { "node" : obj });
-				//.on("branch_loaded.jstree", $.proxy(function (e, data) {
 				.on("after_open.jstree", $.proxy(function (e, node) {
-          console.log("after_open");
-          this.jstree_editable_setup();
-          CKEDITOR.inlineAll();
-          /*
-          $.each($(".jstree-editable"), function( key, value ) {
-            if ( key != '#' ) {
-              //if ( ! $("#" + value.id).hasClass("cke_editable") ) {
-                if (CKEDITOR.instances[value.id]) {
-                  console.log("destroy");
-                  //CKEDITOR.inline("11_edit");
-                  console.log($("#11_edit"));
-                  CKEDITOR.instances[value.id].destroy();
-                }
-                CKEDITOR.inline(value.id);
-                $("#4_edit").focus();
-                console.log(value.id);
-              //}
-            }
-          });
-          */
-        }, this))
-				.on("loaded.jstree", $.proxy(function (e, data) {
-          //CKEDITOR.inlineAll();
+          this.jstree_editable.init();
         }, this))
         // activate when the tree is loaded
         .on('ready.jstree set_state.jstree', $.proxy(function () {
-              console.log("ready.jstree");
             this.hide_dots();
             this.hide_icons();
 
-            this.jstree_editable_setup();
-            CKEDITOR.inlineAll();
-
+            this.jstree_editable.init();
           }, this));
     };
 

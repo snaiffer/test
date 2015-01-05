@@ -29,43 +29,6 @@
     $(function() {
       $('#wrapper').width($(document).width()).height($(document).height()).split({orientation:'vertical', limit:100, position:'38%'});
 
-      $('#nestedocs').jstree({
-        'core' : {
-          'data' : {
-            "url" : "/cgi-bin/treemind.py?cmd=load_subbs&id=",
-            "data" : function (node) {
-                if( node.id == '#' ){
-                  return { "id" : 1 };
-                } else {
-                  return { "id" : node.id };
-                }
-              },
-            "dataType" : "json"
-          },
-          'check_callback' : true // access all operations with tree
-            /*
-            'data' : [
-            { "text" : "Root node", "children" : [
-                { "text" : "Child node 1" },
-                { "text" : "Child node 2" }
-            ]},
-            { "text" : "Root node", "children" : [
-                { "text" : "Child node 1" },
-                { "text" : "Child node 2" }
-            ]
-            ]
-                */
-        },
-        "plugins" : ["dnd", "ckeditor_support" ],
-        "dnd" : {
-          "is_draggable" : true
-        }
-        /*
-        "plugins" : ["wholerow", "contextmenu", "dnd", "search", "ckeditor_support" ],
-        */
-      });
-
-      /*
       $('#tree')
         // invoked after jstree has loaded
         .bind('loaded.jstree', function(e, data) {
@@ -74,7 +37,7 @@
         .jstree({
           'core' : {
             'data' : {
-              "url" : "/cgi-bin/treemind.py?cmd=load_subbs&id=",
+              "url" : "/cgi-bin/treemind.py?cmd=load_subbs&main_only=True",
               "data" : function (node) {
                   if( node.id == '#' ){
                     return { "id" : 1 };
@@ -105,14 +68,56 @@
         })
         .on("changed.jstree", function (e, data) {
           if (data.selected.length == 1) {
-            $.get("/cgi-bin/treemind.py?cmd=load_data&id=" + data.selected, function(data) {
+            var branch_id = data.selected[0];
+            /*
+            $.get("/cgi-bin/treemind.py?cmd=load_data&id=" + branch_id, function(data) {
               $('#data').val(data)
             });
+            */
+            $('#nestedocs').jstree('destroy');
+            $('#nestedocs').jstree({
+              'core' : {
+                'data' : {
+                  "url" : "/cgi-bin/treemind.py?cmd=load_subbs&main_only=False",
+                  "data" : function (node) {
+                      return { "id" : branch_id };
+                      /*
+                      if( node.id == '#' ){
+                        return { "id" : 1 };
+                      } else {
+                        return { "id" : node.id };
+                      }
+                      */
+                    },
+                  "dataType" : "json"
+                },
+                'check_callback' : true // access all operations with tree
+                  /*
+                  'data' : [
+                  { "text" : "Root node", "children" : [
+                      { "text" : "Child node 1" },
+                      { "text" : "Child node 2" }
+                  ]},
+                  { "text" : "Root node", "children" : [
+                      { "text" : "Child node 1" },
+                      { "text" : "Child node 2" }
+                  ]
+                  ]
+                      */
+              },
+              "plugins" : ["dnd", "ckeditor_support" ],
+              "dnd" : {
+                "is_draggable" : true
+              }
+              /*
+              "plugins" : ["wholerow", "contextmenu", "dnd", "search", "ckeditor_support" ],
+              */
+            });
+
             $('#data').attr("id_intree", data.selected)
           }
         })
         .on("move_node.jstree", function (e, data) {
-          console.log(data.position)
 
           $.get("/cgi-bin/treemind.py?cmd=move_node&id=" + data.node.id +
             "&new_parent=" + data.parent +
@@ -122,7 +127,6 @@
         .click(function() {
           $("#tree").jstree().load_node(2)
         });
-        */
 
       $("#data")
         // save data after editting

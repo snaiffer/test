@@ -36,9 +36,19 @@ def for_test():
     curtree.moveB(b22, parent_id = b2.id)
     curtree.moveB(b23, parent_id = b2.id)
 
-def getList_subbsOf(branch):
-  """ getList of subbranches of "branch" in format for jstree """
-  def getDict(branch):
+def getList_subbsOf(branch = general.rootB_id, main_only = False):
+  """
+  getList of subbranches of "branch" in format for jstree
+  if main_only == True then output main branches only
+  if main_only == False then output NOT main branches only
+  """
+  def getDict(branch = general.rootB_id, main_only = False):
+    if main_only :
+      if not branch.main :
+        return None
+    else :
+      if branch.main :
+        return None
     dict = {}
     dict['id'] = branch.id
     dict['text'] = branch.caption
@@ -48,7 +58,9 @@ def getList_subbsOf(branch):
       if dict['state']['opened'] == True:
         dict['children'] = []
         for cur_subb in branch.get_subbs():
-          dict['children'].append(getDict(cur_subb))
+          newchild = getDict(cur_subb, main_only)
+          if newchild :
+            dict['children'].append(newchild)
       else:
         dict['children'] = True
     return dict
@@ -56,7 +68,9 @@ def getList_subbsOf(branch):
   list = []
   if branch.get_subbs() != [] :
     for cur_subb in branch.get_subbs():
-      list.append(getDict(cur_subb))
+      newsubb = getDict(cur_subb, main_only)
+      if newsubb :
+        list.append(newsubb)
   return list
 
 
@@ -67,11 +81,17 @@ form = cgi.FieldStorage()
 cmd = form.getvalue('cmd', "")
 id = form.getvalue('id', general.rootB_id)
 
+"""
+cmd = "load_subbs"
+id = 4
+"""
+
 print("Content-Type: text/html\n")
 if cmd != "" :
   with Tree(treename) as curtree:
     if cmd == "load_subbs":
-      print(json.dumps(getList_subbsOf(curtree.getB(id))))
+      main_only = ( True if form.getvalue('main_only', 'True') == 'True' else False)
+      print(json.dumps(getList_subbsOf(curtree.getB(id), main_only)))
     if cmd == "load_data":
       print(curtree.getB(id).text)
     if cmd == "save_data":
