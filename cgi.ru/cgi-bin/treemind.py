@@ -36,13 +36,17 @@ def for_test():
     curtree.moveB(b22, parent_id = b2.id)
     curtree.moveB(b23, parent_id = b2.id)
 
-def getList_subbsOf(branch = general.rootB_id, main_only = False):
+def getList_subbsOf(branch = general.rootB_id, main_only = False, caption_only = True):
   """
   getList of subbranches of "branch" in format for jstree
-  if main_only == True then output main branches only
-  if main_only == False then output NOT main branches only
+  main_only:
+    if main_only == True then output main branches only
+    if main_only == False then output NOT main branches only
+  caption_only:
+    if caption_only == True then output caption field
+    if caption_only == False then output text field
   """
-  def getDict(branch = general.rootB_id, main_only = False):
+  def getDict(branch = general.rootB_id):
     if main_only :
       if not branch.main :
         return None
@@ -51,14 +55,17 @@ def getList_subbsOf(branch = general.rootB_id, main_only = False):
         return None
     dict = {}
     dict['id'] = branch.id
-    dict['text'] = branch.caption
+    if caption_only :
+      dict['text'] = branch.caption
+    else:
+      dict['text'] = branch.text
     if branch.get_subbs() != [] :
       dict['state'] = {}
       dict['state']['opened'] = branch.folded ^ True
       if dict['state']['opened'] == True:
         dict['children'] = []
         for cur_subb in branch.get_subbs():
-          newchild = getDict(cur_subb, main_only)
+          newchild = getDict(cur_subb)
           if newchild :
             dict['children'].append(newchild)
       else:
@@ -68,7 +75,7 @@ def getList_subbsOf(branch = general.rootB_id, main_only = False):
   list = []
   if branch.get_subbs() != [] :
     for cur_subb in branch.get_subbs():
-      newsubb = getDict(cur_subb, main_only)
+      newsubb = getDict(cur_subb)
       if newsubb :
         list.append(newsubb)
   return list
@@ -83,7 +90,7 @@ id = form.getvalue('id', general.rootB_id)
 
 """
 cmd = "load_subbs"
-id = 4
+id = 7
 """
 
 print("Content-Type: text/html\n")
@@ -91,7 +98,8 @@ if cmd != "" :
   with Tree(treename) as curtree:
     if cmd == "load_subbs":
       main_only = ( True if form.getvalue('main_only', 'True') == 'True' else False)
-      print(json.dumps(getList_subbsOf(curtree.getB(id), main_only)))
+      caption_only = ( True if form.getvalue('caption_only', 'True') == 'True' else False)
+      print(json.dumps(getList_subbsOf(curtree.getB(id), main_only, caption_only)))
     if cmd == "load_data":
       print(curtree.getB(id).text)
     if cmd == "save_data":

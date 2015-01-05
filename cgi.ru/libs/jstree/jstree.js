@@ -7055,23 +7055,20 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
  * Plugin for support ckeditor plugin
  */
 	$.jstree.plugins.ckeditor_support = function (options, parent) {
-    this.jstree_editable = {
-      init : function () {
-        // inline() only those elements which haven't been inlined
-        $.each($(".jstree-editable"), function( key, value ) {
-          if ( key != '#' ) {
-            if ( ! $("#" + value.id).hasClass("cke_editable") ) {
-              if (CKEDITOR.instances[value.id]) {
-                CKEDITOR.instances[value.id].destroy();
-              }
-              CKEDITOR.inline(value.id);
+    // if there are new elements in the tree which have to be editable (with ckeditor) it will set up these elements
+    this.jstree_edit_refresh = function () {
+      // inline() only those elements which haven't been inlined
+      $.each($(".jstree-editable"), function( key, value ) {
+        if ( key != '#' ) {
+          if ( ! $("#" + value.id).hasClass("cke_editable") ) {
+            if (CKEDITOR.instances[value.id]) {
+              CKEDITOR.instances[value.id].destroy();
             }
+            CKEDITOR.inline(value.id);
           }
-        });
-        this.setup();
-      },
+        }
+      });
 
-      setup : function () {
       $(".jstree-editable")
         // Run ckeditor by one click on element instead mousedown
         .on('click', function(e) {
@@ -7080,6 +7077,14 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
         })
         .on('blur', function (e) {
           // save text to DB
+          var data = {
+            id : 0,
+            text : 'undefined'
+          };
+          var orig_id = this.id;
+          data.id = orig_id.replace("_edit", "");
+          data.text = this.innerHTML;
+          $(this).trigger('savedata.jstree', data);
         })
         .on('keydown', function (e) {
           var id = this.id;
@@ -7090,7 +7095,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
               break;
           }
         });
-      }
     };
 
 		this.bind = function () {
@@ -7105,15 +7109,15 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						this.activate_node(e.currentTarget, e);
         }, this))
 				.on("after_open.jstree", $.proxy(function (e, node) {
-          this.jstree_editable.init();
+          this.jstree_edit_refresh();
         }, this))
         // activate when the tree is loaded
         .on('ready.jstree set_state.jstree', $.proxy(function () {
-            this.hide_dots();
-            this.hide_icons();
+          this.hide_dots();
+          this.hide_icons();
 
-            this.jstree_editable.init();
-          }, this));
+          this.jstree_edit_refresh();
+        }, this));
     };
 
     /*
