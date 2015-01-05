@@ -14,11 +14,12 @@
   </head>
 
   <body>
-    <div id="wrapper">
+    <div id="wrapper" style="background-color: #79795D">
       <div id="left_field">
         <div id="tree"></div>
       </div>
       <div id="right_field">
+        <div id="ckeditor_toolbar"></div>
         <div id="nestedocs"></div>
         <div id="click_absorbent"><a>.</a></div>
       </div>
@@ -31,7 +32,7 @@
       $('#tree')
         // invoked after jstree has loaded
         .bind('loaded.jstree', function(e, data) {
-          $(this).jstree(true).select_node('2'); //Replaced 2 for the latest used branch_id from the last session
+          $(this).jstree(true).select_node('4'); //Replaced 2 for the latest used branch_id from the last session
         })
         .jstree({
           'core' : {
@@ -65,6 +66,16 @@
         .on("rename_node.jstree", function (e, data) {
           $.post("/cgi-bin/treemind.py", { cmd : "rename_node", id : data.node.id, caption : data.text })
         })
+        .on("move_node.jstree", function (e, data) {
+
+          $.get("/cgi-bin/treemind.py?cmd=move_node&id=" + data.node.id +
+            "&new_parent=" + data.parent +
+            "&position=" + data.position
+            )
+        })
+        .click(function() {
+          $("#tree").jstree().load_node(2)
+        })
         .on("changed.jstree", function (e, data) {
           if (data.selected.length == 1) {
             var branch_id = data.selected[0];
@@ -91,21 +102,9 @@
                 */
               })
               .on("savedata.jstree", function (e, data) {
-                console.log("index.html");
-                console.log(data);
                 $.post("/cgi-bin/treemind.py", { cmd : "save_data", id : data.id, data : data.text })
               });
           }
-        })
-        .on("move_node.jstree", function (e, data) {
-
-          $.get("/cgi-bin/treemind.py?cmd=move_node&id=" + data.node.id +
-            "&new_parent=" + data.parent +
-            "&position=" + data.position
-            )
-        })
-        .click(function() {
-          $("#tree").jstree().load_node(2)
         });
     });
     </script>

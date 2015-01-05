@@ -6043,7 +6043,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				if(vakata_dnd.is_drag) { $.vakata.dnd.stop({}); }
 				try {
 					e.currentTarget.unselectable = "on";
-					e.currentTarget.onselectstart = function() { return false; };
+					//e.currentTarget.onselectstart = function() { return false; };
 					if(e.currentTarget.style) { e.currentTarget.style.MozUserSelect = "none"; }
 				} catch(ignore) { }
 				vakata_dnd.init_x	= e.pageX;
@@ -6066,7 +6066,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				}
 				$(document).on("mousemove.vakata.jstree touchmove.vakata.jstree", $.vakata.dnd.drag);
 				$(document).on("mouseup.vakata.jstree touchend.vakata.jstree", $.vakata.dnd.stop);
-				return false;
+				//return false;
 			},
 			drag : function (e) {
 				if(e.type === "touchmove" && e.originalEvent && e.originalEvent.changedTouches && e.originalEvent.changedTouches[0]) {
@@ -7092,6 +7092,9 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
             case 9:   // tab
               e.preventDefault();
               CKEDITOR.instances[id].insertText('\t');
+              break;
+            case 27:   // esc
+              this.blur();
               break;
           }
         });
