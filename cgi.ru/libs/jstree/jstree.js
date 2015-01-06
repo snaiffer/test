@@ -1729,9 +1729,12 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
             $.each(rslt.mod, function( key, value ) {
               if ( key != '#' ) {
                 var origtext = value.text;
-                var newatrrs = "class='jstree-editable' contenteditable='true'";
-                if ( origtext.search(newatrrs) == -1 ) {
-                  var newtext = "<div id='" + key + "_edit' " + newatrrs + ">" + origtext + "</div>";
+                var drag_attrs = "class='jstree-sameheight'"
+                var doc_attrs = "class='jstree-editable jstree-sameheight' contenteditable='true'";
+                if ( origtext.search(doc_attrs) == -1 ) {
+                  var drag_block = "<div style='width:20px; background-color:orange;' " + drag_attrs + ">.</div>";
+                  var doc_block = "<div id='" + key + "_edit' " + doc_attrs + ">" + origtext + "</div>";
+                  var newtext = "<div class='jstree-containerdoc'> " + drag_block + doc_block + " </div>";
                   value.text = newtext;
                   value.original.text = newtext;
                 }

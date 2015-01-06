@@ -1057,9 +1057,24 @@
   border-radius: 10px;
   background: linear-gradient(#ECECEB, white);
 }
-.jstree-editable:hover {
+.jstree-containerdoc:hover {
   border-color: orange;
 }
 p {
   margin: 0px;
+}
+.jstree-sameheight {
+  float: left;
+  display: inline-block;
+  padding-bottom: 1000px;
+  margin-bottom: -1000px;
+}
+.jstree-containerdoc {
+  overflow: hidden;
+  display: inline-block;
+  width: calc(100% - 50px);
+  border: groove 2px transparent;
+  padding-bottom: 10px;
+  border-radius: 10px;
+  background: linear-gradient(#ECECEB, white);
 }
