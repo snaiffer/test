@@ -712,6 +712,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 							}
 						}
 					}, this))
+/*
 				// quick searching when the tree is focused
 				.on('keypress.jstree', $.proxy(function (e) {
 						if(e.target.tagName === "INPUT") { return true; }
@@ -770,6 +771,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 							if(end) { return; }
 						}
 					}, this))
+*/
 				// THEME RELATED
 				.on("init.jstree", $.proxy(function () {
 						var s = this.settings.core.themes;
@@ -7095,6 +7097,9 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
               break;
             case 27:   // esc
               this.blur();
+              break;
+            default:
+              //console.log(e.which + " shift:" + e.shiftKey);
               break;
           }
         });
