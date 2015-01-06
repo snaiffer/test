@@ -1051,7 +1051,7 @@
 
 .jstree-editable {
   display: inline-block;
-  width: 90%;
+  width: calc(100% - 50px);
   border: groove 2px transparent;
   padding: 10px;
   border-radius: 10px;
