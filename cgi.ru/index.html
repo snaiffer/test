@@ -33,10 +33,6 @@
       $('#right_field').split({orientation:'horizontal', position: '10px'});
 
       $('#tree')
-        // invoked after jstree has loaded
-        .bind('loaded.jstree', function(e, data) {
-          $(this).jstree(true).select_node('4'); //Replaced 2 for the latest used branch_id from the last session
-        })
         .jstree({
           'core' : {
             'data' : {
@@ -57,6 +53,10 @@
             "is_draggable" : true
           }
         })
+        // invoked after jstree has loaded
+        .on("loaded.jstree", function (e, data) {
+          $(this).jstree(true).select_node('4'); //Replaced 2 for the latest used branch_id from the last session
+        })
         .on("create_node.jstree", function (e, data) {
           $.get("/cgi-bin/treemind.py?nestedocs=False&cmd=" + "create_node&parent_id=" + data.parent, function(id) {
             id = Number(id);
@@ -65,6 +65,7 @@
         })
         .on("delete_node.jstree", function (e, data) {
           $.get("/cgi-bin/treemind.py?nestedocs=False&cmd=delete_node&id=" + data.node.id)
+          $(this).jstree(true).select_node(data.parent);
         })
         .on("rename_node.jstree", function (e, data) {
           $.post("/cgi-bin/treemind.py", { nestedocs : "False", cmd : "rename_node", id : data.node.id, caption : data.text })

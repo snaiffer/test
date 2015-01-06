@@ -39,7 +39,7 @@ def for_test():
 def getList_subbsOf(branch = general.rootB_id, nestedocs_mode = False):
   """
   getList of subbranches of "branch" in format for jstree
-  nestedocs_mode:   
+  nestedocs_mode:
     == True   --output text field of branches and output all branches
     == False  --output caption field of branches and output main branches only
   """
@@ -129,9 +129,6 @@ if cmd != "" :
         print(json.dumps(getList_subbsOf(curtree.getB(id), nestedocs)))
       if cmd == "load_data":
         print(curtree.getB(id).text)
-      if cmd == "save_data":
-        data = form.getvalue('data', "")
-        curtree.getB(id).text = data
       if cmd == "create_node":
         parent_id = form.getvalue('parent_id', general.rootB_id)
         parentB = curtree.getB(parent_id)
