@@ -54,7 +54,7 @@
           }
         })
         // invoked after jstree has loaded
-        .on("loaded.jstree", function (e, data) {
+        .on("ready.jstree", function (e, data) {
           $(this).jstree(true).select_node('4'); //Replaced 2 for the latest used branch_id from the last session
         })
         .on("create_node.jstree", function (e, data) {
