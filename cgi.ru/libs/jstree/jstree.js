@@ -865,6 +865,19 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			if(a && a[key]) { return a[key]; }
 			return key;
 		},
+    wrapText_forckeditor : function (id, text) {
+      var newtext = text;
+      var origtext = text;
+      var drag_attrs = "class='jstree-dragblock jstree-sameheight'"
+      var doc_attrs = "class='jstree-editable jstree-sameheight' contenteditable='true'";
+      if ( origtext.search(doc_attrs) == -1 ) {
+              console.log( "id = " + id);
+        var drag_block = "<div " + drag_attrs + ">&nbsp</div>";
+        var doc_block = "<div id='" + id + "_edit' " + doc_attrs + ">" + origtext + "</div>";
+        newtext = "<div class='jstree-containerdoc'> " + drag_block + doc_block + " </div>";
+      }
+      return newtext;
+    },
 		/**
 		 * gets the first child of a DOM node. Used internally.
 		 * @private
@@ -1723,23 +1736,16 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						return rslt;
 					}
 				},
-				rslt = function (rslt, worker) {
+				rslt = $.proxy( function (rslt, worker) {
           // wrap up for ckeditor
           if ( this.element.attr("cke_sup") ) {
-            $.each(rslt.mod, function( key, value ) {
+            $.each(rslt.mod, $.proxy(function( key, value ) {
               if ( key != '#' ) {
-                var origtext = value.text;
-                var drag_attrs = "class='jstree-dragblock jstree-sameheight'"
-                var doc_attrs = "class='jstree-editable jstree-sameheight' contenteditable='true'";
-                if ( origtext.search(doc_attrs) == -1 ) {
-                  var drag_block = "<div " + drag_attrs + ">&nbsp</div>";
-                  var doc_block = "<div id='" + key + "_edit' " + doc_attrs + ">" + origtext + "</div>";
-                  var newtext = "<div class='jstree-containerdoc'> " + drag_block + doc_block + " </div>";
-                  value.text = newtext;
-                  value.original.text = newtext;
-                }
+                var newtext = this.wrapText_forckeditor(key, value.text);
+                value.text = newtext;
+                value.original.text = newtext;
               }
-            });
+            }, this));
           }
 					this._cnt = rslt.cnt;
 					this._model.data = rslt.mod; // breaks the reference in load_node - careful
@@ -1779,7 +1785,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						this.trigger('changed', { 'action' : 'model', 'selected' : this._data.core.selected });
 					}
 					cb.call(this, true);
-				};
+				}, this);
 			if(this.settings.core.worker && window.Blob && window.URL && window.Worker) {
 				try {
 					if(this._wrk === null) {
@@ -2048,7 +2054,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 * @return {String} the ID of the object added to the model
 		 */
 		_parse_model_from_json : function (d, p, ps) {
-      console.log("_parse_model_from_json");
 			if(!ps) { ps = []; }
 			else { ps = ps.concat(); }
 			if(p) { ps.unshift(p); }
@@ -2211,6 +2216,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 * @param {Boolean} force_render should children of closed parents be drawn anyway
 		 */
 		redraw_node : function (node, deep, is_callback, force_render) {
+      console.log("redraw_node");
 			var obj = this.get_node(node),
 				par = false,
 				ind = false,
@@ -2331,7 +2337,11 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				node.childNodes[1].appendChild(d.createTextNode(obj.text));
 			}
 			else {
-				node.childNodes[1].innerHTML += obj.text;
+        if ( this.element.attr("cke_sup") ) {
+          node.childNodes[1].innerHTML = this.wrapText_forckeditor(node.childNodes[1].id.replace("_anchor", ""), obj.text);
+        } else {
+          node.childNodes[1].innerHTML += obj.text;
+        }
 			}
 
 			if(deep && obj.children.length && (obj.state.opened || force_render) && obj.state.loaded) {
@@ -5139,7 +5149,18 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						var inst = $.jstree.reference(data.reference),
 							obj = inst.get_node(data.reference);
 						inst.create_node(obj, {}, "last", function (new_node) {
-							setTimeout(function () { inst.edit(new_node); },0);
+							setTimeout(function () {
+              console.log($(this).element);
+                try {
+                  if ( $(this).element.attr("cke_sup") ) {
+
+              console.log("new_node");
+              console.log(new_node);
+                  } else {
+                    inst.edit(new_node);
+                  }
+                } catch (e) { };
+              },0);
 						});
 					}
 				},
@@ -7133,6 +7154,9 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						this.activate_node(e.currentTarget, e);
         }, this))
 				.on("after_open.jstree", $.proxy(function (e, node) {
+          this.jstree_edit_refresh();
+        }, this))
+				.on("create_node.jstree", $.proxy(function (e, node) {
           this.jstree_edit_refresh();
         }, this))
         // activate when the tree is loaded

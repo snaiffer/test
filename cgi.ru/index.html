@@ -108,6 +108,10 @@
                   $(this).jstree(true).set_id(data.node, id);
                 }, this))
               })
+              .on("delete_node.jstree", function (e, data) {
+                $.get("/cgi-bin/treemind.py?nestedocs=True&cmd=delete_node&id=" + data.node.id)
+                $(this).jstree(true).select_node(data.parent);
+              })
               .on("move_node.jstree", function (e, data) {
                 $.get("/cgi-bin/treemind.py?nestedocs=True&cmd=move_node&id=" + data.node.id +
                   "&new_parent=" + data.parent +
