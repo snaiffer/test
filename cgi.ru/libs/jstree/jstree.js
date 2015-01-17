@@ -5765,6 +5765,15 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 
 			this.element
 				.on('mousedown.jstree touchstart.jstree', '.jstree-anchor', $.proxy(function (e) {
+          // Prevent dnd's plugin execution if the event goes form obj with ".jstree-editable" class
+          var arr = $(e.target).parentsUntil(".jstree-editable");
+          var editables_ev = true;
+          arr.each(function (key, value) {
+            if ( arr[key].nodeName == "BODY" ) { editables_ev = false; }
+          });
+          if ( editables_ev ) { return; };
+          //
+
 					var obj = this.get_node(e.target),
 						mlt = this.is_selected(obj) && this.settings.drag_selection ? this.get_selected().length : 1,
 						txt = (mlt > 1 ? mlt + ' ' + this.get_string('nodes') : this.get_text(e.currentTarget));

@@ -1062,6 +1062,12 @@
   background-repeat: repeat-y;
   background-size: 100%;
 }
+.jstree-dragblock:active {
+  background-color: white;
+  background-image: url("drag_clicked.png");
+  background-repeat: repeat-y;
+  background-size: 100%;
+}
 .jstree-sameheight {
   float: left;
   display: inline-block;
