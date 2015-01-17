@@ -59,10 +59,10 @@
           $(this).jstree(true).select_node('4'); //Replaced 2 for the latest used branch_id from the last session
         })
         .on("create_node.jstree", function (e, data) {
-          $.get("/cgi-bin/treemind.py?nestedocs=False&cmd=" + "create_node&parent_id=" + data.parent, function(id) {
+          $.get("/cgi-bin/treemind.py?nestedocs=False&cmd=create_node&parent_id=" + data.parent, $.proxy(function(id) {
             id = Number(id);
-            $("#tree").jstree().set_id(data.node, id);
-          })
+            $(this).jstree(true).set_id(data.node, id);
+          }, this))
         })
         .on("delete_node.jstree", function (e, data) {
           $.get("/cgi-bin/treemind.py?nestedocs=False&cmd=delete_node&id=" + data.node.id)
@@ -76,9 +76,6 @@
             "&new_parent=" + data.parent +
             "&position=" + data.position
             )
-        })
-        .click(function() {
-          $("#tree").jstree().load_node(2)
         })
         .on("changed.jstree", function (e, data) {
           if (data.selected.length == 1) {
@@ -104,6 +101,12 @@
                 /*
                 "plugins" : ["wholerow", "contextmenu", "dnd", "search", "ckeditor_support" ],
                 */
+              })
+              .on("create_node.jstree", function (e, data) {
+                $.get("/cgi-bin/treemind.py?nestedocs=True&cmd=create_node&parent_id=" + data.parent, $.proxy(function(id) {
+                  id = Number(id);
+                  $(this).jstree(true).set_id(data.node, id);
+                }, this))
               })
               .on("move_node.jstree", function (e, data) {
                 $.get("/cgi-bin/treemind.py?nestedocs=True&cmd=move_node&id=" + data.node.id +

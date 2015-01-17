@@ -2048,6 +2048,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 * @return {String} the ID of the object added to the model
 		 */
 		_parse_model_from_json : function (d, p, ps) {
+      console.log("_parse_model_from_json");
 			if(!ps) { ps = []; }
 			else { ps = ps.concat(); }
 			if(p) { ps.unshift(p); }
