@@ -133,7 +133,7 @@ class Branch(Base):
   __tablename__ = 'branches'
   id = Column(Integer, primary_key=True)
   caption = Column(String, default='New branch')
-  text = Column(String, default='New branch')
+  text = Column(String, default='')
   main = Column(Boolean, default='False')
   folded = Column(Boolean, default='False')
   parent_id = Column(Integer, ForeignKey(id))
@@ -148,7 +148,7 @@ class Branch(Base):
     backref=backref("parent", remote_side=id),
     )
 
-  def __init__(self, tree, caption='New branch', text='New branch', main=False, folded=False, parent=None, parent_id=general.rootB_id):
+  def __init__(self, tree, caption='New branch', text='', main=False, folded=False, parent=None, parent_id=general.rootB_id):
     self.tree = tree
     self.caption = caption
     self.text = text

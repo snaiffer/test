@@ -1056,7 +1056,7 @@
   outline: 0;
 }
 .jstree-dragblock {
-  width:20px;
+  width: 20px;
   background-color: white;
   background-image: url("drag.png");
   background-repeat: repeat-y;
@@ -1089,4 +1089,16 @@
 }
 p {
   margin: 0px;
+}
+.jstree-btnEdit {
+  content: url("btnEdit.png");
+  visibility: hidden;
+}
+.jstree-btnEdit:hover {
+  background-color: orange;
+  width: 22px;
+  height: 20px;
+}
+.jstree-branch-text {
+  display: inline-block;
 }

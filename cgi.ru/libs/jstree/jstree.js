@@ -568,20 +568,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			var word = '',
 				tout = null;
 			this.element
-				.on("dblclick.jstree", function () {
-						if(document.selection && document.selection.empty) {
-							document.selection.empty();
-						}
-						else {
-							if(window.getSelection) {
-								var sel = window.getSelection();
-								try {
-									sel.removeAllRanges();
-									sel.collapse();
-								} catch (ignore) { }
-							}
-						}
-					})
 				.on("click.jstree", ".jstree-ocl", $.proxy(function (e) {
 						this.toggle_node(e.target);
 					}, this))
@@ -810,6 +796,10 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 					}, this))
 				.on('mouseleave.jstree', '.jstree-anchor', $.proxy(function (e) {
 						this.dehover_node(e.currentTarget);
+					}, this))
+				.on('click.jstree', '.jstree-btnEdit', $.proxy(function (e) {
+          $(e.target).attr("editing", true).hide();
+          this.edit(e.target.id.replace("_btnEdit", ""));
 					}, this));
 		},
 		/**
@@ -2328,7 +2318,9 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
         if ( this.element.attr("cke_sup") ) {
           node.childNodes[1].innerHTML = this.wrapText_forckeditor(node.childNodes[1].id.replace("_anchor", ""), obj.text);
         } else {
-          node.childNodes[1].innerHTML += obj.text;
+          var new_innerHTML = "<div id=" + obj.id + "_text class='jstree-branch-text'>" + obj.text + "</div>";
+          new_innerHTML += "<img id=" + obj.id + "_btnEdit class='jstree-btnEdit' alt='edit' title='edit'></img>";
+          node.childNodes[1].innerHTML += new_innerHTML;
         }
 			}
 
@@ -2797,6 +2789,8 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			var o = this.element.find('.jstree-hovered'), t = this.element;
 			if(o && o.length) { this.dehover_node(o); }
 
+      $("#" + obj[0].id + "_btnEdit").show().css("visibility", "visible");
+
 			obj.children('.jstree-anchor').addClass('jstree-hovered');
 			/**
 			 * triggered when an node is hovered
@@ -2819,6 +2813,9 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			if(!obj || !obj.length || !obj.children('.jstree-hovered').length) {
 				return false;
 			}
+
+      $("#" + obj[0].id + "_btnEdit").hide();
+
 			obj.children('.jstree-anchor').removeClass('jstree-hovered');
 			/**
 			 * triggered when an node is no longer hovered
@@ -3328,20 +3325,16 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 * @trigger set_text.jstree
 		 */
 		set_text : function (obj, val) {
-			var t1, t2;
 			if($.isArray(obj)) {
-				obj = obj.slice();
-				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
-					this.set_text(obj[t1], val);
+				for(var i = 0; i < obj.length; i++) {
+					this.set_text(obj[i], val);
 				}
 				return true;
 			}
 			obj = this.get_node(obj);
 			if(!obj || obj.id === '#') { return false; }
 			obj.text = val;
-			if(this.get_node(obj, true).length) {
-				this.redraw_node(obj.id);
-			}
+      $("#" + obj.id + "_text")[0].innerHTML = val;
 			/**
 			 * triggered when a node text value is changed
 			 * @event
@@ -3434,9 +3427,9 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			if(!pos.toString().match(/^(before|after)$/) && !is_loaded && !this.is_loaded(par)) {
 				return this.load_node(par, function () { this.create_node(par, node, pos, callback, true); });
 			}
-			if(!node) { node = { "text" : this.get_string('New node') }; }
+			if(!node) { node = { "text" : this.get_string('New branch') }; }
 			if(typeof node === "string") { node = { "text" : node }; }
-			if(node.text === undefined) { node.text = this.get_string('New node'); }
+			if(node.text === undefined) { node.text = this.get_string('New branch'); }
 			var tmp, dpc, i, j;
 
 			if(par.id === '#') {
@@ -4093,6 +4086,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 							if(this.rename_node(obj, $('<div></div>').text(v)[this.settings.core.force_text ? 'text' : 'html']()) === false) {
 								this.set_text(obj, t); // move this up? and fix #483
 							}
+              $("#" + obj[0].id + "_btnEdit").attr("editing", false);
 						}, this),
 						"keydown" : function (event) {
 							var key = event.which;
@@ -7065,7 +7059,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				}
 				if(!node) { node = {}; }
 				var tmp, n, dpc, i, j, m = this._model.data, s = this.settings.unique.case_sensitive, cb = this.settings.unique.duplicate;
-				n = tmp = this.get_string('New node');
+				n = tmp = this.get_string('New branch');
 				dpc = [];
 				for(i = 0, j = par.children.length; i < j; i++) {
 					dpc.push(s ? m[par.children[i]].text : m[par.children[i]].text.toLowerCase());
