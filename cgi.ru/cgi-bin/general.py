@@ -3,7 +3,6 @@
 
 import re
 
-MAX_captionLen = 29 #30
 rootB_id = 1
 
 
@@ -33,7 +32,6 @@ def checkout(text):
 if __name__ == '__main__':
   print("Settings:")
   print("========================================")
-  print("MAX_captionLen = " + str(MAX_captionLen))
   print("rootB_id = " + str(rootB_id))
   print()
   print("orderb_step = " + str(orderb_step))

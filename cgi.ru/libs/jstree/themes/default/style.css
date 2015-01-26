@@ -220,10 +220,8 @@
   border-left: 1px solid #e2e3e3;
 }
 .vakata-context .vakata-contextmenu-shortcut {
-  font-size: 0.8em;
-  color: silver;
-  opacity: 0.5;
-  display: none;
+  opacity: 0.6;
+  display: inline-block;
 }
 .vakata-context-rtl ul {
   left: auto;
@@ -1054,7 +1052,7 @@
 }
 .jstree-dragblock:active {
   background-color: white;
-  background-image: url("drag_clicked.png");
+  background-image: url("drag_pressed.png");
   background-repeat: repeat-y;
   background-size: 100%;
 }
@@ -1104,11 +1102,21 @@ p {
   border-radius: 2px;
   box-shadow: inset 0 0 1px #999999;
 }
-.jstree-containerdoc.jstree-hovered {
+.jstree-anchor.jstree-hovered > .jstree-containerdoc {
   border-color: orange;
   background: linear-gradient(#ECECEB, white);
 }
-.jstree-containerdoc.jstree-clicked {
+.jstree-anchor.jstree-clicked > .jstree-containerdoc {
+  border-color: orange;
+  background: linear-gradient(#ECECEB, white);
+}
+.jstree-anchor.jstree-clicked > .jstree-containerdoc > .jstree-dragblock {
+  background-color: white;
+  background-image: url("drag_clicked.png");
+  background-repeat: repeat-y;
+  background-size: 100%;
+}
+.jstree-anchor.jstree-editing > .jstree-containerdoc {
   border-color: orange;
   background: linear-gradient(#FFEBD6, white);
 }

@@ -578,9 +578,8 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 					}, this))
 				.on('keydown.jstree', '.jstree-anchor', $.proxy(function (e) {
             // if text is editting with ckedit then do nothing
-            if ( $(e.target)[0].id.search('_edit') != -1) {
-              return;
-            }
+            if ( $('.cke_focus').length != 0 ) { return; }
+
 						if(e.target.tagName === "INPUT") { return true; }
 						var o = null;
 						if(this._data.core.rtl) {
@@ -598,6 +597,8 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 							case 13: // enter
 								e.type = "click";
 								curB.trigger(e);
+                $("#" + curB[0].id).trigger('click');
+                $("#" + curB[0].id.replace('_anchor', '_edit')).trigger('click');
 								break;
 							case 37: // right
 								e.preventDefault();
@@ -628,6 +629,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 								e.preventDefault();
 								o = this.get_next_dom($('.jstree-hovered'));
 								if(o && o.length) { this.hover_node(o.children('.jstree-anchor')); }
+
 								break;
 							case 106: // aria defines * on numpad as open_all - not very common
 								this.open_all();
@@ -645,7 +647,11 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 								e.preventDefault();
                 var inst = $.jstree.reference(curB);
                 var s = inst.settings.contextmenu.items();
-                s.add_branch.action(curB);
+                if ( ! e.ctrlKey ) {
+                  s.add_branch.action(curB);
+                } else {
+                  s.add_subbranch.action(curB);
+                }
 								//this.element.find('.jstree-anchor').filter(':visible').last().focus();
 								break;
 							/*
@@ -873,7 +879,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
       var drag_attrs = "class='jstree-dragblock jstree-sameheight'"
       var doc_attrs = "class='jstree-editable jstree-sameheight' contenteditable='true'";
       if ( origtext.search(doc_attrs) == -1 ) {
-        var drag_block = "<div " + drag_attrs + ">&nbsp</div>";
+        var drag_block = "<div id='" + id + "_dragblock' " + drag_attrs + ">&nbsp</div>";
         var doc_block = "<div id='" + id + "_edit' " + doc_attrs + ">" + origtext + "</div>";
         newtext = "<div id=" + id + "_container class='jstree-containerdoc'> " + drag_block + doc_block + " </div>";
       }
@@ -2801,10 +2807,25 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			var o = this.element.find('.jstree-hovered'), t = this.element;
 			if(o && o.length) { this.dehover_node(o); }
 
-      $("#" + obj[0].id + "_container").addClass('jstree-hovered');
       $("#" + obj[0].id + "_btnEdit").show().css("visibility", "visible");
 
 			obj.children('.jstree-anchor').addClass('jstree-hovered');
+
+      // scrolling
+      var animation_ration = 150; // it can be moved to settings parameters
+      var guard_field = 120; // it can be moved to settings parameters
+      var scrolled = $('#data_field')[0].scrollTop;
+      var visibleField = $('#data_field')[0].clientHeight;
+      var bottom_border = scrolled + visibleField - guard_field;
+      var top_border = scrolled + guard_field;
+      var branch_offset = $(".jstree-hovered")[0].offsetTop;
+      if ( (branch_offset - top_border) < 0 ) { // || (bottom_border - branch_offset) < 0) {
+        $('#data_field').animate({ scrollTop: branch_offset - guard_field }, animation_ration);
+      }
+      if ( (bottom_border - branch_offset) < 0) {
+        $('#data_field').animate({ scrollTop: branch_offset - visibleField + guard_field }, animation_ration);
+      }
+
 			/**
 			 * triggered when an node is hovered
 			 * @event
@@ -2827,7 +2848,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				return false;
 			}
 
-      $("#" + obj[0].id + "_container").removeClass('jstree-hovered');
       $("#" + obj[0].id + "_btnEdit").hide();
 
 			obj.children('.jstree-anchor').removeClass('jstree-hovered');
@@ -2869,7 +2889,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				}
 				if(dom && dom.length) {
 					dom.attr('aria-selected', true).children('.jstree-anchor').addClass('jstree-clicked');
-          $("#" + dom[0].id + "_container").addClass('jstree-clicked');
+//          $("#" + dom[0].id + "_container").addClass('jstree-clicked');
           /*
           var children = $("#" + dom[0].id).children('ul').children('li');
           for (var i = 0; i < children.length; i++) {
@@ -4074,8 +4094,8 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 
 			var rtl = this._data.core.rtl,
 				w  = this.element.width(),
-				a  = obj.children('.jstree-anchor'),
-				s  = $('<span>'),
+				text_line  = obj.children('.jstree-anchor'),
+				editing_line  = $('<span>'),
 				/*!
 				oi = obj.children("i:visible"),
 				ai = a.children("i:visible"),
@@ -4084,7 +4104,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				*/
 				t  = default_text,
 				h1 = $("<"+"div />", { css : { "position" : "absolute", "top" : "-200px", "left" : (rtl ? "0px" : "-1000px"), "visibility" : "hidden" } }).appendTo("body"),
-				h2 = $("<"+"input />", {
+				editting_field = $("<"+"input />", {
 						"value" : t,
 						"class" : "jstree-rename-input",
 						// "size" : t.length,
@@ -4098,12 +4118,12 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 							"width" : "150px" // will be set a bit further down
 						},
 						"blur" : $.proxy(function () {
-							var i = s.children(".jstree-rename-input"),
+							var i = editing_line.children(".jstree-rename-input"),
 								v = i.val();
 							if(v === "") { v = t; }
 							h1.remove();
-							s.replaceWith(a);
-							s.remove();
+							editing_line.replaceWith(text_line);
+							editing_line.remove();
 							this.set_text(obj, t);
 							if(this.rename_node(obj, $('<div></div>').text(v)[this.settings.core.force_text ? 'text' : 'html']()) === false) {
 								this.set_text(obj, t); // move this up? and fix #483
@@ -4126,26 +4146,27 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						"click" : function (e) { e.stopImmediatePropagation(); },
 						"mousedown" : function (e) { e.stopImmediatePropagation(); },
 						"keyup" : function (event) {
-							h2.width(Math.min(h1.text("pW" + this.value).width(),w));
+							editting_field.width(Math.min(h1.text("pW" + this.value).width(),w));
 						},
 						"keypress" : function(event) {
 							if(event.which === 13) { return false; }
 						}
 					}),
 				fn = {
-						fontFamily		: a.css('fontFamily')		|| '',
-						fontSize		: a.css('fontSize')			|| '',
-						fontWeight		: a.css('fontWeight')		|| '',
-						fontStyle		: a.css('fontStyle')		|| '',
-						fontStretch		: a.css('fontStretch')		|| '',
-						fontVariant		: a.css('fontVariant')		|| '',
-						letterSpacing	: a.css('letterSpacing')	|| '',
-						wordSpacing		: a.css('wordSpacing')		|| ''
+						fontFamily		: text_line.css('fontFamily')		|| '',
+						fontSize		: text_line.css('fontSize')			|| '',
+						fontWeight		: text_line.css('fontWeight')		|| '',
+						fontStyle		: text_line.css('fontStyle')		|| '',
+						fontStretch		: text_line.css('fontStretch')		|| '',
+						fontVariant		: text_line.css('fontVariant')		|| '',
+						letterSpacing	: text_line.css('letterSpacing')	|| '',
+						wordSpacing		: text_line.css('wordSpacing')		|| ''
 				};
-			s.attr('class', a.attr('class')).append(a.contents().clone()).append(h2);
-			a.replaceWith(s);
+			editing_line.attr('class', text_line.attr('class')).append(text_line.contents().clone());
+      editing_line.children('.jstree-branch-text').replaceWith(editting_field);
+			text_line.replaceWith(editing_line);
 			h1.css(fn);
-			h2.css(fn).width(Math.min(h1.text("pW" + h2[0].value).width(),w))[0].select();
+			editting_field.css(fn).width(Math.min(h1.text("pW" + editting_field[0].value).width(),w))[0].select();
 		},
 
 
@@ -5160,27 +5181,28 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 					"separator_before"	: false,
 					"separator_after"	: true,
 					"_disabled"			: false, //(this.check("create_node", data.reference, {}, "last")),
-					"label"				: "Add branch",
+					"label"				: "Add branch [Ins]",
+					///*
+					"shortcut"			: 113,
+					"shortcut_label"	: 'F2',
+					"icon"				: "glyphicon glyphicon-leaf",
+					//*/
 					"action"			: function (data) {
-          if ( ! data.reference ) {
-						var inst = $.jstree.reference(data),
-							obj = inst.get_node(data);
+            var prep_data = ( ! data.reference ) ? data : data.reference;
+            var inst = $.jstree.reference(prep_data),
+                obj = inst.get_node(prep_data);
             inst.create_node(inst.get_parent(obj), {}, "last");
-          } else {
-						var inst = $.jstree.reference(data.reference),
-							obj = inst.get_node(data.reference);
-            inst.create_node(inst.get_parent(obj), {}, "last");
-          }
 					}
 				},
 				"add_subbranch" : {
 					"separator_before"	: false,
 					"separator_after"	: true,
 					"_disabled"			: false, //(this.check("create_node", data.reference, {}, "last")),
-					"label"				: "Add sub-branch",
+					"label"				: "Add sub-branch [Ctrl + Ins]",
 					"action"			: function (data) {
-						var inst = $.jstree.reference(data.reference),
-							obj = inst.get_node(data.reference);
+            var prep_data = ( ! data.reference ) ? data : data.reference;
+            var inst = $.jstree.reference(prep_data),
+                obj = inst.get_node(prep_data);
             inst.create_node(obj, {}, "last");
 					}
 				},
@@ -5195,8 +5217,9 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 					"icon"				: "glyphicon glyphicon-leaf",
 					*/
 					"action"			: function (data) {
-						var inst = $.jstree.reference(data.reference),
-							obj = inst.get_node(data.reference);
+            var prep_data = ( ! data.reference ) ? data : data.reference;
+						var inst = $.jstree.reference(prep_data),
+						  	obj = inst.get_node(prep_data);
 						inst.edit(obj);
 					}
 				},
@@ -5207,12 +5230,12 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 					"_disabled"			: false, //(this.check("delete_node", data.reference, this.get_parent(data.reference), "")),
 					"label"				: "Delete",
 					"action"			: function (data) {
-						var inst = $.jstree.reference(data.reference),
-							obj = inst.get_node(data.reference);
+            var prep_data = ( ! data.reference ) ? data : data.reference;
+						var inst = $.jstree.reference(prep_data),
+  							obj = inst.get_node(prep_data);
 						if(inst.is_selected(obj)) {
 							inst.delete_node(inst.get_selected());
-						}
-						else {
+						} else {
 							inst.delete_node(obj);
 						}
 					}
@@ -5229,12 +5252,12 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 							"separator_after"	: false,
 							"label"				: "Cut",
 							"action"			: function (data) {
-								var inst = $.jstree.reference(data.reference),
-									obj = inst.get_node(data.reference);
+                var prep_data = ( ! data.reference ) ? data : data.reference;
+								var inst = $.jstree.reference(prep_data),
+                    obj = inst.get_node(prep_data);
 								if(inst.is_selected(obj)) {
 									inst.cut(inst.get_selected());
-								}
-								else {
+								} else {
 									inst.cut(obj);
 								}
 							}
@@ -5245,12 +5268,12 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 							"separator_after"	: false,
 							"label"				: "Copy",
 							"action"			: function (data) {
-								var inst = $.jstree.reference(data.reference),
-									obj = inst.get_node(data.reference);
+                var prep_data = ( ! data.reference ) ? data : data.reference;
+								var inst = $.jstree.reference(prep_data),
+                    obj = inst.get_node(prep_data);
 								if(inst.is_selected(obj)) {
 									inst.copy(inst.get_selected());
-								}
-								else {
+								} else {
 									inst.copy(obj);
 								}
 							}
@@ -5259,13 +5282,15 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 							"separator_before"	: false,
 							"icon"				: false,
 							"_disabled"			: function (data) {
-								return !$.jstree.reference(data.reference).can_paste();
+                var prep_data = ( ! data.reference ) ? data : data.reference;
+								return !$.jstree.reference(prep_data).can_paste();
 							},
 							"separator_after"	: false,
 							"label"				: "Paste",
 							"action"			: function (data) {
-								var inst = $.jstree.reference(data.reference),
-									obj = inst.get_node(data.reference);
+                var prep_data = ( ! data.reference ) ? data : data.reference;
+								var inst = $.jstree.reference(prep_data),
+                    obj = inst.get_node(prep_data);
 								inst.paste(obj);
 							}
 						}
@@ -5484,15 +5509,11 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 					sep = false;
 					str += "<"+"li class='" + (val._class || "") + (val._disabled === true || ($.isFunction(val._disabled) && val._disabled({ "item" : val, "reference" : vakata_context.reference, "element" : vakata_context.element })) ? " vakata-contextmenu-disabled " : "") + "' "+(val.shortcut?" data-shortcut='"+val.shortcut+"' ":'')+">";
 					str += "<"+"a href='#' rel='" + (vakata_context.items.length - 1) + "'>";
-					if($.vakata.context.settings.icons) {
-						str += "<"+"i ";
-						if(val.icon) {
-							if(val.icon.indexOf("/") !== -1 || val.icon.indexOf(".") !== -1) { str += " style='background:url(\"" + val.icon + "\") center center no-repeat' "; }
-							else { str += " class='" + val.icon + "' "; }
-						}
-						str += "><"+"/i><"+"span class='vakata-contextmenu-sep'>&#160;<"+"/span>";
-					}
-					str += ($.isFunction(val.label) ? val.label({ "item" : i, "reference" : vakata_context.reference, "element" : vakata_context.element }) : val.label) + (val.shortcut?' <span class="vakata-contextmenu-shortcut vakata-contextmenu-shortcut-'+val.shortcut+'">'+ (val.shortcut_label || '') +'</span>':'') + "<"+"/a>";
+
+						str += "<i>" + (val.shortcut?' <span class="vakata-contextmenu-shortcut vakata-contextmenu-shortcut-'+val.shortcut+'">'+ (val.shortcut_label || '') +'</span>':'') + "</i><span class='vakata-contextmenu-sep'>&#160;</span>";
+					str += ($.isFunction(val.label) ? val.label({ "item" : i, "reference" : vakata_context.reference, "element" : vakata_context.element }) : val.label);
+          str += "</a>";
+          //debugger;
 					if(val.submenu) {
 						tmp = $.vakata.context._parse(val.submenu, true);
 						if(tmp) { str += tmp; }
@@ -5720,6 +5741,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						}
 					})
 				.on('keydown', function (e) {
+          console.log("keydown");
 					e.preventDefault();
 					var a = vakata_context.element.find('.vakata-contextmenu-shortcut-' + e.which).parent();
 					if(a.parent().not('.vakata-context-disabled')) {
@@ -7128,8 +7150,11 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
       $(".jstree-editable")
         // Run ckeditor by one click on element instead mousedown
         .on('click', function(e) {
-          var id = this.id;
-          $("#" + id).focus();
+          $("#" + e.currentTarget.id).focus();
+
+          var curB = e.currentTarget.id.replace('_edit', '_anchor')
+          $('#' + curB).addClass('jstree-editing');
+          return false;
         })
         .on('contextmenu', function(e) {
           return false;
@@ -7144,6 +7169,9 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
           data.id = orig_id.replace("_edit", "");
           data.text = this.innerHTML;
           $(this).trigger('savedata.jstree', data);
+
+          var curB = e.currentTarget.id.replace('_edit', '_anchor')
+          $('#' + curB).removeClass('jstree-editing');
         })
         .on('keydown', function (e) {
           var id = this.id;
@@ -7154,6 +7182,10 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
               break;
             case 27:   // esc
               this.blur();
+
+              // return focus from text to container
+              var curB = e.currentTarget.id.replace('_edit', '_dragblock');
+              $('#' + curB).trigger('click');
               break;
             default:
               //console.log(e.which + " shift:" + e.shiftKey);
@@ -7167,7 +7199,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 
 			parent.bind.call(this);
       //this.element.off('keydown.jstree', '.jstree-anchor');
-      this.element.off("click.jstree", ".jstree-anchor");
+      //this.element.off("click.jstree", ".jstree-anchor");
       this.element
 				.on("click.jstree", ".jstree-anchor", $.proxy(function (e) {
 						e.preventDefault();
