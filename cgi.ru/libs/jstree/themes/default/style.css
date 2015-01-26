@@ -302,16 +302,6 @@
 .jstree-default .jstree-wholerow {
   transition: background-color 0.15s, box-shadow 0.15s;
 }
-.jstree-default .jstree-hovered {
-  background: #e7f4f9;
-  border-radius: 2px;
-  box-shadow: inset 0 0 1px #cccccc;
-}
-.jstree-default .jstree-clicked {
-  background: #beebff;
-  border-radius: 2px;
-  box-shadow: inset 0 0 1px #999999;
-}
 .jstree-default .jstree-no-icons .jstree-anchor > .jstree-themeicon {
   display: none;
 }
@@ -1083,10 +1073,12 @@
   border-radius: 10px;
   background: linear-gradient(#ECECEB, white);
 }
+/*
 .jstree-containerdoc:hover {
   border-color: orange;
   background: linear-gradient(#FFEBD6, white);
 }
+*/
 p {
   margin: 0px;
 }
@@ -1101,4 +1093,22 @@ p {
 }
 .jstree-branch-text {
   display: inline-block;
+}
+.jstree-default .jstree-hovered {
+  background: #e7f4f9;
+  border-radius: 2px;
+  box-shadow: inset 0 0 1px #cccccc;
+}
+.jstree-default .jstree-clicked {
+  background: #beebff;
+  border-radius: 2px;
+  box-shadow: inset 0 0 1px #999999;
+}
+.jstree-containerdoc.jstree-hovered {
+  border-color: orange;
+  background: linear-gradient(#ECECEB, white);
+}
+.jstree-containerdoc.jstree-clicked {
+  border-color: orange;
+  background: linear-gradient(#FFEBD6, white);
 }

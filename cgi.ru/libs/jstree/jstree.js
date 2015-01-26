@@ -577,52 +577,57 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						this.activate_node(e.currentTarget, e);
 					}, this))
 				.on('keydown.jstree', '.jstree-anchor', $.proxy(function (e) {
+            // if text is editting with ckedit then do nothing
+            if ( $(e.target)[0].id.search('_edit') != -1) {
+              return;
+            }
 						if(e.target.tagName === "INPUT") { return true; }
 						var o = null;
 						if(this._data.core.rtl) {
 							if(e.which === 37) { e.which = 39; }
 							else if(e.which === 39) { e.which = 37; }
 						}
+            var curB = $('.jstree-hovered');
 						switch(e.which) {
 							case 32: // aria defines space only with Ctrl
 								if(e.ctrlKey) {
 									e.type = "click";
-									$(e.currentTarget).trigger(e);
+									curB.trigger(e);
 								}
 								break;
 							case 13: // enter
 								e.type = "click";
-								$(e.currentTarget).trigger(e);
+								curB.trigger(e);
 								break;
 							case 37: // right
 								e.preventDefault();
-								if(this.is_open(e.currentTarget)) {
-									this.close_node(e.currentTarget);
+								if(this.is_open(curB)) {
+									this.close_node(curB);
 								}
 								else {
-									o = this.get_parent(e.currentTarget);
-									if(o && o.id !== '#') { this.get_node(o, true).children('.jstree-anchor').focus(); }
+									o = this.get_parent(curB);
+									if(o && o.id !== '#') { this.hover_node(this.get_node(o, true).children('.jstree-anchor')); }
 								}
 								break;
 							case 38: // up
 								e.preventDefault();
-								o = this.get_prev_dom(e.currentTarget);
-								if(o && o.length) { o.children('.jstree-anchor').focus(); }
+								o = this.get_prev_dom(curB);
+								if(o && o.length) { this.hover_node(o.children('.jstree-anchor')); }
 								break;
 							case 39: // left
 								e.preventDefault();
-								if(this.is_closed(e.currentTarget)) {
-									this.open_node(e.currentTarget, function (o) { this.get_node(o, true).children('.jstree-anchor').focus(); });
+								if(this.is_closed(curB)) {
+									this.open_node(curB, function (o) { this.hover_node(this.get_node(o, true).children('.jstree-anchor')); });
 								}
-								else if (this.is_open(e.currentTarget)) {
-									o = this.get_node(e.currentTarget, true).children('.jstree-children')[0];
-									if(o) { $(this._firstChild(o)).children('.jstree-anchor').focus(); }
+								else if (this.is_open(curB)) {
+									o = this.get_node(curB, true).children('.jstree-children')[0];
+									if(o) { this.hover_node($(this._firstChild(o)).children('.jstree-anchor')); }
 								}
 								break;
 							case 40: // down
 								e.preventDefault();
-								o = this.get_next_dom(e.currentTarget);
-								if(o && o.length) { o.children('.jstree-anchor').focus(); }
+								o = this.get_next_dom($('.jstree-hovered'));
+								if(o && o.length) { this.hover_node(o.children('.jstree-anchor')); }
 								break;
 							case 106: // aria defines * on numpad as open_all - not very common
 								this.open_all();
@@ -635,6 +640,13 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 							case 35: // end
 								e.preventDefault();
 								this.element.find('.jstree-anchor').filter(':visible').last().focus();
+								break;
+							case 45: // insert
+								e.preventDefault();
+                var inst = $.jstree.reference(curB);
+                var s = inst.settings.contextmenu.items();
+                s.add_branch.action(curB);
+								//this.element.find('.jstree-anchor').filter(':visible').last().focus();
 								break;
 							/*
 							// delete
@@ -863,7 +875,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
       if ( origtext.search(doc_attrs) == -1 ) {
         var drag_block = "<div " + drag_attrs + ">&nbsp</div>";
         var doc_block = "<div id='" + id + "_edit' " + doc_attrs + ">" + origtext + "</div>";
-        newtext = "<div class='jstree-containerdoc'> " + drag_block + doc_block + " </div>";
+        newtext = "<div id=" + id + "_container class='jstree-containerdoc'> " + drag_block + doc_block + " </div>";
       }
       return newtext;
     },
@@ -2789,6 +2801,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			var o = this.element.find('.jstree-hovered'), t = this.element;
 			if(o && o.length) { this.dehover_node(o); }
 
+      $("#" + obj[0].id + "_container").addClass('jstree-hovered');
       $("#" + obj[0].id + "_btnEdit").show().css("visibility", "visible");
 
 			obj.children('.jstree-anchor').addClass('jstree-hovered');
@@ -2814,6 +2827,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				return false;
 			}
 
+      $("#" + obj[0].id + "_container").removeClass('jstree-hovered');
       $("#" + obj[0].id + "_btnEdit").hide();
 
 			obj.children('.jstree-anchor').removeClass('jstree-hovered');
@@ -2855,6 +2869,14 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				}
 				if(dom && dom.length) {
 					dom.attr('aria-selected', true).children('.jstree-anchor').addClass('jstree-clicked');
+          $("#" + dom[0].id + "_container").addClass('jstree-clicked');
+          /*
+          var children = $("#" + dom[0].id).children('ul').children('li');
+          for (var i = 0; i < children.length; i++) {
+          console.log(children[i]);
+            this.select_node(children[i]);
+          }
+          */
 				}
 				/**
 				 * triggered when an node is selected
@@ -5140,9 +5162,15 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 					"_disabled"			: false, //(this.check("create_node", data.reference, {}, "last")),
 					"label"				: "Add branch",
 					"action"			: function (data) {
+          if ( ! data.reference ) {
+						var inst = $.jstree.reference(data),
+							obj = inst.get_node(data);
+            inst.create_node(inst.get_parent(obj), {}, "last");
+          } else {
 						var inst = $.jstree.reference(data.reference),
 							obj = inst.get_node(data.reference);
             inst.create_node(inst.get_parent(obj), {}, "last");
+          }
 					}
 				},
 				"add_subbranch" : {
@@ -7138,7 +7166,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
       this.element.attr("cke_sup", "true");
 
 			parent.bind.call(this);
-      this.element.off('keydown.jstree', '.jstree-anchor');
+      //this.element.off('keydown.jstree', '.jstree-anchor');
       this.element.off("click.jstree", ".jstree-anchor");
       this.element
 				.on("click.jstree", ".jstree-anchor", $.proxy(function (e) {
