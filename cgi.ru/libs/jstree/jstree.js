@@ -573,7 +573,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 					}, this))
 				.on("click.jstree", ".jstree-anchor", $.proxy(function (e) {
 						e.preventDefault();
-						if(e.currentTarget !== document.activeElement) { $(e.currentTarget).focus(); }
+						if(e.currentTarget !== document.activeElement && ! $(e.currentTarget).hasClass('jstree-editing') ) { $(e.currentTarget).focus(); }
 						this.activate_node(e.currentTarget, e);
 					}, this))
 				.on('keydown.jstree', '.jstree-anchor', $.proxy(function (e) {
@@ -5741,7 +5741,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						}
 					})
 				.on('keydown', function (e) {
-          console.log("keydown");
 					e.preventDefault();
 					var a = vakata_context.element.find('.vakata-contextmenu-shortcut-' + e.which).parent();
 					if(a.parent().not('.vakata-context-disabled')) {
@@ -7153,7 +7152,10 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
           $("#" + e.currentTarget.id).focus();
 
           var curB = e.currentTarget.id.replace('_edit', '_anchor')
-          $('#' + curB).addClass('jstree-editing');
+          if ( ! $('#' + curB).hasClass('jstree-editing') ) {
+            $('#' + curB).addClass('jstree-editing')
+                          .trigger('click');
+          }
           return false;
         })
         .on('contextmenu', function(e) {
@@ -7184,7 +7186,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
               this.blur();
 
               // return focus from text to container
-              var curB = e.currentTarget.id.replace('_edit', '_dragblock');
+              var curB = e.currentTarget.id.replace('_edit', '_anchor');
               $('#' + curB).trigger('click');
               break;
             default:
