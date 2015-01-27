@@ -578,7 +578,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 					}, this))
 				.on('keydown.jstree', '.jstree-anchor', $.proxy(function (e) {
             // if text is editting with ckedit then do nothing
-            if ( $('.cke_focus').length != 0 ) { return; }
+            if ( $('.jstree-editing').length != 0 ) { return; }
 
 						if(e.target.tagName === "INPUT") { return true; }
 						var o = null;
@@ -586,7 +586,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 							if(e.which === 37) { e.which = 39; }
 							else if(e.which === 39) { e.which = 37; }
 						}
-            var curB = $('.jstree-hovered');
+            var curB = this.element.find('.jstree-hovered');
 						switch(e.which) {
 							case 32: // aria defines space only with Ctrl
 								if(e.ctrlKey) {
@@ -643,40 +643,52 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 								e.preventDefault();
 								this.element.find('.jstree-anchor').filter(':visible').last().focus();
 								break;
+                /*
 							case 45: // insert
 								e.preventDefault();
-                var inst = $.jstree.reference(curB);
-                var s = inst.settings.contextmenu.items();
                 if ( ! e.ctrlKey ) {
-                  s.add_branch.action(curB);
+                  contextmenu.add_branch.action(curB);
                 } else {
-                  s.add_subbranch.action(curB);
+                  contextmenu.add_subbranch.action(curB);
                 }
 								//this.element.find('.jstree-anchor').filter(':visible').last().focus();
 								break;
-							/*
-							// delete
-							case 46:
-								e.preventDefault();
-								o = this.get_node(e.currentTarget);
-						=		if(o && o.id && o.id !== '#') {
-									o = this.is_selected(o) ? this.get_selected() : o;
-									this.delete_node(o);
-								}
-								break;
-							// f2
-							case 113:
-								e.preventDefault();
-								o = this.get_node(e.currentTarget);
-								if(o && o.id && o.id !== '#') {
-									// this.edit(o);
-								}
-								break;
+                */
+               /*
 							default:
 								// console.log(e.which);
 								break;
 							*/
 						}
+
+            // shortcuts managing for context menu commands
+            if ( curB.length == 0 ) { return true };
+            var inst = $.jstree.reference(curB);
+            var contextmenu = inst.settings.contextmenu.items();
+
+            if ( ! e.ctrlKey ) {
+              var pressedComb = String(e.which);
+            } else {
+              var pressedComb = 'Ctrl+' + String(e.which);
+            }
+            var found = false;
+            $.each(contextmenu, function(key, value) {
+              $.each(value, function(key, value) {
+                if ( pressedComb == value ) {
+                  found = true;
+                  return false;
+                }
+              });
+              if ( found ) {
+                if ( ! contextmenu[key]._disabled(curB) ) {
+                  e.preventDefault();
+                  contextmenu[key].action(curB);
+                }
+                return false;
+              }
+            });
+            //
+
 					}, this))
 				.on("load_node.jstree", $.proxy(function (e, data) {
 						if(data.status) {
@@ -813,7 +825,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						this.hover_node(e.currentTarget);
 					}, this))
 				.on('mouseleave.jstree', '.jstree-anchor', $.proxy(function (e) {
-						this.dehover_node(e.currentTarget);
+						//this.dehover_node(e.currentTarget);
 					}, this))
 				.on('click.jstree', '.jstree-btnEdit', $.proxy(function (e) {
           $(e.target).attr("editing", true).hide();
@@ -2333,7 +2345,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				node.childNodes[1].appendChild(d.createTextNode(obj.text));
 			}
 			else {
-        if ( this.element.attr("cke_sup") ) {
+        if ( this.element.hasClass("cke_sup") ) {
           node.childNodes[1].innerHTML = this.wrapText_forckeditor(node.childNodes[1].id.replace("_anchor", ""), obj.text);
         } else {
           var new_innerHTML = "<div id=" + obj.id + "_text class='jstree-branch-text'>" + obj.text + "</div>";
@@ -3338,8 +3350,9 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
       this.redraw_node(id);
       this.trigger("set_id");
       this.deselect_all(true);
-      if (this.element.attr("cke_sup")) {
-        $("#" + id + "_edit").focus();
+      if (this.element.hasClass("cke_sup")) {
+        $("#" + id + '_anchor').trigger('click');
+        $("#" + id + '_edit').trigger('click');
       } else {
         this.edit(id);
       }
@@ -5180,13 +5193,10 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				"add_branch" : {
 					"separator_before"	: false,
 					"separator_after"	: true,
-					"_disabled"			: false, //(this.check("create_node", data.reference, {}, "last")),
-					"label"				: "Add branch [Ins]",
-					///*
-					"shortcut"			: 113,
-					"shortcut_label"	: 'F2',
-					"icon"				: "glyphicon glyphicon-leaf",
-					//*/
+					"_disabled"			: function (data) { return false }, //(this.check("create_node", data.reference, {}, "last")),
+					"label"				: "Add branch",
+					"shortcut"			: '45',
+					"shortcut_label"	: 'Ins',
 					"action"			: function (data) {
             var prep_data = ( ! data.reference ) ? data : data.reference;
             var inst = $.jstree.reference(prep_data),
@@ -5197,8 +5207,10 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				"add_subbranch" : {
 					"separator_before"	: false,
 					"separator_after"	: true,
-					"_disabled"			: false, //(this.check("create_node", data.reference, {}, "last")),
-					"label"				: "Add sub-branch [Ctrl + Ins]",
+					"_disabled"			: function (data) { return false }, //(this.check("create_node", data.reference, {}, "last")),
+					"label"				: "Add sub-branch",
+					"shortcut"			: 'Ctrl+45',
+					"shortcut_label"	: 'Ctrl+Ins',
 					"action"			: function (data) {
             var prep_data = ( ! data.reference ) ? data : data.reference;
             var inst = $.jstree.reference(prep_data),
@@ -5209,13 +5221,18 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				"rename" : {
 					"separator_before"	: false,
 					"separator_after"	: false,
-					"_disabled"			: false, //(this.check("rename_node", data.reference, this.get_parent(data.reference), "")),
+					"_disabled"			: function (data) {
+            var prep_data = ( ! data.reference ) ? data : data.reference;
+            var inst = $.jstree.reference(prep_data).element;
+            if ( inst.hasClass("cke_sup") ) {
+              return true;
+            } else {
+              return false;
+            }
+          },
 					"label"				: "Rename",
-					/*
-					"shortcut"			: 113,
+					"shortcut"			: '113',
 					"shortcut_label"	: 'F2',
-					"icon"				: "glyphicon glyphicon-leaf",
-					*/
 					"action"			: function (data) {
             var prep_data = ( ! data.reference ) ? data : data.reference;
 						var inst = $.jstree.reference(prep_data),
@@ -5227,8 +5244,10 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 					"separator_before"	: false,
 					"icon"				: false,
 					"separator_after"	: false,
-					"_disabled"			: false, //(this.check("delete_node", data.reference, this.get_parent(data.reference), "")),
+					"_disabled"			: function (data) { return false }, //(this.check("delete_node", data.reference, this.get_parent(data.reference), "")),
 					"label"				: "Delete",
+					"shortcut"			: '46',
+					"shortcut_label"	: 'Del',
 					"action"			: function (data) {
             var prep_data = ( ! data.reference ) ? data : data.reference;
 						var inst = $.jstree.reference(prep_data),
@@ -5240,62 +5259,62 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						}
 					}
 				},
-				"ccp" : {
-					"separator_before"	: true,
+        "cut" : {
+          "separator_before"	: false,
 					"icon"				: false,
-					"separator_after"	: false,
-					"label"				: "Edit",
-					"action"			: false,
-					"submenu" : {
-						"cut" : {
-							"separator_before"	: false,
-							"separator_after"	: false,
-							"label"				: "Cut",
-							"action"			: function (data) {
-                var prep_data = ( ! data.reference ) ? data : data.reference;
-								var inst = $.jstree.reference(prep_data),
-                    obj = inst.get_node(prep_data);
-								if(inst.is_selected(obj)) {
-									inst.cut(inst.get_selected());
-								} else {
-									inst.cut(obj);
-								}
-							}
-						},
-						"copy" : {
-							"separator_before"	: false,
-							"icon"				: false,
-							"separator_after"	: false,
-							"label"				: "Copy",
-							"action"			: function (data) {
-                var prep_data = ( ! data.reference ) ? data : data.reference;
-								var inst = $.jstree.reference(prep_data),
-                    obj = inst.get_node(prep_data);
-								if(inst.is_selected(obj)) {
-									inst.copy(inst.get_selected());
-								} else {
-									inst.copy(obj);
-								}
-							}
-						},
-						"paste" : {
-							"separator_before"	: false,
-							"icon"				: false,
-							"_disabled"			: function (data) {
-                var prep_data = ( ! data.reference ) ? data : data.reference;
-								return !$.jstree.reference(prep_data).can_paste();
-							},
-							"separator_after"	: false,
-							"label"				: "Paste",
-							"action"			: function (data) {
-                var prep_data = ( ! data.reference ) ? data : data.reference;
-								var inst = $.jstree.reference(prep_data),
-                    obj = inst.get_node(prep_data);
-								inst.paste(obj);
-							}
-						}
-					}
-				}
+          "separator_after"	: false,
+					"_disabled"			: function (data) { return false }, //(this.check("delete_node", data.reference, this.get_parent(data.reference), "")),
+          "label"				: "Cut",
+					"shortcut"			: 'Ctrl+88',
+					"shortcut_label"	: 'Ctrl+X',
+          "action"			: function (data) {
+            var prep_data = ( ! data.reference ) ? data : data.reference;
+            var inst = $.jstree.reference(prep_data),
+                obj = inst.get_node(prep_data);
+            if(inst.is_selected(obj)) {
+              inst.cut(inst.get_selected());
+            } else {
+              inst.cut(obj);
+            }
+          }
+        },
+        "copy" : {
+          "separator_before"	: false,
+          "icon"				: false,
+          "separator_after"	: false,
+          "_disabled"			: function (data) { return false }, //(this.check("delete_node", data.reference, this.get_parent(data.reference), "")),
+          "label"				: "Copy",
+					"shortcut"			: 'Ctrl+67',
+					"shortcut_label"	: 'Ctrl+C',
+          "action"			: function (data) {
+            var prep_data = ( ! data.reference ) ? data : data.reference;
+            var inst = $.jstree.reference(prep_data),
+                obj = inst.get_node(prep_data);
+            if(inst.is_selected(obj)) {
+              inst.copy(inst.get_selected());
+            } else {
+              inst.copy(obj);
+            }
+          }
+        },
+        "paste" : {
+          "separator_before"	: false,
+          "icon"				: false,
+          "separator_after"	: false,
+          "_disabled"			: function (data) {
+            var prep_data = ( ! data.reference ) ? data : data.reference;
+            return !$.jstree.reference(prep_data).can_paste();
+          },
+          "label"				: "Paste",
+					"shortcut"			: 'Ctrl+86',
+					"shortcut_label"	: 'Ctrl+V',
+          "action"			: function (data) {
+            var prep_data = ( ! data.reference ) ? data : data.reference;
+            var inst = $.jstree.reference(prep_data),
+                obj = inst.get_node(prep_data);
+            inst.paste(obj);
+          }
+        }
 			};
 		}
 	};
@@ -5740,13 +5759,14 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 								break;
 						}
 					})
+          /*
 				.on('keydown', function (e) {
 					e.preventDefault();
 					var a = vakata_context.element.find('.vakata-contextmenu-shortcut-' + e.which).parent();
 					if(a.parent().not('.vakata-context-disabled')) {
 						a.click();
 					}
-				});
+				})*/;
 
 			$(document)
 				.on("mousedown.vakata.jstree", function (e) {
@@ -7197,7 +7217,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
     };
 
 		this.bind = function () {
-      this.element.attr("cke_sup", "true");
+      this.element.addClass("cke_sup");
 
 			parent.bind.call(this);
       //this.element.off('keydown.jstree', '.jstree-anchor');

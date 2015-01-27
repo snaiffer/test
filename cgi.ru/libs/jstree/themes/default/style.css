@@ -199,7 +199,7 @@
 .vakata-context li > a > i {
   text-decoration: none;
   display: inline-block;
-  width: 2.4em;
+  width: 3.6em;
   height: 2.4em;
   background: transparent;
   margin: 0 0 0 -2em;
@@ -208,7 +208,7 @@
   line-height: 2.4em;
 }
 .vakata-context li > a > i:empty {
-  width: 2.4em;
+  width: 3.6em;
   line-height: 2.4em;
 }
 .vakata-context li > a .vakata-contextmenu-sep {
