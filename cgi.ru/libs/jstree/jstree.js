@@ -618,7 +618,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 							case 39: // left
 								e.preventDefault();
 								if(this.is_closed(curB)) {
-									this.open_node(curB, function (o) { this.hover_node(this.get_node(o, true).children('.jstree-anchor')); });
+									this.open_node(curB);
 								}
 								else if (this.is_open(curB)) {
 									o = this.get_node(curB, true).children('.jstree-children')[0];
@@ -662,8 +662,8 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						}
 
             // shortcuts managing for context menu commands
-            if ( curB.length == 0 ) { return true };
             var inst = $.jstree.reference(curB);
+            if ( inst == null ) { return true };
             var contextmenu = inst.settings.contextmenu.items();
 
             if ( ! e.ctrlKey ) {
@@ -3349,7 +3349,8 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
       // we change the main id, so we need to redraw node to change supported ids
       this.redraw_node(id);
       this.trigger("set_id");
-      this.deselect_all(true);
+      //this.deselect_all(true);
+
       if (this.element.hasClass("cke_sup")) {
         $("#" + id + '_anchor').trigger('click');
         $("#" + id + '_edit').trigger('click');
@@ -3482,9 +3483,11 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			if(!pos.toString().match(/^(before|after)$/) && !is_loaded && !this.is_loaded(par)) {
 				return this.load_node(par, function () { this.create_node(par, node, pos, callback, true); });
 			}
-			if(!node) { node = { "text" : this.get_string('New branch') }; }
-			if(typeof node === "string") { node = { "text" : node }; }
-			if(node.text === undefined) { node.text = this.get_string('New branch'); }
+      //if(!node) { node = { "text" : this.get_string('New branch') }; }
+      if(!node) { node = { "text" : ''}; }
+      if(typeof node === "string") { node = { "text" : node }; }
+      //if(node.text === undefined) { node.text = this.get_string('New branch'); }
+      if(node.text === undefined) { node.text = '' }
 			var tmp, dpc, i, j;
 
 			if(par.id === '#') {
@@ -3540,6 +3543,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			tmp[pos] = node.id;
 			par.children = tmp;
 
+      par.state.opened = true;
 			var newid  = this.redraw_node(par, true);
 			if(callback) { callback.call(this, this.get_node(node)); }
 			/**
@@ -3649,6 +3653,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				delete this._model.data[tmp[k]];
 			}
 			this.redraw_node(par, true);
+      $('#' + par.id + '_anchor').trigger('click');
 			return true;
 		},
 		/**
@@ -5532,7 +5537,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						str += "<i>" + (val.shortcut?' <span class="vakata-contextmenu-shortcut vakata-contextmenu-shortcut-'+val.shortcut+'">'+ (val.shortcut_label || '') +'</span>':'') + "</i><span class='vakata-contextmenu-sep'>&#160;</span>";
 					str += ($.isFunction(val.label) ? val.label({ "item" : i, "reference" : vakata_context.reference, "element" : vakata_context.element }) : val.label);
           str += "</a>";
-          //debugger;
 					if(val.submenu) {
 						tmp = $.vakata.context._parse(val.submenu, true);
 						if(tmp) { str += tmp; }
