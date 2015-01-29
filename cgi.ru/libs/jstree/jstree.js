@@ -593,16 +593,9 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						}
             var curB = this.element.find('.jstree-hovered');
 						switch(e.which) {
-							case 32: // aria defines space only with Ctrl
-								if(e.ctrlKey) {
-									e.type = "click";
-									curB.trigger(e);
-								}
-								break;
 							case 13: // enter
-								e.type = "click";
-								curB.trigger(e);
-                $("#" + curB[0].id).trigger('click');
+                e.preventDefault();
+                curB.trigger('click');
                 $("#" + curB[0].id.replace('_anchor', '_edit')).trigger('click');
 								break;
 							case 38: // up
@@ -634,9 +627,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 								}
                 this.hover_node(curB);
 								break;
-							case 106: // aria defines * on numpad as open_all - not very common
-								this.open_all();
-								break;
 							case 36: // home
 								e.preventDefault();
 								o = this._firstChild(this.get_container_ul()[0]);
@@ -646,7 +636,16 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 								e.preventDefault();
 								this.element.find('.jstree-anchor').filter(':visible').last().focus();
 								break;
-                /*
+              /*
+							case 32: // aria defines space only with Ctrl
+								if(e.ctrlKey) {
+									e.type = "click";
+									curB.trigger(e);
+								}
+								break;
+							case 106: // aria defines * on numpad as open_all - not very common
+								this.open_all();
+								break;
 							case 45: // insert
 								e.preventDefault();
                 if ( ! e.ctrlKey ) {
@@ -657,11 +656,9 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 								//this.element.find('.jstree-anchor').filter(':visible').last().focus();
 								break;
                 */
-               /*
 							default:
 								// console.log(e.which);
 								break;
-							*/
 						}
 
             // shortcuts managing for context menu commands
@@ -851,16 +848,16 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		/**
 		 * trigger an event. Used internally.
 		 * @private
-		 * @name trigger(ev [, data])
-		 * @param  {String} ev the name of the event to trigger
+		 * @name trigger(e [, data])
+		 * @param  {String} e the name of the event to trigger
 		 * @param  {Object} data additional data to pass with the event
 		 */
-		trigger : function (ev, data) {
+		trigger : function (e, data) {
 			if(!data) {
 				data = {};
 			}
 			data.instance = this;
-			this.element.triggerHandler(ev.replace('.jstree','') + '.jstree', data);
+      this.element.triggerHandler(e, data);
 		},
 		/**
 		 * returns the jQuery extended instance container
