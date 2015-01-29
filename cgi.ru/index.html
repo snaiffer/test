@@ -123,6 +123,47 @@
               });
           }
         });
+
+        // set focus to the tree
+        $('#data_field')
+          .on('click', function(e) {
+            var curTree = $('#nestedocs');
+            curTree.jstree(true).deselect_all();
+            $(this).trigger('mouseenter');
+          })
+          .on('mouseenter', function(e) {
+            var curTree = $('#nestedocs');
+            if ( curTree.jstree(true)._data.core.focused == null ) {
+              curTree.trigger('focus');
+            }
+          });
+        $('#left_field')
+          .on('click', function(e) {
+            var curTree = $('#tree');
+            curTree.jstree(true).deselect_all();
+            $(this).trigger('mouseenter');
+          })
+          .on('mouseenter', function(e) {
+            var curTree = $('#tree');
+            if ( curTree.jstree(true)._data.core.focused == null ) {
+              curTree.trigger('focus');
+            }
+          });
+          /*
+        $('#data_field, #left_field')
+          .on('click', function(e) {
+            var curTree = $(this).children('.jstree');
+            curTree.jstree(true).deselect_all();
+            $.proxy(function () { $(this).trigger('mouseenter'); }, this)
+          })
+          .on('mouseenter', function(e) {
+            var curTree = $(this).children('.jstree');
+            if ( curTree.jstree(true)._data.core.focused == null ) {
+              curTree.trigger('focus');
+            }
+          });
+          */
+        //
     });
     </script>
   </body>

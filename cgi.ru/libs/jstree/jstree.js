@@ -568,6 +568,11 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			var word = '',
 				tout = null;
 			this.element
+				.on("mouseenter.jstree", $.proxy(function (e) {
+          if ( this._data.core.focused == null ) {
+            this.trigger('focus');
+          }
+					}, this))
 				.on("click.jstree", ".jstree-ocl", $.proxy(function (e) {
 						this.toggle_node(e.target);
 					}, this))
@@ -600,36 +605,34 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
                 $("#" + curB[0].id).trigger('click');
                 $("#" + curB[0].id.replace('_anchor', '_edit')).trigger('click');
 								break;
-							case 37: // right
-								e.preventDefault();
-								if(this.is_open(curB)) {
-									this.close_node(curB);
-								}
-								else {
-									o = this.get_parent(curB);
-									if(o && o.id !== '#') { this.hover_node(this.get_node(o, true).children('.jstree-anchor')); }
-								}
-								break;
 							case 38: // up
 								e.preventDefault();
 								o = this.get_prev_dom(curB);
 								if(o && o.length) { this.hover_node(o.children('.jstree-anchor')); }
 								break;
-							case 39: // left
-								e.preventDefault();
-								if(this.is_closed(curB)) {
-									this.open_node(curB);
-								}
-								else if (this.is_open(curB)) {
-									o = this.get_node(curB, true).children('.jstree-children')[0];
-									if(o) { this.hover_node($(this._firstChild(o)).children('.jstree-anchor')); }
-								}
-								break;
 							case 40: // down
 								e.preventDefault();
 								o = this.get_next_dom($('.jstree-hovered'));
 								if(o && o.length) { this.hover_node(o.children('.jstree-anchor')); }
+								break;
+							case 37: // left
+								e.preventDefault();
+								if(this.is_open(curB)) {
+                  // find out if children are clicked
+                  var curB_li = $('#' + curB[0].id.replace('_anchor', ''));
+                  if ( curB_li.find('.jstree-clicked').lenght != 0 ) {
+                    curB.trigger('click');
+                  }
 
+                this.close_node(curB);
+								}
+								break;
+							case 39: // right
+								e.preventDefault();
+								if(this.is_closed(curB)) {
+									this.open_node(curB);
+								}
+                this.hover_node(curB);
 								break;
 							case 106: // aria defines * on numpad as open_all - not very common
 								this.open_all();
@@ -820,7 +823,11 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						if(!this._data.core.focused) {
 							this.get_node(this.element.attr('aria-activedescendant'), true).find('> .jstree-anchor').focus();
 						}
+            return false;
 					}, this))
+        .on('click.jstree', $.proxy(function () {
+            return false;
+          }, this))
 				.on('mouseenter.jstree', '.jstree-anchor', $.proxy(function (e) {
 						this.hover_node(e.currentTarget);
 					}, this))
@@ -2559,6 +2566,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				}
 			}
 			obj.state.opened = false;
+
 			/**
 			 * triggered when a node is closed (if there is an animation it will not be complete yet)
 			 * @event
