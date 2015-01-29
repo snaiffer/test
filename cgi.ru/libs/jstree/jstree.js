@@ -3620,6 +3620,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			obj = this.get_node(obj);
 			if(!obj || obj.id === '#') { return false; }
 			par = this.get_node(obj.parent);
+      var prevSibling = $('#' + obj.id).prev('.jstree-node');
 			pos = $.inArray(obj.id, par.children);
 			c = false;
 			if(!this.check("delete_node", obj, par, pos)) {
@@ -3661,7 +3662,14 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				delete this._model.data[tmp[k]];
 			}
 			this.redraw_node(par, true);
-      $('#' + par.id + '_anchor').trigger('click');
+
+      // Move the selector
+      if ( prevSibling.length != 0 ) {
+        $('#' + prevSibling[0].id + '_anchor').trigger('click');
+      } else {
+        $('#' + par.id + '_anchor').trigger('click');
+      }
+
 			return true;
 		},
 		/**
