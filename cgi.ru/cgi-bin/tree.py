@@ -32,7 +32,8 @@ class Tree():
     self.session.close()
 
   def init(self):
-    rootb = Branch(tree=self, caption = "root", text = "root", main = True, parent_id = None)
+    rootb = Branch(tree=self, caption = "root", text = "root", folded=False, main = True, parent_id = None)
+    firstb = Branch(tree=self, caption = "", text = "", folded=False, main = True, parent_id = rootb.id)
 
   def reindexing_orderb(self, parent_id):
     """ Reindex orderb column for branches under parent_id """
@@ -47,42 +48,48 @@ class Tree():
   def moveB(self, branch, parent_id = None, pos = -1):
     """
     Move branch to the position of branch under parent_id with id = parent_id
-    parent_id == None   --parent of the branche won't be changed
+    parent_id == None   --parent of the branch won't be changed
     pos >= 0
     pos == -1  --move branch to the end
     in other case will be raised "NegativePosition" exception
     """
-    if parent_id :
-      branch.parent_id = parent_id
-      self.session.commit()
+    _parent_id = branch.parent_id
+    if ( parent_id != None ):
+      _parent_id = parent_id
 
     if pos == -1:
-      lowestb = self.session.query(Branch).filter_by(parent_id = branch.parent_id).order_by(desc('orderb')).first()
-      if lowestb.orderb >= general.orderb_MAX :
-        self.reindexing_orderb(branch.parent_id)
-        self.moveB(branch, parent_id, pos)
-        return
-      branch.orderb = lowestb.orderb + general.orderb_step
+      lowestb = self.session.query(Branch).filter_by(parent_id = _parent_id).order_by(desc('orderb')).first()
+      if ( lowestb == None ):
+        branch.orderb = general.orderb_step   # start numeration from begining
+      else:
+        if lowestb.orderb >= general.orderb_MAX :
+          self.reindexing_orderb(_parent_id)
+          self.moveB(branch, _parent_id, pos)
+          return
+        branch.orderb = lowestb.orderb + general.orderb_step
     elif pos >= 0:
       leftNeigh = 0
       if pos > 0:
-        leftNeighB = self.session.query(Branch).filter_by(parent_id = branch.parent_id).order_by('orderb').offset(pos-1).limit(1).first()
+        leftNeighB = self.session.query(Branch).filter_by(parent_id = _parent_id).order_by('orderb').offset(pos-1).limit(1).first()
         leftNeigh = leftNeighB.orderb
         # if the branch is moved down we have to increment pos (to ommit the branch)
         if leftNeigh >= branch.orderb :
           pos += 1
-          leftNeighB = self.session.query(Branch).filter_by(parent_id = branch.parent_id).order_by('orderb').offset(pos-1).limit(1).first()
+          leftNeighB = self.session.query(Branch).filter_by(parent_id = _parent_id).order_by('orderb').offset(pos-1).limit(1).first()
           leftNeigh = leftNeighB.orderb
-      rightNeighB = self.session.query(Branch).filter_by(parent_id = branch.parent_id).order_by('orderb').offset(pos).limit(1).first()
+      rightNeighB = self.session.query(Branch).filter_by(parent_id = _parent_id).order_by('orderb').offset(pos).limit(1).first()
       rightNeigh = rightNeighB.orderb
       addit = (rightNeigh - leftNeigh) / 2
       if int(addit) <= 1:
-        self.reindexing_orderb(branch.parent_id)
-        self.moveB(branch, parent_id, pos)
+        self.reindexing_orderb(_parent_id)
+        self.moveB(branch, _parent_id, pos)
         return
       branch.orderb = int(leftNeigh + addit)
     else:
       raise NegativePosition(connection=self.session)
+
+    if _parent_id :
+      branch.parent_id = _parent_id
     self.session.commit()
 
   def _add(self, branch):
@@ -96,6 +103,11 @@ class Tree():
 
   def remove(self, branch):
     self.session.delete(branch)
+
+    rootb = self.getB_root()
+    firstLevelB_count = self.session.query(Branch).filter_by(parent_id=rootb.id).count()
+    if ( firstLevelB_count == 0 ):
+      firstb = Branch(tree=self, caption = "", text = "", folded=False, main = True, parent_id = rootb.id)
     self.session.commit()
 
   def getB(self, id):
@@ -184,12 +196,24 @@ if __name__ == '__main__':
     with Tree(general.testdb) as curtree:
       rootb = curtree.getB_root()
 
+      # One branch has to exist in anycases
+      for curB in rootb.get_subbs():
+        curtree.remove(curB)
+      firstLevelB_count = curtree.session.query(Branch).filter_by(parent_id=rootb.id).count()
+      if ( firstLevelB_count != 1 ):
+        raise BaseException("All branches have been removed!")
+
       # create branches for test
       b1 = Branch(tree=curtree, caption="branch1", parent=rootb)
       b2 = Branch(tree=curtree, caption="branch2", main=True, parent=rootb)
       b3 = Branch(tree=curtree, caption="branch3", main=True, parent=rootb)
       b11 = Branch(tree=curtree, caption="branch11", parent=b1)
       b12 = Branch(tree=curtree, caption="branch12", parent=b1)
+
+      if b11.orderb != (1 * general.orderb_step):
+        raise BaseException("Moving problem")
+      if b12.orderb != (2 * general.orderb_step):
+        raise BaseException("Moving problem")
 
       # moving
       b21 = Branch(tree=curtree, caption="branch21", main=True)
@@ -201,10 +225,10 @@ if __name__ == '__main__':
       curtree.moveB(b23, parent_id = b2.id)
 
       curtree.moveB(b23, pos = 0)
-      if b23.orderb != (3 * general.orderb_step):
+      if b23.orderb != (0.5 * general.orderb_step):
         raise BaseException("Moving problem")
       curtree.moveB(b23)
-      if b23.orderb != (7 * general.orderb_step):
+      if b23.orderb != (2 * general.orderb_step):
         raise BaseException("Moving problem")
 
       b31 = Branch(tree=curtree, caption="branch31", parent=b3)
@@ -216,7 +240,7 @@ if __name__ == '__main__':
 
       # get branch
       rootb = curtree.getB_root()
-      b1 = curtree.getB(2)
+      b1 = curtree.getB(4)
 
       # get fields
       b1.id

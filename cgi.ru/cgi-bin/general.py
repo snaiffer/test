@@ -5,10 +5,11 @@ import re
 
 rootB_id = 1
 
-
-orderb_step = 1000000
+# for ordering branches
+orderb_step = 1000000   # initial step in order field between branches. It's tidy connection with orderb_MAX. And influence on performance
 orderb_MIN = 1
 orderb_MAX = 2147000000 - orderb_step
+#
 
 dbtype = "postgresql"
 dbaddr = "localhost"
@@ -20,7 +21,7 @@ dbadmin_passwd  = "123456"
 dbuser_login   = "postgres"
 dbuser_passwd  = "123456"
 
-testdb = "test"
+testdb = "basket"
 
 def checkout(text):
   """ Checkout if "text" consist of alphabets and numbers otherwise """

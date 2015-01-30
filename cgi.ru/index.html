@@ -33,6 +33,7 @@
       $('#wrapper').height($(window).height()-16).split({orientation:'vertical', position:'38%'});
       $('#right_field').split({orientation:'horizontal', position: '10px'});
 
+      var clipboard;
       $('#tree')
         .jstree({
           'core' : {
@@ -117,6 +118,15 @@
                   "&new_parent=" + data.parent +
                   "&position=" + data.position
                   )
+              })
+              .on("clipboard_save.jstree", function (e, data) {
+                console.log('clipboard_save');
+                clipboard = data;
+                console.log(clipboard);
+              })
+              .on("clipboard_get.jstree", function (e, data) {
+                console.log('clipboard_get');
+                return clipboard;
               })
               .on("savedata.jstree", function (e, data) {
                 $.post("/cgi-bin/treemind.py", { nestedocs : "True", cmd : "save_data", id : data.id, data : data.text })
