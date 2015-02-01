@@ -43,12 +43,10 @@ def getList_subbsOf(branch = general.rootB_id, nestedocs_mode = False):
     == True   --output text field of branches and output all branches
     == False  --output caption field of branches and output main branches only
   """
-  def getDict(branch = general.rootB_id, hostb = True):
+  def getDict(branch = general.rootB_id):
     if nestedocs_mode :
-      if branch.main and not hostb:
+      if branch.main:
         return None
-      else:
-        hostb = False
     else:
       if not branch.main :
         return None
@@ -63,7 +61,7 @@ def getList_subbsOf(branch = general.rootB_id, nestedocs_mode = False):
       if dict['state']['opened'] == True:
         dict['children'] = []
         for cur_subb in branch.get_subbs():
-          newchild = getDict(branch = cur_subb, hostb = False)
+          newchild = getDict(branch = cur_subb)
           if newchild :
             dict['children'].append(newchild)
       else:
@@ -71,16 +69,12 @@ def getList_subbsOf(branch = general.rootB_id, nestedocs_mode = False):
     return dict
 
   list = []
-  if nestedocs_mode :
-    newsubb = getDict(branch)
-    if newsubb :
-      list.append(newsubb)
-  else :
-    if branch.get_subbs() != [] :
-      for cur_subb in branch.get_subbs():
-        newsubb = getDict(cur_subb)
-        if newsubb :
-          list.append(newsubb)
+  subbs = branch.get_subbs()
+  if len(subbs):
+    for cur_subb in subbs:
+      newsubb = getDict(cur_subb)
+      if newsubb :
+        list.append(newsubb)
   return list
 
 
