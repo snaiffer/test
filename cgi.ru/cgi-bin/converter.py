@@ -68,8 +68,7 @@ def exportFrom_basketNotes(treePath = "", treename = general.testdb):
             if ( xml_root == xml_parent_b and len(xml_parent_b.getchildren()) == 1):
               traverseBranch(xml_b, db_parent_b, fillin_Parent = False)
             else:
-              db_b = Branch(tree=curtree, main=False, folded=False, text="", parent=db_parent_b)
-              #db_b = Branch(tree=curtree, main=False, folded=xml_b.get("folded"), text="", parent=db_parent_b)
+              db_b = Branch(tree=curtree, main=False, folded=xml_b.get("folded"), text="", parent=db_parent_b)
               print(indent(indent_level) + "subBranch: ")
               indent_level += 1
               traverseBranch(xml_b, db_b, fillin_Parent = True)
@@ -77,7 +76,7 @@ def exportFrom_basketNotes(treePath = "", treename = general.testdb):
       traverseBranch(xml_root, db_b)
 
     """
-    temp_mainB = Branch(tree=curtree, caption="branch1", main=True, parent=db_rootb)
+    temp_mainB = Branch(tree=curtree, text="branch1", main=True, parent=db_rootb)
     nodePath="/tmp/basket6/"
     fillin_mainB(temp_mainB, nodePath)
     """
@@ -95,8 +94,7 @@ def exportFrom_basketNotes(treePath = "", treename = general.testdb):
           b_name = xml_b.find("properties").find("name").text
           print(indent(indent_level) )
           print(indent(indent_level) + "Branch: " + str(b_name))
-          db_b = Branch(tree=curtree, caption = b_name, text="", main=True, folded=False, parent=db_parent_b)
-          #db_b = Branch(tree=curtree, main=True, folded=xml_b.get("folded"), text="", parent=db_parent_b)
+          db_b = Branch(tree=curtree, text = b_name, main=True, folded=xml_b.get("folded"), parent=db_parent_b)
 
           indent_level += 1
           fillin_mainB(db_b, treePath + xml_b.get("folderName"))

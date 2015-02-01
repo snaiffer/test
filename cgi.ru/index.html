@@ -76,7 +76,7 @@
           $.get("/cgi-bin/treemind.py?nestedocs=False&cmd=unfold&id=" + data.node.id)
         })
         .on("rename_node.jstree", function (e, data) {
-          $.post("/cgi-bin/treemind.py", { nestedocs : "False", cmd : "rename_node", id : data.node.id, caption : data.text })
+          $.post("/cgi-bin/treemind.py", { nestedocs : "False", cmd : "rename_node", id : data.node.id, text : data.text })
         })
         .on("move_node.jstree", function (e, data) {
           $.get("/cgi-bin/treemind.py?nestedocs=False&cmd=move_node&id=" + data.node.id +

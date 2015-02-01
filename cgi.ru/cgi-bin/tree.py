@@ -32,8 +32,8 @@ class Tree():
     self.session.close()
 
   def init(self):
-    rootb = Branch(tree=self, caption = "root", text = "root", folded=False, main = True, parent_id = None)
-    firstb = Branch(tree=self, caption = "", text = "", folded=False, main = True, parent_id = rootb.id)
+    rootb = Branch(tree=self, text = "root", folded=False, main = True, parent_id = None)
+    firstb = Branch(tree=self, text = "", folded=False, main = True, parent_id = rootb.id)
 
   def reindexing_orderb(self, parent_id):
     """ Reindex orderb column for branches under parent_id """
@@ -107,7 +107,7 @@ class Tree():
     rootb = self.getB_root()
     firstLevelB_count = self.session.query(Branch).filter_by(parent_id=rootb.id).count()
     if ( firstLevelB_count == 0 ):
-      firstb = Branch(tree=self, caption = "", text = "", folded=False, main = True, parent_id = rootb.id)
+      firstb = Branch(tree=self, text = "", folded=False, main = True, parent_id = rootb.id)
     self.session.commit()
 
   def getB(self, id):
@@ -144,12 +144,11 @@ class NumOforedersIsExpired(TreeException):
 class Branch(Base):
   __tablename__ = 'branches'
   id = Column(Integer, primary_key=True)
-  caption = Column(String, default='New branch')
-  text = Column(String, default='')
   main = Column(Boolean, default='False')
   folded = Column(Boolean, default='False')
   parent_id = Column(Integer, ForeignKey(id))
   orderb = Column(Integer, index=True, default=0)
+  text = Column(String, default='')
   subbs = relationship('Branch',
     # cascade deletions
     cascade="all, delete-orphan",
@@ -160,9 +159,8 @@ class Branch(Base):
     backref=backref("parent", remote_side=id),
     )
 
-  def __init__(self, tree, caption='New branch', text='', main=False, folded=False, parent=None, parent_id=general.rootB_id):
+  def __init__(self, tree, text='', main=False, folded=False, parent=None, parent_id=general.rootB_id):
     self.tree = tree
-    self.caption = caption
     self.text = text
     self.main = main
     self.folded = folded
@@ -174,10 +172,10 @@ class Branch(Base):
     return self.tree.getSubBs(self)
 
   def __repr__(self):
-    return self.caption
+    return self.text
 
   def __str__(self):
-    return self.caption
+    return self.text
 
 
 if __name__ == '__main__':
@@ -204,11 +202,11 @@ if __name__ == '__main__':
         raise BaseException("All branches have been removed!")
 
       # create branches for test
-      b1 = Branch(tree=curtree, caption="branch1", parent=rootb)
-      b2 = Branch(tree=curtree, caption="branch2", main=True, parent=rootb)
-      b3 = Branch(tree=curtree, caption="branch3", main=True, parent=rootb)
-      b11 = Branch(tree=curtree, caption="branch11", parent=b1)
-      b12 = Branch(tree=curtree, caption="branch12", parent=b1)
+      b1 = Branch(tree=curtree, text="branch1", parent=rootb)
+      b2 = Branch(tree=curtree, text="branch2", main=True, parent=rootb)
+      b3 = Branch(tree=curtree, text="branch3", main=True, parent=rootb)
+      b11 = Branch(tree=curtree, text="branch11", parent=b1)
+      b12 = Branch(tree=curtree, text="branch12", parent=b1)
 
       if b11.orderb != (1 * general.orderb_step):
         raise BaseException("Moving problem")
@@ -216,11 +214,11 @@ if __name__ == '__main__':
         raise BaseException("Moving problem")
 
       # moving
-      b21 = Branch(tree=curtree, caption="branch21", main=True)
+      b21 = Branch(tree=curtree, text="branch21", main=True)
       curtree.moveB(b2, b21.id)
 
-      b22 = Branch(tree=curtree, caption="branch22")
-      b23 = Branch(tree=curtree, caption="branch23")
+      b22 = Branch(tree=curtree, text="branch22")
+      b23 = Branch(tree=curtree, text="branch23")
       curtree.moveB(b22, parent_id = b2.id)
       curtree.moveB(b23, parent_id = b2.id)
 
@@ -231,9 +229,9 @@ if __name__ == '__main__':
       if b23.orderb != (2 * general.orderb_step):
         raise BaseException("Moving problem")
 
-      b31 = Branch(tree=curtree, caption="branch31", parent=b3)
-      b32 = Branch(tree=curtree, caption="branch32", parent=b3)
-      b33 = Branch(tree=curtree, caption="branch33", parent=b3)
+      b31 = Branch(tree=curtree, text="branch31", parent=b3)
+      b32 = Branch(tree=curtree, text="branch32", parent=b3)
+      b33 = Branch(tree=curtree, text="branch33", parent=b3)
       curtree.moveB(b31, pos = 1)
       if b31.orderb != (2.5 * general.orderb_step):
         raise BaseException("Moving problem")
@@ -244,7 +242,6 @@ if __name__ == '__main__':
 
       # get fields
       b1.id
-      b1.caption
       b1.text
       b1.main
       b1.folded
@@ -252,15 +249,15 @@ if __name__ == '__main__':
       b12 = curtree.getB(b1.get_subbs()[0].id)
       b1.parent
       for curB in b1.get_subbs():
-        curB.caption
+        curB.text
 
       # changing
       b1.text = "TEST"
       curtree.remove(b1)
 
       # reindexing orderb
-      b24 = Branch(tree=curtree, caption="branch24", parent=b2)
-      b25 = Branch(tree=curtree, caption="branch25", parent=b2)
+      b24 = Branch(tree=curtree, text="branch24", parent=b2)
+      b25 = Branch(tree=curtree, text="branch25", parent=b2)
 
       b23.orderb = general.orderb_MAX
       curtree.moveB(b22)

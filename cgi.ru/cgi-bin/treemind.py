@@ -21,18 +21,18 @@ def for_test():
     rootb = curtree.getB_root()
 
     # create branches for test
-    b1 = Branch(tree=curtree, caption="branch1", parent=rootb)
-    b2 = Branch(tree=curtree, caption="branch2", main=True, parent=rootb)
-    b3 = Branch(tree=curtree, caption="branch3", main=True, parent=rootb)
-    b11 = Branch(tree=curtree, caption="branch11", parent=b1)
-    b12 = Branch(tree=curtree, caption="branch12", parent=b1)
+    b1 = Branch(tree=curtree, text="branch1", parent=rootb)
+    b2 = Branch(tree=curtree, text="branch2", main=True, parent=rootb)
+    b3 = Branch(tree=curtree, text="branch3", main=True, parent=rootb)
+    b11 = Branch(tree=curtree, text="branch11", parent=b1)
+    b12 = Branch(tree=curtree, text="branch12", parent=b1)
 
     # moving
-    b21 = Branch(tree=curtree, caption="branch21", main=True)
+    b21 = Branch(tree=curtree, text="branch21", main=True)
     curtree.moveB(b2, b21.id)
 
-    b22 = Branch(tree=curtree, caption="branch22")
-    b23 = Branch(tree=curtree, caption="branch23")
+    b22 = Branch(tree=curtree, text="branch22")
+    b23 = Branch(tree=curtree, text="branch23")
     curtree.moveB(b22, parent_id = b2.id)
     curtree.moveB(b23, parent_id = b2.id)
 
@@ -40,8 +40,8 @@ def getList_subbsOf(branch = general.rootB_id, nestedocs_mode = False):
   """
   getList of subbranches of "branch" in format for jstree
   nestedocs_mode:
-    == True   --output text field of branches and output all branches
-    == False  --output caption field of branches and output main branches only
+    == True   --output not main branches only
+    == False  --output main branches only
   """
   def getDict(branch = general.rootB_id):
     if nestedocs_mode :
@@ -53,7 +53,7 @@ def getList_subbsOf(branch = general.rootB_id, nestedocs_mode = False):
 
     dict = {}
     dict['id'] = branch.id
-    dict['text'] = branch.text if nestedocs_mode else branch.caption
+    dict['text'] = branch.text
 
     if branch.get_subbs() != [] :
       dict['state'] = {}
@@ -99,6 +99,9 @@ if cmd != "" :
     elif cmd == "unfold":
       b = curtree.getB(id)
       b.folded = False
+    elif cmd == "rename_node":
+      text = form.getvalue('text', "")
+      curtree.getB(id).text = text
     else:
       nestedocs = ( True if form.getvalue('nestedocs', 'False') == 'True' else False)
       if not nestedocs :
@@ -114,9 +117,6 @@ if cmd != "" :
         if cmd == "delete_node":
           branch = curtree.getB(id)
           curtree.remove(branch)
-        if cmd == "rename_node":
-          caption = form.getvalue('caption', "")
-          curtree.getB(id).caption = caption
         if cmd == "move_node":
           b = curtree.getB(id)
           new_parent_id = form.getvalue('new_parent', general.rootB_id)
@@ -138,9 +138,6 @@ if cmd != "" :
         if cmd == "delete_node":
           branch = curtree.getB(id)
           curtree.remove(branch)
-        if cmd == "rename_node":
-          caption = form.getvalue('caption', "")
-          curtree.getB(id).caption = caption
         if cmd == "move_node":
           b = curtree.getB(id)
           new_parent_id = form.getvalue('new_parent', general.rootB_id)

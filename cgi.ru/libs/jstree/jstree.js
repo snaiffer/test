@@ -365,10 +365,12 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 */
 		error			: $.noop,
 		/**
-		 * the open / close animation duration in milliseconds - set this to `false` to disable the animation (default is `200`)
-		 * @name $.jstree.defaults.core.animation
+		 * ration for animations. Such as the open / close animation duration, scrolling animation and others
+     * Lower number, faster animation; Higher number, slower animation
+     * Values from 1 to 10
+		 * @name $.jstree.defaults.core.animation_ration
 		 */
-		animation		: 200,
+		animation_ration		: 3,
 		/**
 		 * a boolean indicating if multiple nodes can be selected
 		 * @name $.jstree.defaults.core.multiple
@@ -566,7 +568,9 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 */
 		bind : function () {
 			var word = '',
-				tout = null;
+				tout = null,
+        mouse_enable = true,
+        mouse_TimeoutID = null;
 			this.element
 				.on("mouseenter.jstree", $.proxy(function (e) {
           if ( this._data.core.focused == null ) {
@@ -580,115 +584,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						e.preventDefault();
 						if(e.currentTarget !== document.activeElement && ! $(e.currentTarget).hasClass('jstree-editing') ) { $(e.currentTarget).focus(); }
 						this.activate_node(e.currentTarget, e);
-					}, this))
-				.on('keydown.jstree', '.jstree-anchor', $.proxy(function (e) {
-            // if text is editting with ckedit then do nothing
-            if ( $('.jstree-editing').length != 0 ) { return; }
-
-						if(e.target.tagName === "INPUT") { return true; }
-						var o = null;
-						if(this._data.core.rtl) {
-							if(e.which === 37) { e.which = 39; }
-							else if(e.which === 39) { e.which = 37; }
-						}
-            var curB = this.element.find('.jstree-hovered');
-						switch(e.which) {
-							case 13: // enter
-                e.preventDefault();
-                curB.trigger('click');
-                $("#" + curB[0].id.replace('_anchor', '_edit')).trigger('click');
-								break;
-							case 38: // up
-								e.preventDefault();
-								o = this.get_prev_dom(curB);
-								if(o && o.length) { this.hover_node(o.children('.jstree-anchor')); }
-								break;
-							case 40: // down
-								e.preventDefault();
-								o = this.get_next_dom($('.jstree-hovered'));
-								if(o && o.length) { this.hover_node(o.children('.jstree-anchor')); }
-								break;
-							case 37: // left
-								e.preventDefault();
-								if(this.is_open(curB)) {
-                  // find out if children are clicked
-                  var curB_li = $('#' + curB[0].id.replace('_anchor', ''));
-                  if ( curB_li.find('.jstree-clicked').lenght != 0 ) {
-                    curB.trigger('click');
-                  }
-
-                this.close_node(curB);
-								}
-								break;
-							case 39: // right
-								e.preventDefault();
-								if(this.is_closed(curB)) {
-									this.open_node(curB);
-								}
-                this.hover_node(curB);
-								break;
-							case 36: // home
-								e.preventDefault();
-								o = this._firstChild(this.get_container_ul()[0]);
-								if(o) { $(o).children('.jstree-anchor').filter(':visible').focus(); }
-								break;
-							case 35: // end
-								e.preventDefault();
-								this.element.find('.jstree-anchor').filter(':visible').last().focus();
-								break;
-              /*
-							case 32: // aria defines space only with Ctrl
-								if(e.ctrlKey) {
-									e.type = "click";
-									curB.trigger(e);
-								}
-								break;
-							case 106: // aria defines * on numpad as open_all - not very common
-								this.open_all();
-								break;
-							case 45: // insert
-								e.preventDefault();
-                if ( ! e.ctrlKey ) {
-                  contextmenu.add_branch.action(curB);
-                } else {
-                  contextmenu.add_subbranch.action(curB);
-                }
-								//this.element.find('.jstree-anchor').filter(':visible').last().focus();
-								break;
-                */
-							default:
-								// console.log(e.which);
-								break;
-						}
-
-            // shortcuts managing for context menu commands
-            var inst = $.jstree.reference(curB);
-            if ( inst == null ) { return true };
-            var contextmenu = inst.settings.contextmenu.items();
-
-            if ( ! e.ctrlKey ) {
-              var pressedComb = String(e.which);
-            } else {
-              var pressedComb = 'Ctrl+' + String(e.which);
-            }
-            var found = false;
-            $.each(contextmenu, function(key, value) {
-              $.each(value, function(key, value) {
-                if ( pressedComb == value ) {
-                  found = true;
-                  return false;
-                }
-              });
-              if ( found ) {
-                if ( ! contextmenu[key]._disabled(curB) ) {
-                  e.preventDefault();
-                  contextmenu[key].action(curB);
-                }
-                return false;
-              }
-            });
-            //
-
 					}, this))
 				.on("load_node.jstree", $.proxy(function (e, data) {
 						if(data.status) {
@@ -728,6 +623,173 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 							}
 						}
 					}, this))
+				// THEME RELATED
+				.on("init.jstree", $.proxy(function () {
+						var s = this.settings.core.themes;
+						this._data.core.themes.dots			= s.dots;
+						this._data.core.themes.stripes		= s.stripes;
+						this._data.core.themes.icons		= s.icons;
+						this.set_theme(s.name || "default", s.url);
+						this.set_theme_variant(s.variant);
+					}, this))
+				.on("loading.jstree", $.proxy(function () {
+						this[ this._data.core.themes.dots ? "show_dots" : "hide_dots" ]();
+						this[ this._data.core.themes.icons ? "show_icons" : "hide_icons" ]();
+						this[ this._data.core.themes.stripes ? "show_stripes" : "hide_stripes" ]();
+					}, this))
+				.on('blur.jstree', '.jstree-anchor', $.proxy(function (e) {
+						this._data.core.focused = null;
+						$(e.currentTarget).filter('.jstree-hovered').mouseleave();
+						this.element.attr('tabindex', '0');
+					}, this))
+				.on('focus.jstree', '.jstree-anchor', $.proxy(function (e) {
+						var curB = this.get_node(e.currentTarget);
+						if(curB && curB.id) {
+							this._data.core.focused = curB.id;
+						}
+            //this.element.find('.jstree-hovered').not(e.currentTarget).mouseleave();
+						this.hover_node(e.currentTarget);
+
+						this.element.attr('tabindex', '-1');
+					}, this))
+				.on('focus.jstree', $.proxy(function () {
+						if(!this._data.core.focused) {
+							this.get_node(this.element.attr('aria-activedescendant'), true).find('> .jstree-anchor').focus();
+						}
+            return false;
+					}, this))
+        .on('click.jstree', $.proxy(function () {
+            return false;
+          }, this))
+				.on('mouseenter.jstree', '.jstree-anchor', $.proxy(function (e) {
+            if ( mouse_enable ) {
+						this.hover_node(e.currentTarget);
+            }
+					}, this))
+				.on('mouseleave.jstree', '.jstree-anchor', $.proxy(function (e) {
+						//this.dehover_node(e.currentTarget);
+					}, this))
+				.on('click.jstree', '.jstree-btnEdit', $.proxy(function (e) {
+          var curB = e.target;
+          $(curB).attr("editing", true).hide();
+          this.edit(curB.id.replace("_btnEdit", ""));
+					}, this))
+				.on('keydown.jstree', '.jstree-anchor', $.proxy(function (e) {
+            // if text is editting with ckedit then do nothing
+            if ( $('.jstree-editing').length != 0 ) { return; }
+
+						if(e.target.tagName === "INPUT") { return true; }
+						var o = null;
+						if(this._data.core.rtl) {
+							if(e.which === 37) { e.which = 39; }
+							else if(e.which === 39) { e.which = 37; }
+						}
+            var curB = this.element.find('.jstree-hovered');
+						switch(e.which) {
+							case 13: // enter
+                e.preventDefault();
+                curB.trigger('click');
+                $("#" + curB[0].id.replace('_anchor', '_edit')).trigger('click');
+								break;
+							case 37: // left
+								e.preventDefault();
+								if(this.is_open(curB)) {
+                  // find out if children are clicked
+                  var curB_li = $('#' + curB[0].id.replace('_anchor', ''));
+                  if ( curB_li.find('.jstree-clicked').lenght != 0 ) {
+                    curB.trigger('click');
+                  }
+
+                this.close_node(curB);
+								}
+								break;
+							case 39: // right
+								e.preventDefault();
+								if(this.is_closed(curB)) {
+									this.open_node(curB);
+								}
+                this.hover_node(curB);
+								break;
+              /*
+							case 32: // aria defines space only with Ctrl
+								if(e.ctrlKey) {
+									e.type = "click";
+									curB.trigger(e);
+								}
+								break;
+							case 106: // aria defines * on numpad as open_all - not very common
+								this.open_all();
+								break;
+							case 45: // insert
+								e.preventDefault();
+                if ( ! e.ctrlKey ) {
+                  contextmenu.add_branch.action(curB);
+                } else {
+                  contextmenu.add_subbranch.action(curB);
+                }
+								//this.element.find('.jstree-anchor').filter(':visible').last().focus();
+								break;
+                */
+							default:
+                if ( $.inArray(e.which, [38, 40, 36, 35]) != -1 ) {
+                  e.preventDefault();
+                  // for mouse blocking during movement with help of keys
+                  mouse_enable = false; clearTimeout(mouse_TimeoutID);
+
+                  switch(e.which) {
+                    case 38: // up
+                      o = this.get_prev_dom(curB);
+                      if(o && o.length) { this.hover_node(o.children('.jstree-anchor')); }
+                      break;
+                    case 40: // down
+                      o = this.get_next_dom($('.jstree-hovered'));
+                      if(o && o.length) { this.hover_node(o.children('.jstree-anchor')); }
+                      break;
+                    case 36: // home
+                      o = this._firstChild(this.get_container_ul()[0]);
+                      if(o) { $(o).children('.jstree-anchor').filter(':visible').focus(); }
+                      break;
+                    case 35: // end
+                      this.element.find('.jstree-anchor').filter(':visible').last().focus();
+                      break;
+                  }
+                  // for mouse blocking during movement with help of keys
+                  mouse_TimeoutID = setTimeout($.proxy(function () { mouse_enable = true;
+                    }, this), 300*this.settings.core.animation_ration);
+                }
+								// console.log(e.which);
+								break;
+						}
+
+            // shortcuts managing for context menu commands
+            var inst = $.jstree.reference(curB);
+            if ( inst == null ) { return true };
+            var contextmenu = inst.settings.contextmenu.items();
+
+            if ( ! e.ctrlKey ) {
+              var pressedComb = String(e.which);
+            } else {
+              var pressedComb = 'Ctrl+' + String(e.which);
+            }
+            var found = false;
+            $.each(contextmenu, function(key, value) {
+              $.each(value, function(key, value) {
+                if ( pressedComb == value ) {
+                  found = true;
+                  return false;
+                }
+              });
+              if ( found ) {
+                if ( ! contextmenu[key]._disabled(curB) ) {
+                  e.preventDefault();
+                  contextmenu[key].action(curB);
+                }
+                return false;
+              }
+            });
+            //
+
+					}, this));
 /*
 				// quick searching when the tree is focused
 				.on('keypress.jstree', $.proxy(function (e) {
@@ -788,53 +850,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						}
 					}, this))
 */
-				// THEME RELATED
-				.on("init.jstree", $.proxy(function () {
-						var s = this.settings.core.themes;
-						this._data.core.themes.dots			= s.dots;
-						this._data.core.themes.stripes		= s.stripes;
-						this._data.core.themes.icons		= s.icons;
-						this.set_theme(s.name || "default", s.url);
-						this.set_theme_variant(s.variant);
-					}, this))
-				.on("loading.jstree", $.proxy(function () {
-						this[ this._data.core.themes.dots ? "show_dots" : "hide_dots" ]();
-						this[ this._data.core.themes.icons ? "show_icons" : "hide_icons" ]();
-						this[ this._data.core.themes.stripes ? "show_stripes" : "hide_stripes" ]();
-					}, this))
-				.on('blur.jstree', '.jstree-anchor', $.proxy(function (e) {
-						this._data.core.focused = null;
-						$(e.currentTarget).filter('.jstree-hovered').mouseleave();
-						this.element.attr('tabindex', '0');
-					}, this))
-				.on('focus.jstree', '.jstree-anchor', $.proxy(function (e) {
-						var tmp = this.get_node(e.currentTarget);
-						if(tmp && tmp.id) {
-							this._data.core.focused = tmp.id;
-						}
-						this.element.find('.jstree-hovered').not(e.currentTarget).mouseleave();
-						$(e.currentTarget).mouseenter();
-						this.element.attr('tabindex', '-1');
-					}, this))
-				.on('focus.jstree', $.proxy(function () {
-						if(!this._data.core.focused) {
-							this.get_node(this.element.attr('aria-activedescendant'), true).find('> .jstree-anchor').focus();
-						}
-            return false;
-					}, this))
-        .on('click.jstree', $.proxy(function () {
-            return false;
-          }, this))
-				.on('mouseenter.jstree', '.jstree-anchor', $.proxy(function (e) {
-						this.hover_node(e.currentTarget);
-					}, this))
-				.on('mouseleave.jstree', '.jstree-anchor', $.proxy(function (e) {
-						//this.dehover_node(e.currentTarget);
-					}, this))
-				.on('click.jstree', '.jstree-btnEdit', $.proxy(function (e) {
-          $(e.target).attr("editing", true).hide();
-          this.edit(e.target.id.replace("_btnEdit", ""));
-					}, this));
 		},
 		/**
 		 * part of the destroying of an instance. Used internally.
@@ -2409,18 +2424,17 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		},
 		/**
 		 * opens a node, revaling its children. If the node is not loaded it will be loaded and opened once ready.
-		 * @name open_node(obj [, callback, animation])
+		 * @name open_node(obj [, callback])
 		 * @param {mixed} obj the node to open
 		 * @param {Function} callback a function to execute once the node is opened
-		 * @param {Number} animation the animation duration in milliseconds when opening the node (overrides the `core.animation` setting). Use `false` for no animation.
 		 * @trigger open_node.jstree, after_open.jstree, before_open.jstree
 		 */
-		open_node : function (obj, callback, animation) {
+		open_node : function (obj, callback) {
 			var t1, t2, d, t;
 			if($.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
-					this.open_node(obj[t1], callback, animation);
+					this.open_node(obj[t1], callback);
 				}
 				return true;
 			}
@@ -2428,7 +2442,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			if(!obj || obj.id === '#') {
 				return false;
 			}
-			animation = animation === undefined ? this.settings.core.animation : animation;
 			if(!this.is_closed(obj)) {
 				if(callback) {
 					callback.call(this, obj, false);
@@ -2438,11 +2451,11 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			if(!this.is_loaded(obj)) {
 				if(this.is_loading(obj)) {
 					return setTimeout($.proxy(function () {
-						this.open_node(obj, callback, animation);
+						this.open_node(obj, callback);
 					}, this), 500);
 				}
 				this.load_node(obj, function (o, ok) {
-					return ok ? this.open_node(o, callback, animation) : (callback ? callback.call(this, o, false) : false);
+					return ok ? this.open_node(o, callback) : (callback ? callback.call(this, o, false) : false);
 				});
 			}
 			else {
@@ -2453,22 +2466,15 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						this.redraw_node(obj, true, false, true);
 						d = this.get_node(obj, true);
 					}
-					if(!animation) {
-						this.trigger('before_open', { "node" : obj });
-						d[0].className = d[0].className.replace('jstree-closed', 'jstree-open');
-						d[0].setAttribute("aria-expanded", true);
-					}
-					else {
-						this.trigger('before_open', { "node" : obj });
-						d
-							.children(".jstree-children").css("display","none").end()
-							.removeClass("jstree-closed").addClass("jstree-open").attr("aria-expanded", true)
-							.children(".jstree-children").stop(true, true)
-								.slideDown(animation, function () {
-									this.style.display = "";
-									t.trigger("after_open", { "node" : obj });
-								});
-					}
+          this.trigger('before_open', { "node" : obj });
+          d
+            .children(".jstree-children").css("display","none").end()
+            .removeClass("jstree-closed").addClass("jstree-open").attr("aria-expanded", true)
+            .children(".jstree-children").stop(true, true)
+              .slideDown(100*this.settings.core.animation_ration, function () {
+                this.style.display = "";
+                t.trigger("after_open", { "node" : obj });
+              });
 				}
 				obj.state.opened = true;
 				if(callback) {
@@ -2490,7 +2496,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				 * @param {Object} node the opened node
 				 */
 				this.trigger('open_node', { "node" : obj });
-				if(!animation || !d.length) {
+				if(!d.length) {
 					/**
 					 * triggered when a node is opened and the animation is complete
 					 * @event
@@ -2522,17 +2528,16 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		},
 		/**
 		 * closes a node, hiding its children
-		 * @name close_node(obj [, animation])
+		 * @name close_node(obj)
 		 * @param {mixed} obj the node to close
-		 * @param {Number} animation the animation duration in milliseconds when closing the node (overrides the `core.animation` setting). Use `false` for no animation.
 		 * @trigger close_node.jstree, after_close.jstree
 		 */
-		close_node : function (obj, animation) {
+		close_node : function (obj) {
 			var t1, t2, t, d;
 			if($.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
-					this.close_node(obj[t1], animation);
+					this.close_node(obj[t1]);
 				}
 				return true;
 			}
@@ -2543,24 +2548,17 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			if(this.is_closed(obj)) {
 				return false;
 			}
-			animation = animation === undefined ? this.settings.core.animation : animation;
 			t = this;
 			d = this.get_node(obj, true);
 			if(d.length) {
-				if(!animation) {
-					d[0].className = d[0].className.replace('jstree-open', 'jstree-closed');
-					d.attr("aria-expanded", false).children('.jstree-children').remove();
-				}
-				else {
-					d
-						.children(".jstree-children").attr("style","display:block !important").end()
-						.removeClass("jstree-open").addClass("jstree-closed").attr("aria-expanded", false)
-						.children(".jstree-children").stop(true, true).slideUp(animation, function () {
-							this.style.display = "";
-							d.children('.jstree-children').remove();
-							t.trigger("after_close", { "node" : obj });
-						});
-				}
+        d
+          .children(".jstree-children").attr("style","display:block !important").end()
+          .removeClass("jstree-open").addClass("jstree-closed").attr("aria-expanded", false)
+          .children(".jstree-children").stop(true, true).slideUp(100*this.settings.core.animation_ration, function () {
+            this.style.display = "";
+            d.children('.jstree-children').remove();
+            t.trigger("after_close", { "node" : obj });
+          });
 			}
 			obj.state.opened = false;
 
@@ -2571,7 +2569,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			 * @param {Object} node the closed node
 			 */
 			this.trigger('close_node',{ "node" : obj });
-			if(!animation || !d.length) {
+			if(!d.length) {
 				/**
 				 * triggered when a node is closed and the animation is complete
 				 * @event
@@ -2604,13 +2602,12 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		},
 		/**
 		 * opens all nodes within a node (or the tree), revaling their children. If the node is not loaded it will be loaded and opened once ready.
-		 * @name open_all([obj, animation, original_obj])
+		 * @name open_all([obj, original_obj])
 		 * @param {mixed} obj the node to open recursively, omit to open all nodes in the tree
-		 * @param {Number} animation the animation duration in milliseconds when opening the nodes, the default is no animation
 		 * @param {jQuery} reference to the node that started the process (internal use)
 		 * @trigger open_all.jstree
 		 */
-		open_all : function (obj, animation, original_obj) {
+		open_all : function (obj, original_obj) {
 			if(!obj) { obj = '#'; }
 			obj = this.get_node(obj);
 			if(!obj) { return false; }
@@ -2627,10 +2624,8 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			_this = this;
 			dom = this.is_closed(obj) ? dom.find('.jstree-closed').addBack() : dom.find('.jstree-closed');
 			dom.each(function () {
-				_this.open_node(
-					this,
-					function(node, status) { if(status && this.is_parent(node)) { this.open_all(node, animation, original_obj); } },
-					animation || 0
+				_this.open_node( this,
+                        function(node, status) { if(status && this.is_parent(node)) { this.open_all(node, original_obj); } }
 				);
 			});
 			if(original_obj.find('.jstree-closed').length === 0) {
@@ -2645,12 +2640,11 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		},
 		/**
 		 * closes all nodes within a node (or the tree), revaling their children
-		 * @name close_all([obj, animation])
+		 * @name close_all([obj])
 		 * @param {mixed} obj the node to close recursively, omit to close all nodes in the tree
-		 * @param {Number} animation the animation duration in milliseconds when closing the nodes, the default is no animation
 		 * @trigger close_all.jstree
 		 */
-		close_all : function (obj, animation) {
+		close_all : function (obj) {
 			if(!obj) { obj = '#'; }
 			obj = this.get_node(obj);
 			if(!obj) { return false; }
@@ -2663,7 +2657,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				return this.trigger('close_all', { "node" : obj });
 			}
 			dom = this.is_open(obj) ? dom.find('.jstree-open').addBack() : dom.find('.jstree-open');
-			$(dom.get().reverse()).each(function () { _this.close_node(this, animation || 0); });
+			$(dom.get().reverse()).each(function () { _this.close_node(this); });
 			/**
 			 * triggered when an `close_all` call completes
 			 * @event
@@ -2829,7 +2823,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			obj.children('.jstree-anchor').addClass('jstree-hovered');
 
       // scrolling
-      var animation_ration = 150; // it can be moved to settings parameters
       var guard_field = 120; // it can be moved to settings parameters
       var scrolled = $('#data_field')[0].scrollTop;
       var visibleField = $('#data_field')[0].clientHeight;
@@ -2837,10 +2830,10 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
       var top_border = scrolled + guard_field;
       var branch_offset = $(".jstree-hovered")[0].offsetTop;
       if ( (branch_offset - top_border) < 0 ) { // || (bottom_border - branch_offset) < 0) {
-        $('#data_field').animate({ scrollTop: branch_offset - guard_field }, animation_ration);
+        $('#data_field').animate({ scrollTop: branch_offset - guard_field }, 50*this.settings.core.animation_ration);
       }
       if ( (bottom_border - branch_offset) < 0) {
-        $('#data_field').animate({ scrollTop: branch_offset - visibleField + guard_field }, animation_ration);
+        $('#data_field').animate({ scrollTop: branch_offset - visibleField + guard_field }, 50*this.settings.core.animation_ration);
       }
 
 			/**
