@@ -95,14 +95,15 @@
                   'data' : {
                     "url" : "/cgi-bin/treemind.py?nestedocs=True&cmd=load_subbs",
                     "data" : function (node) {
-                        return { "id" : branch_id };
-                        /*
                         if (node.id == '#') {
+          console.log("branch_id: ");
+          console.log(branch_id);
                           return { "id" : branch_id };
                         } else {
-                          return { "id" : node.id };
+          console.log("node.id: ");
+          console.log(node);
+                          return { "id" : 5 };
                         }
-                        */
                       },
                     "dataType" : "json"
                   },
