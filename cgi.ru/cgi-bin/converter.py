@@ -105,4 +105,4 @@ def exportFrom_basketNotes(treePath = "", treename = general.testdb):
 
     traverseTree(xml_root, db_rootb)
 
-exportFrom_basketNotes("/tmp/baskets/")
+exportFrom_basketNotes("/export/")

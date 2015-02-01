@@ -57,7 +57,7 @@
         })
         // invoked after jstree has loaded
         .on("ready.jstree", function (e, data) {
-          $(this).jstree(true).select_node('4'); //Replaced 2 for the latest used branch_id from the last session
+          $(this).jstree(true).select_node('2'); //Replaced 2 for the latest used branch_id from the last session
         })
         .on("create_node.jstree", function (e, data) {
           $.get("/cgi-bin/treemind.py?nestedocs=False&cmd=create_node&parent_id=" + data.parent, $.proxy(function(id) {
@@ -68,6 +68,12 @@
         .on("delete_node.jstree", function (e, data) {
           $.get("/cgi-bin/treemind.py?nestedocs=False&cmd=delete_node&id=" + data.node.id)
           $(this).jstree(true).select_node(data.parent);
+        })
+        .on("after_close.jstree", function (e, data) {
+          $.get("/cgi-bin/treemind.py?nestedocs=False&cmd=fold&id=" + data.node.id)
+        })
+        .on("after_open.jstree", function (e, data) {
+          $.get("/cgi-bin/treemind.py?nestedocs=False&cmd=unfold&id=" + data.node.id)
         })
         .on("rename_node.jstree", function (e, data) {
           $.post("/cgi-bin/treemind.py", { nestedocs : "False", cmd : "rename_node", id : data.node.id, caption : data.text })
@@ -90,6 +96,13 @@
                     "url" : "/cgi-bin/treemind.py?nestedocs=True&cmd=load_subbs",
                     "data" : function (node) {
                         return { "id" : branch_id };
+                        /*
+                        if (node.id == '#') {
+                          return { "id" : branch_id };
+                        } else {
+                          return { "id" : node.id };
+                        }
+                        */
                       },
                     "dataType" : "json"
                   },
@@ -112,6 +125,12 @@
               .on("delete_node.jstree", function (e, data) {
                 $.get("/cgi-bin/treemind.py?nestedocs=True&cmd=delete_node&id=" + data.node.id)
                 $(this).jstree(true).select_node(data.parent);
+              })
+              .on("after_close.jstree", function (e, data) {
+                $.get("/cgi-bin/treemind.py?nestedocs=True&cmd=fold&id=" + data.node.id)
+              })
+              .on("after_open.jstree", function (e, data) {
+                $.get("/cgi-bin/treemind.py?nestedocs=True&cmd=unfold&id=" + data.node.id)
               })
               .on("move_node.jstree", function (e, data) {
                 $.get("/cgi-bin/treemind.py?nestedocs=True&cmd=move_node&id=" + data.node.id +
@@ -138,12 +157,16 @@
         $('#data_field, #left_field')
           .on('click', function(e) {
             var curTree = $(this).children('.jstree');
-            curTree.jstree(true).deselect_all();
-            curTree.trigger('focus');
+            if (curTree.length != 0) {
+              curTree.jstree(true).deselect_all();
+              if (curTree.jstree(true)._data.core.focused == null) {
+                curTree.trigger('focus');
+              }
+            }
           })
           .on('mouseenter', function(e) {
             var curTree = $(this).children('.jstree');
-            if ( curTree.jstree(true)._data.core.focused == null ) {
+            if (curTree.length != 0 && curTree.jstree(true)._data.core.focused == null) {
               curTree.trigger('focus');
             }
           });
