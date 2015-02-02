@@ -44,18 +44,14 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		src = $('script:last').attr('src'),
 		_d = document, _node = _d.createElement('LI'), _temp1, _temp2;
 
-	_node.setAttribute('role', 'treeitem');
 	_temp1 = _d.createElement('I');
 	_temp1.className = 'jstree-icon jstree-ocl';
-	_temp1.setAttribute('role', 'presentation');
 	_node.appendChild(_temp1);
 	_temp1 = _d.createElement('A');
 	_temp1.className = 'jstree-anchor';
 	_temp1.setAttribute('href','#');
-	_temp1.setAttribute('tabindex','-1');
 	_temp2 = _d.createElement('I');
 	_temp2.className = 'jstree-icon jstree-themeicon';
-	_temp2.setAttribute('role', 'presentation');
 	_temp1.appendChild(_temp2);
 	_node.appendChild(_temp1);
 	_temp1 = _temp2 = null;
@@ -106,10 +102,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			}
 		});
 		newTree.init(el, options);
-    /*
-          console.log(newTree);
-          console.log($.jstree);
-          */
 		return newTree;
 	};
 	/**
@@ -141,7 +133,8 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				last_error : {},
 				working : false,
 				worker_queue : [],
-				focused : null
+				hoveredB : null,     // id of the hovered branch in the tree
+				focusedT : false     // focused the tree or not
 			}
 		};
 	};
@@ -271,11 +264,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		/**
 		 * data configuration
 		 * 
-		 * If left as `false` the HTML inside the jstree container element is used to populate the tree (that should be an unordered list with list items).
-		 *
-		 * You can also pass in a HTML string or a JSON array here.
-		 * 
-		 * It is possible to pass in a standard jQuery-like AJAX config and jstree will automatically determine if the response is JSON or HTML and use that to populate the tree. 
 		 * In addition to the standard jQuery ajax options here you can suppy functions for `data` and `url`, the functions will be run in the current instance's scope and a param will be passed indicating which node is being loaded, the return value of those functions will be used.
 		 * 
 		 * The last option is to specify a function, that function will receive the node being loaded as argument and a second param which is a function which should be called with the result.
@@ -286,7 +274,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 *	$('#tree').jstree({
 		 *		'core' : {
 		 *			'data' : {
-		 *				'url' : '/get/children/',
+		 *				'url' : '/cgi-bin/treemind.py?cmd=load_subbs',
 		 *				'data' : function (node) {
 		 *					return { 'id' : node.id };
 		 *				}
@@ -325,7 +313,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 *
 		 *	$('#tree').jstree({
 		 *		'core' : {
-		 *			'check_callback' : function (operation, node, node_parent, node_position, more) {
+		 *			'locked' : function (operation, node, node_parent, node_position, more) {
 		 *				// operation can be 'create_node', 'rename_node', 'delete_node', 'move_node' or 'copy_node'
 		 *				// in case of 'rename_node' node_position is filled with the new node name
 		 *				return operation === 'rename_node' ? true : false;
@@ -333,9 +321,9 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 *		}
 		 *	});
 		 * 
-		 * @name $.jstree.defaults.core.check_callback
+		 * @name $.jstree.defaults.core.locked
 		 */
-		check_callback	: false,
+		locked	: false,
 		/**
 		 * a callback called with a single object parameter in the instance's scope when something goes wrong (operation prevented, ajax failed, etc)
 		 * @name $.jstree.defaults.core.error
@@ -359,12 +347,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			 */
 			name			: false,
 			/**
-			 * the URL of the theme's CSS file, leave this as `false` if you have manually included the theme CSS (recommended). You can set this to `true` too which will try to autoload the theme.
-			 * @name $.jstree.defaults.core.themes.url
-			 */
-			url				: false,
-			/**
-			 * the location of all jstree themes - only used if `url` is set to `true`
+			 * the location of all jstree themes
 			 * @name $.jstree.defaults.core.themes.dir
 			 */
 			dir				: false,
@@ -378,11 +361,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			 * @name $.jstree.defaults.core.themes.icons
 			 */
 			icons			: true,
-			/**
-			 * a boolean indicating if the tree background is striped
-			 * @name $.jstree.defaults.core.themes.stripes
-			 */
-			stripes			: false,
 			/**
 			 * a string (or boolean `false`) specifying the theme variant to use (if the theme supports variants)
 			 * @name $.jstree.defaults.core.themes.variant
@@ -424,7 +402,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			return this;
 		},
 		/**
-		 * used to decorate an instance with a plugin. Used internally.
+		 * initialize an instance
 		 * @private
 		 * @name init(el, optons)
 		 * @param {DOMElement|jQuery|String} el the element we are transforming
@@ -445,7 +423,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				},
 				changed : [],
 				force_full_redraw : false,
-				redraw_timeout : false,
 				default_state : {
 					loaded : true,
 					opened : false,
@@ -461,11 +438,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			this._data.core.ready = false;
 			this._data.core.loaded = false;
 			this._data.core.rtl = (this.element.css("direction") === "rtl");
-			this.element[this._data.core.rtl ? 'addClass' : 'removeClass']("jstree-rtl");
-			this.element.attr('role','tree');
-			if(!this.element.attr('tabindex')) {
-				this.element.attr('tabindex','0');
-			}
 
 			this.bind();
 			/**
@@ -482,8 +454,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 					return this.nodeType === 3 && (!this.nodeValue || /^\s+$/.test(this.nodeValue));
 				})
 				.remove();
-			this.element.html("<"+"ul class='jstree-container-ul jstree-children' role='group'><"+"li id='j"+this._id+"_loading' class='jstree-initial-node jstree-loading jstree-leaf jstree-last' role='tree-item'><i class='jstree-icon jstree-ocl'></i><"+"a class='jstree-anchor' href='#'><i class='jstree-icon jstree-themeicon-hidden'></i>" + this.get_string("Loading ...") + "</a></li></ul>");
-			this.element.attr('aria-activedescendant','j' + this._id + '_loading');
+			this.element.html("<ul class='jstree-container-ul jstree-children'><li id='j"+this._id+"_loading' class='jstree-initial-node jstree-loading jstree-leaf jstree-last'><i class='jstree-icon jstree-ocl'></i><a class='jstree-anchor' href='#'><i class='jstree-icon jstree-themeicon-hidden'></i>" + this.get_string("Loading ...") + "</a></li></ul>");
 			this._data.core.li_height = this.get_container_ul().children("li").first().height() || 24;
 			/**
 			 * triggered after the loading text is shown and before loading starts
@@ -536,11 +507,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
         mouse_enable = true,
         mouse_TimeoutID = null;
 			this.element
-				.on("mouseenter.jstree", $.proxy(function (e) {
-          if ( this._data.core.focused == null ) {
-            this.trigger('focus');
-          }
-					}, this))
 				.on("click.jstree", ".jstree-ocl", $.proxy(function (e) {
 						this.toggle_node(e.target);
 					}, this))
@@ -553,9 +519,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						if(data.status) {
 							if(data.node.id === '#' && !this._data.core.loaded) {
 								this._data.core.loaded = true;
-								if(this._firstChild(this.get_container_ul()[0])) {
-									this.element.attr('aria-activedescendant',this._firstChild(this.get_container_ul()[0]).id);
-								}
 								/**
 								 * triggered after the root node is loaded for the first time
 								 * @event
@@ -591,41 +554,47 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				.on("init.jstree", $.proxy(function () {
 						var s = this.settings.core.themes;
 						this._data.core.themes.dots			= s.dots;
-						this._data.core.themes.stripes		= s.stripes;
 						this._data.core.themes.icons		= s.icons;
-						this.set_theme(s.name || "default", s.url);
+						this.set_theme(s.name || "default");
 						this.set_theme_variant(s.variant);
 					}, this))
 				.on("loading.jstree", $.proxy(function () {
 						this[ this._data.core.themes.dots ? "show_dots" : "hide_dots" ]();
 						this[ this._data.core.themes.icons ? "show_icons" : "hide_icons" ]();
-						this[ this._data.core.themes.stripes ? "show_stripes" : "hide_stripes" ]();
 					}, this))
-				.on('blur.jstree', '.jstree-anchor', $.proxy(function (e) {
-						this._data.core.focused = null;
-						$(e.currentTarget).filter('.jstree-hovered').mouseleave();
-						this.element.attr('tabindex', '0');
+				.on("mouseenter.jstree", $.proxy(function (e) {
+            this.trigger('focus');
 					}, this))
-				.on('focus.jstree', '.jstree-anchor', $.proxy(function (e) {
-						var curB = this.get_node(e.currentTarget);
-						if(curB && curB.id) {
-							this._data.core.focused = curB.id;
-						}
-            //this.element.find('.jstree-hovered').not(e.currentTarget).mouseleave();
-						this.hover_node(e.currentTarget);
-
-						this.element.attr('tabindex', '-1');
-					}, this))
-				.on('focus.jstree', $.proxy(function () {
-						if(!this._data.core.focused) {
-              var curB = this.get_node(this.element.attr('aria-activedescendant'), true);
-              if ( curB ) { curB.find('> .jstree-anchor').focus(); }
-						}
+				.on('focus.jstree', $.proxy(function (e) {
+            console.log("focus");
+            this._data.core.focusedT = true;
+            if( this._data.core.hoveredB == null) {
+          console.log(this);
+              var curB = this._firstChild(this.get_container_ul()[0]);
+          console.log(curB);
+              //var curB = $(e.currentTarget).find('.jstree-anchor')[0];   // get first branch in the tree
+              $(curB).focus();
+            } else {
+              $('#' + this._data.core.hoveredB + '_anchor').focus();
+            }
             return false;
 					}, this))
         .on('click.jstree', $.proxy(function () {
             return false;
           }, this))
+				.on('mouseleave.jstree', $.proxy(function (e) {
+          console.log("mouseleave");
+          this._data.core.focusedT = false;
+					}, this))
+				.on('blur.jstree', '.jstree-anchor', $.proxy(function (e) {
+						$(e.currentTarget).filter('.jstree-hovered').mouseleave();
+					}, this))
+				.on('focus.jstree', '.jstree-anchor', $.proxy(function (e) {
+						var curB = this.get_node(e.currentTarget);
+            //this.element.find('.jstree-hovered').not(e.currentTarget).mouseleave();
+						this.hover_node(e.currentTarget);
+
+					}, this))
 				.on('mouseenter.jstree', '.jstree-anchor', $.proxy(function (e) {
             if ( mouse_enable ) {
 						this.hover_node(e.currentTarget);
@@ -653,9 +622,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						switch(e.which) {
 							case 13: // enter
                 e.preventDefault();
-          console.log(curB);
-          console.log( $.jstree.reference(curB));
-          console.log(curB.jstree(true));
                 curB.trigger('click');
                 $("#" + curB[0].id.replace('_anchor', '_edit')).trigger('click');
 								break;
@@ -710,7 +676,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
                       if(o && o.length) { this.hover_node(o.children('.jstree-anchor')); }
                       break;
                     case 40: // down
-                      o = this.get_next_dom($('.jstree-hovered'));
+                      o = this.get_next_dom(curB);
                       if(o && o.length) { this.hover_node(o.children('.jstree-anchor')); }
                       break;
                     case 36: // home
@@ -730,9 +696,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						}
 
             // shortcuts managing for context menu commands
-            var inst = $.jstree.reference(curB);
-            if ( inst == null ) { return true };
-            var contextmenu = inst.settings.contextmenu.items();
+            var contextmenu = curB.jstree(true).settings.contextmenu.items();
 
             if ( ! e.ctrlKey ) {
               var pressedComb = String(e.which);
@@ -872,6 +836,14 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			if(a && a[key]) { return a[key]; }
 			return key;
 		},
+    /**
+     * wrap text field for ckeditor
+     * @private
+     * @name wrapText_forckeditor(id, text)
+     * @param  {String} id
+     * @param  {String} text
+     * @return {String}
+     */
     wrapText_forckeditor : function (id, text) {
       var newtext = text;
       var origtext = text;
@@ -1949,7 +1921,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 */
 		_redraw : function () {
 			var nodes = this._model.force_full_redraw ? this._model.data['#'].children.concat([]) : this._model.changed.concat([]),
-				f = document.createElement('UL'), tmp, i, j, fe = this._data.core.focused;
+				f = document.createElement('UL'), tmp, i, j;
 			for(i = 0, j = nodes.length; i < j; i++) {
 				tmp = this.redraw_node(nodes[i], true, this._model.force_full_redraw);
 				if(tmp && this._model.force_full_redraw) {
@@ -1958,17 +1930,17 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			}
 			if(this._model.force_full_redraw) {
 				f.className = this.get_container_ul()[0].className;
-				f.setAttribute('role','group');
 				this.element.empty().append(f);
 				//this.get_container_ul()[0].appendChild(f);
 			}
-			if(fe !== null) {
-				tmp = this.get_node(fe, true);
+
+      var hoveredB = this._data.core.hoveredB;
+			if(hoveredB !== null) {
+				tmp = this.get_node(hoveredB, true);
 				if(tmp && tmp.length && tmp.children('.jstree-anchor')[0] !== document.activeElement) {
 					tmp.children('.jstree-anchor').focus();
-				}
-				else {
-					this._data.core.focused = null;
+				} else {
+					this._data.core.hoveredB = null;
 				}
 			}
 			this._model.force_full_redraw = false;
@@ -1990,10 +1962,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			if(full) {
 				this._model.force_full_redraw = true;
 			}
-			//if(this._model.redraw_timeout) {
-			//	clearTimeout(this._model.redraw_timeout);
-			//}
-			//this._model.redraw_timeout = setTimeout($.proxy(this._redraw, this),0);
 			this._redraw();
 		},
 		/**
@@ -2132,7 +2100,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 
 			if(deep && obj.children.length && (obj.state.opened || force_render) && obj.state.loaded) {
 				k = d.createElement('UL');
-				k.setAttribute('role', 'group');
 				k.className = 'jstree-children';
 				for(i = 0, j = obj.children.length; i < j; i++) {
 					k.appendChild(this.redraw_node(obj.children[i], deep, true));
@@ -2155,7 +2122,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				}
 				if(!tmp) {
 					tmp = d.createElement('UL');
-					tmp.setAttribute('role', 'group');
 					tmp.className = 'jstree-children';
 					par.appendChild(tmp);
 				}
@@ -2509,35 +2475,38 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			if(this._data.core.last_clicked && !this._data.core.last_clicked.state.selected) { this._data.core.last_clicked = null; }
 			if(!this._data.core.last_clicked && this._data.core.selected.length) { this._data.core.last_clicked = this.get_node(this._data.core.selected[this._data.core.selected.length - 1]); }
 
-      if(e.shiftKey) {
-        var o = this.get_node(obj).id,
-          l = this._data.core.last_clicked.id,
-          p = this.get_node(this._data.core.last_clicked.parent).children,
-          c = false,
-          i, j;
-        for(i = 0, j = p.length; i < j; i += 1) {
-          // separate IFs work whem o and l are the same
-          if(p[i] === o) {
-            c = !c;
+			if((!e.metaKey && !e.ctrlKey && !e.shiftKey) || (e.shiftKey && (!this._data.core.last_clicked || !this.get_parent(obj) || this.get_parent(obj) !== this._data.core.last_clicked.parent ) )) {
+        this.deselect_all(true);
+        this.select_node(obj, false, false, e);
+        this._data.core.last_clicked = this.get_node(obj);
+			} else {
+        if(e.shiftKey) {
+          var o = this.get_node(obj).id,
+            l = this._data.core.last_clicked.id,
+            p = this.get_node(this._data.core.last_clicked.parent).children,
+            c = false,
+            i, j;
+          for(i = 0, j = p.length; i < j; i += 1) {
+            // separate IFs work whem o and l are the same
+            if(p[i] === o) {
+              c = !c;
+            }
+            if(p[i] === l) {
+              c = !c;
+            }
+            if(c || p[i] === o || p[i] === l) {
+              this.select_node(p[i], true, false, e);
+            } else {
+              this.deselect_node(p[i], true, e);
+            }
           }
-          if(p[i] === l) {
-            c = !c;
+          this.trigger('changed', { 'action' : 'select_node', 'node' : this.get_node(obj), 'selected' : this._data.core.selected, 'event' : e });
+        } else {
+          if(!this.is_selected(obj)) {
+            this.select_node(obj, false, false, e);
+          } else {
+            this.deselect_node(obj, false, e);
           }
-          if(c || p[i] === o || p[i] === l) {
-            this.select_node(p[i], true, false, e);
-          }
-          else {
-            this.deselect_node(p[i], true, e);
-          }
-        }
-        this.trigger('changed', { 'action' : 'select_node', 'node' : this.get_node(obj), 'selected' : this._data.core.selected, 'event' : e });
-      }
-      else {
-        if(!this.is_selected(obj)) {
-          this.select_node(obj, false, false, e);
-        }
-        else {
-          this.deselect_node(obj, false, e);
         }
       }
 			/**
@@ -2555,30 +2524,33 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 * @param {mixed} obj
 		 * @trigger hover_node.jstree
 		 */
-		hover_node : function (obj) {
-			obj = this.get_node(obj, true);
-			if(!obj || !obj.length || obj.children('.jstree-hovered').length) {
+		hover_node : function (newHoveredB) {
+			newHoveredB = this.get_node(newHoveredB, true);
+			if(!newHoveredB || !newHoveredB.length || newHoveredB.children('.jstree-hovered').length) {
 				return false;
 			}
-			var o = this.element.find('.jstree-hovered'), t = this.element;
-			if(o && o.length) { this.dehover_node(o); }
+			var oldHoveredB = this.element.find('.jstree-hovered');
+			if(oldHoveredB && oldHoveredB.length) { this.dehover_node(oldHoveredB); }
 
-      $("#" + obj[0].id + "_btnEdit").show().css("visibility", "visible");
+      $("#" + newHoveredB[0].id + "_btnEdit").show().css("visibility", "visible");
 
-			obj.children('.jstree-anchor').addClass('jstree-hovered');
+			newHoveredB.children('.jstree-anchor').addClass('jstree-hovered');
+
+      this._data.core.hoveredB = newHoveredB[0].id;  // save id of hovered branch to the tree settings
 
       // scrolling
       var guard_field = 120; // it can be moved to settings parameters
-      var scrolled = $('#data_field')[0].scrollTop;
-      var visibleField = $('#data_field')[0].clientHeight;
+      var scrollField = this.element.parent();
+      var scrolled = scrollField[0].scrollTop;
+      var visibleField = scrollField[0].clientHeight;
       var bottom_border = scrolled + visibleField - guard_field;
       var top_border = scrolled + guard_field;
-      var branch_offset = $(".jstree-hovered")[0].offsetTop;
+      var branch_offset = newHoveredB[0].offsetTop;
       if ( (branch_offset - top_border) < 0 ) { // || (bottom_border - branch_offset) < 0) {
-        $('#data_field').animate({ scrollTop: branch_offset - guard_field }, 50*this.settings.core.animation_ration);
+        scrollField.animate({ scrollTop: branch_offset - guard_field }, 50*this.settings.core.animation_ration);
       }
       if ( (bottom_border - branch_offset) < 0) {
-        $('#data_field').animate({ scrollTop: branch_offset - visibleField + guard_field }, 50*this.settings.core.animation_ration);
+        scrollField.animate({ scrollTop: branch_offset - visibleField + guard_field }, 50*this.settings.core.animation_ration);
       }
 
 			/**
@@ -2587,8 +2559,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			 * @name hover_node.jstree
 			 * @param {Object} node
 			 */
-			this.trigger('hover_node', { 'node' : this.get_node(obj) });
-			setTimeout(function () { t.attr('aria-activedescendant', obj[0].id); }, 0);
+			this.trigger('hover_node', { 'node' : this.get_node(newHoveredB) });
 		},
 		/**
 		 * removes the hover state from a nodecalled when a node is no longer hovered by the user. Used internally.
@@ -3007,15 +2978,11 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			};
 			var c = this.get_container_ul()[0].className;
 			if(!skip_loading) {
-				this.element.html("<"+"ul class='"+c+"' role='group'><"+"li class='jstree-initial-node jstree-loading jstree-leaf jstree-last' role='treeitem' id='j"+this._id+"_loading'><i class='jstree-icon jstree-ocl'></i><"+"a class='jstree-anchor' href='#'><i class='jstree-icon jstree-themeicon-hidden'></i>" + this.get_string("Loading ...") + "</a></li></ul>");
-				this.element.attr('aria-activedescendant','j'+this._id+'_loading');
+				this.element.html("<"+"ul class='"+c+"'><"+"li class='jstree-initial-node jstree-loading jstree-leaf jstree-last' id='j"+this._id+"_loading'><i class='jstree-icon jstree-ocl'></i><"+"a class='jstree-anchor' href='#'><i class='jstree-icon jstree-themeicon-hidden'></i>" + this.get_string("Loading ...") + "</a></li></ul>");
 			}
 			this.load_node('#', function (o, s) {
 				if(s) {
 					this.get_container_ul()[0].className = c;
-					if(this._firstChild(this.get_container_ul()[0])) {
-						this.element.attr('aria-activedescendant',this._firstChild(this.get_container_ul()[0]).id);
-					}
 					this.set_state($.extend(true, {}, this._data.core.state), function () {
 						/**
 						 * triggered when a `refresh` call completes
@@ -3422,7 +3389,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			obj = obj && obj.id ? obj : this.get_node(obj);
 			par = par && par.id ? par : this.get_node(par);
 			var tmp = chk.match(/^move_node|copy_node|create_node$/i) ? par : obj,
-				chc = this.settings.core.check_callback;
+				chc = this.settings.core.locked;
 			if(chk === "move_node" || chk === "copy_node") {
 				if((!more || !more.is_multi) && (obj.id === par.id || $.inArray(obj.id, par.children) === pos || $.inArray(par.id, obj.children_d) !== -1)) {
 					this._data.core.last_error = { 'error' : 'check', 'plugin' : 'core', 'id' : 'core_01', 'reason' : 'Moving parent inside child', 'data' : JSON.stringify({ 'chk' : chk, 'pos' : pos, 'obj' : obj && obj.id ? obj.id : false, 'par' : par && par.id ? par.id : false }) };
@@ -3437,7 +3404,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				return tmp.functions[chk];
 			}
 			if(chc === false || ($.isFunction(chc) && chc.call(this, chk, obj, par, pos, more) === false) || (chc && chc[chk] === false)) {
-				this._data.core.last_error = { 'error' : 'check', 'plugin' : 'core', 'id' : 'core_03', 'reason' : 'User config for core.check_callback prevents function: ' + chk, 'data' : JSON.stringify({ 'chk' : chk, 'pos' : pos, 'obj' : obj && obj.id ? obj.id : false, 'par' : par && par.id ? par.id : false }) };
+				this._data.core.last_error = { 'error' : 'check', 'plugin' : 'core', 'id' : 'core_03', 'reason' : 'User config for core.locked prevents function: ' + chk, 'data' : JSON.stringify({ 'chk' : chk, 'pos' : pos, 'obj' : obj && obj.id ? obj.id : false, 'par' : par && par.id ? par.id : false }) };
 				return false;
 			}
 			return true;
@@ -3852,8 +3819,8 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		edit : function (obj, default_text) {
 			obj = this.get_node(obj);
 			if(!obj) { return false; }
-			if(this.settings.core.check_callback === false) {
-				this._data.core.last_error = { 'error' : 'check', 'plugin' : 'core', 'id' : 'core_07', 'reason' : 'Could not edit node because of check_callback' };
+			if(this.settings.core.locked === false) {
+				this._data.core.last_error = { 'error' : 'check', 'plugin' : 'core', 'id' : 'core_07', 'reason' : 'Could not edit node because of locked' };
 				this.settings.core.error.call(this, this._data.core.last_error);
 				return false;
 			}
@@ -3943,25 +3910,23 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 * changes the theme
 		 * @name set_theme(theme_name [, theme_url])
 		 * @param {String} theme_name the name of the new theme to apply
-		 * @param {mixed} theme_url  the location of the CSS file for this theme. Omit or set to `false` if you manually included the file. Set to `true` to autoload from the `core.themes.dir` directory.
 		 * @trigger set_theme.jstree
 		 */
-		set_theme : function (theme_name, theme_url) {
+		set_theme : function (theme_name) {
 			if(!theme_name) { return false; }
-			if(theme_url === true) {
-				var dir = this.settings.core.themes.dir;
-				if(!dir) { dir = $.jstree.path + '/themes'; }
-				theme_url = dir + '/' + theme_name + '/style.css';
-			}
-			if(theme_url && $.inArray(theme_url, themes_loaded) === -1) {
-				$('head').append('<'+'link rel="stylesheet" href="' + theme_url + '" type="text/css" />');
-				themes_loaded.push(theme_url);
-			}
-			if(this._data.core.themes.name) {
-				this.element.removeClass('jstree-' + this._data.core.themes.name);
-			}
+      var dir = this.settings.core.themes.dir;
+      if(dir) {
+        var theme_url = dir + '/' + theme_name + '/style.css';
+        if($.inArray(theme_url, themes_loaded) === -1) {
+          $('head').append('<'+'link rel="stylesheet" href="' + theme_url + '" type="text/css" />');
+          themes_loaded.push(theme_url);
+        }
+      }
+
+			if(this._data.core.themes.name) { this.element.removeClass('jstree-' + this._data.core.themes.name); }
 			this._data.core.themes.name = theme_name;
 			this.element.addClass('jstree-' + theme_name);
+
 			this.element[this.settings.core.themes.responsive ? 'addClass' : 'removeClass' ]('jstree-' + theme_name + '-responsive');
 			/**
 			 * triggered when a theme is set
@@ -3997,21 +3962,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 * @return {String}
 		 */
 		get_theme_variant : function () { return this._data.core.themes.variant; },
-		/**
-		 * shows a striped background on the container (if the theme supports it)
-		 * @name show_stripes()
-		 */
-		show_stripes : function () { this._data.core.themes.stripes = true; this.get_container_ul().addClass("jstree-striped"); },
-		/**
-		 * hides the striped background on the container
-		 * @name hide_stripes()
-		 */
-		hide_stripes : function () { this._data.core.themes.stripes = false; this.get_container_ul().removeClass("jstree-striped"); },
-		/**
-		 * toggles the striped background on the container
-		 * @name toggle_stripes()
-		 */
-		toggle_stripes : function () { if(this._data.core.themes.stripes) { this.hide_stripes(); } else { this.show_stripes(); } },
 		/**
 		 * shows the connecting dots (if the theme supports it)
 		 * @name show_dots()
@@ -4143,7 +4093,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		var attr = with_values ? {} : [];
 		if(node && node.attributes) {
 			$.each(node.attributes, function (i, v) {
-				if($.inArray(v.name.toLowerCase(),['style','contenteditable','hasfocus','tabindex']) !== -1) { return; }
+				if($.inArray(v.name.toLowerCase(),['style','contenteditable','hasfocus']) !== -1) { return; }
 				if(v.value !== null && $.trim(v.value) !== '') {
 					if(with_values) { attr[v.name] = v.value; }
 					else { attr.push(v.name); }
@@ -4186,7 +4136,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 
 	var _i = document.createElement('I');
 	_i.className = 'jstree-icon jstree-checkbox';
-	_i.setAttribute('role', 'presentation');
 	/**
 	 * stores all defaults for the checkbox plugin
 	 * @name $.jstree.defaults.checkbox
@@ -6612,7 +6561,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 
 	var div = document.createElement('DIV');
 	div.setAttribute('unselectable','on');
-	div.setAttribute('role','presentation');
 	div.className = 'jstree-wholerow';
 	div.innerHTML = '&#160;';
 	$.jstree.plugins.wholerow = function (options, parent) {
@@ -6685,7 +6633,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				var tmp = div.cloneNode(true);
 				//tmp.style.height = this._data.core.li_height + 'px';
 				if($.inArray(obj.id, this._data.core.selected) !== -1) { tmp.className += ' jstree-wholerow-clicked'; }
-				if(this._data.core.focused && this._data.core.focused === obj.id) { tmp.className += ' jstree-wholerow-hovered'; }
+				if(this._data.core.hoveredB != null && this._data.core.hoveredB === obj.id) { tmp.className += ' jstree-wholerow-hovered'; }
 				obj.insertBefore(tmp, obj.childNodes[0]);
 			}
 			return obj;

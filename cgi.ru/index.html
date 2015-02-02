@@ -48,7 +48,7 @@
                 },
               "dataType" : "json"
             },
-            'check_callback' : true // access all operations with tree
+            'locked' : true // access all operations with tree
           },
           "plugins" : ["wholerow", "contextmenu", "dnd" ],
           "dnd" : {
@@ -103,7 +103,7 @@
                       },
                     "dataType" : "json"
                   },
-                  'check_callback' : true // access all operations with tree
+                  'locked' : true // access all operations with tree
                 },
                 "plugins" : ["contextmenu", "dnd", "ckeditor_support" ],
                 "dnd" : {
@@ -153,17 +153,17 @@
         // set focus to the tree
         $('#data_field, #left_field')
           .on('click', function(e) {
-            var curTree = $(this).children('.jstree');
-            if (curTree.length != 0) {
-              curTree.jstree(true).deselect_all();
-              if (curTree.jstree(true)._data.core.focused == null) {
+            var curTree = $(this).children('.jstree').jstree(true);
+            if (curTree) {
+              curTree.deselect_all();
+              if (curTree._data.core.focusedT == false) {
                 curTree.trigger('focus');
               }
             }
           })
           .on('mouseenter', function(e) {
-            var curTree = $(this).children('.jstree');
-            if (curTree.length != 0 && curTree.jstree(true)._data.core.focused == null) {
+            var curTree = $(this).children('.jstree').jstree(true);
+            if (curTree && curTree._data.core.focusedT == false) {
               curTree.trigger('focus');
             }
           });
