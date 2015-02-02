@@ -654,7 +654,8 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 					}, this))
 				.on('focus.jstree', $.proxy(function () {
 						if(!this._data.core.focused) {
-							this.get_node(this.element.attr('aria-activedescendant'), true).find('> .jstree-anchor').focus();
+              var curB = this.get_node(this.element.attr('aria-activedescendant'), true);
+              if ( curB ) { curB.find('> .jstree-anchor').focus(); }
 						}
             return false;
 					}, this))
