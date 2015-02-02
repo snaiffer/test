@@ -1,0 +1,59 @@
+
+$.jstree.    --объект хранящий зависимые функции и переменные, включая: методы для создания, доступа и управления экземплярами
+  defaults  --хранит опции по умолчанию используемые при создании нового экземпляра
+  plugins.  --хранит функции для создания всех доступных плагинов
+    checkbox
+    contextmenu
+    dnd
+    state
+    search
+    state
+    ckeditor_support
+    wholerow
+  path   --путь к директории с плагином jstree
+  idregex
+
+  .create(element, options)  --создать и инициализировать новый экземпляр jstree на месте переданного элемента (element). Так же будут применены переданные опции и подключены плагины, заданные в опциях
+  .destroy()  --уничтожить все экземпляры объекта
+
+  .core(id)   --конструктор класса. Функция задающая начальные настройки для нового экземпляра.
+    _id = id  --каждому экземпляру присваивается свой идентификатор, который инкрементируется при создании нового экземпляра
+    _cnt = 0
+    _wrk = null
+    _data.
+      core.
+        themes.        --настройки оформления
+          name : false,
+          dots : false,   --вкл./выкл. отображение ветвей точками
+          icons : false   --вкл./выкл. отображение иконок для веток
+        selected : [],
+        last_error : {},
+        working : false,
+        worker_queue : [],
+        focused : null
+  reference(needle)   --возвращает экземпляр jstree в котором содержится переданный селектор.
+    Примеры:
+      $.jstree.reference('tree');
+      $.jstree.reference('#tree');
+      $.jstree.reference($('#tree'));
+      $.jstree.reference(document.getElementByID('tree'));
+      $.jstree.reference('branch');
+      $.jstree.reference('#branch');
+      $.jstree.reference($('#branch'));
+      $.jstree.reference(document.getElementByID('branch'));
+
+$.fn.jstree   --возвращает экземпляр jstree по средства механизма jQuery-цепочек, либо создает новый
+  Примечание:
+    Может выполнить те же задачи что и метод $.jstree.reference(), но обладает дополнительными возможностями
+  Примеры:
+    $('#tree1').jstree();                               --создать новый экземпляр jstree или вернуть существующий
+    $('#tree2').jstree(true);                           --вернуть экземпляр jstree (новый экземпляр создаваться не будет)
+    $('#tree2').jstree({ plugins : [] });               --создать новый экземпляр с переданными параметрами
+    $('#tree1').jstree('select_node', '#branch_1');       --вызвать метод ('select_node') у существующего экземпляра и предать аргумет('#branch_1') методу
+    $('#branch_1').jstree().select_node('#branch_1');   --выбрать экземпляр которому принадлежит селектор и выполнить метод ('select_node')
+
+
+
+
+
+

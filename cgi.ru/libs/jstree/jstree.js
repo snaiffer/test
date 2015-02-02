@@ -76,14 +76,9 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 * @name $.jstree.defaults
 		 */
 		defaults : {
-			/**
-			 * configure which plugins will be active on an instance. Should be an array of strings, where each element is a plugin name. The default is `[]`
-			 * @name $.jstree.defaults.plugins
-			 */
-			plugins : []
 		},
 		/**
-		 * stores all loaded jstree plugins (used internally)
+		 * stores all loaded jstree plugins
 		 * @name $.jstree.plugins
 		 */
 		plugins : {},
@@ -98,19 +93,24 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 	 * @return {jsTree} the new instance
 	 */
 	$.jstree.create = function (el, options) {
-		var tmp = new $.jstree.core(++instance_counter),
+		var newTree = new $.jstree.core(++instance_counter),
 			opt = options;
 		options = $.extend(true, {}, $.jstree.defaults, options);
 		if(opt && opt.plugins) {
 			options.plugins = opt.plugins;
 		}
+    // activate plugins
 		$.each(options.plugins, function (i, k) {
 			if(i !== 'core') {
-				tmp = tmp.plugin(k, options[k]);
+				newTree = newTree.plugin(k, options[k]);
 			}
 		});
-		tmp.init(el, options);
-		return tmp;
+		newTree.init(el, options);
+    /*
+          console.log(newTree);
+          console.log($.jstree);
+          */
+		return newTree;
 	};
 	/**
 	 * remove all traces of jstree from the DOM and destroy all instances
@@ -204,10 +204,9 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 	 * __Examples__
 	 *
 	 *	$('#tree1').jstree(); // creates an instance
-	 *	$('#tree2').jstree({ plugins : [] }); // create an instance with some options
-	 *	$('#tree1').jstree('open_node', '#branch_1'); // call a method on an existing instance, passing additional arguments
-	 *	$('#tree2').jstree(); // get an existing instance (or create an instance)
 	 *	$('#tree2').jstree(true); // get an existing instance (will not create new instance)
+	 *	$('#tree2').jstree({ plugins : [] }); // create an instance with some options
+	 *	$('#tree1').jstree('select_node', '#branch_1'); // call a method on an existing instance, passing additional arguments
 	 *	$('#branch_1').jstree().select_node('#branch_1'); // get an instance (using a nested element and call a method)
 	 *
 	 * @name $().jstree([arg])
@@ -292,30 +291,8 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 *					return { 'id' : node.id };
 		 *				}
 		 *			}
-		 *		});
+		 *		}});
 		 *
-		 *	// direct data
-		 *	$('#tree').jstree({
-		 *		'core' : {
-		 *			'data' : [
-		 *				'Simple root node',
-		 *				{
-		 *					'id' : 'node_2',
-		 *					'text' : 'Root node with options',
-		 *					'state' : { 'opened' : true, 'selected' : true },
-		 *					'children' : [ { 'text' : 'Child 1' }, 'Child 2']
-		 *				}
-		 *			]
-		 *		});
-		 *	
-		 *	// function
-		 *	$('#tree').jstree({
-		 *		'core' : {
-		 *			'data' : function (obj, callback) {
-		 *				callback.call(this, ['Root 1', 'Root 2']);
-		 *			}
-		 *		});
-		 * 
 		 * @name $.jstree.defaults.core.data
 		 */
 		data			: false,
@@ -372,11 +349,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 */
 		animation_ration		: 3,
 		/**
-		 * a boolean indicating if multiple nodes can be selected
-		 * @name $.jstree.defaults.core.multiple
-		 */
-		multiple		: true,
-		/**
 		 * theme configuration object
 		 * @name $.jstree.defaults.core.themes
 		 */
@@ -431,12 +403,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 * if left as `true` web workers will be used to parse incoming JSON data where possible, so that the UI will not be blocked by large requests. Workers are however about 30% slower. Defaults to `true`
 		 * @name $.jstree.defaults.core.worker
 		 */
-		worker : true,
-		/**
-		 * Force node text to plain text (and escape HTML). Defaults to `false`
-		 * @name $.jstree.defaults.core.force_text
-		 */
-		force_text : false
+		worker : true
 	};
 	$.jstree.core.prototype = {
 		/**
@@ -496,9 +463,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			this._data.core.rtl = (this.element.css("direction") === "rtl");
 			this.element[this._data.core.rtl ? 'addClass' : 'removeClass']("jstree-rtl");
 			this.element.attr('role','tree');
-			if(this.settings.core.multiple) {
-				this.element.attr('aria-multiselectable', true);
-			}
 			if(!this.element.attr('tabindex')) {
 				this.element.attr('tabindex','0');
 			}
@@ -689,6 +653,9 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						switch(e.which) {
 							case 13: // enter
                 e.preventDefault();
+          console.log(curB);
+          console.log( $.jstree.reference(curB));
+          console.log(curB.jstree(true));
                 curB.trigger('click');
                 $("#" + curB[0].id.replace('_anchor', '_edit')).trigger('click');
 								break;
@@ -1330,29 +1297,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 */
 		_load_node : function (obj, callback) {
 			var s = this.settings.core.data, t;
-			// use original HTML
-			if(!s) {
-				if(obj.id === '#') {
-					return this._append_html_data(obj, this._data.core.original_container_html.clone(true), function (status) {
-						callback.call(this, status);
-					});
-				}
-				else {
-					return callback.call(this, false);
-				}
-				// return callback.call(this, obj.id === '#' ? this._append_html_data(obj, this._data.core.original_container_html.clone(true)) : false);
-			}
-			if($.isFunction(s)) {
-				return s.call(this, obj, $.proxy(function (d) {
-					if(d === false) {
-						callback.call(this, false);
-					}
-					this[typeof d === 'string' ? '_append_html_data' : '_append_json_data'](obj, typeof d === 'string' ? $(d) : d, function (status) {
-						callback.call(this, status);
-					});
-					// return d === false ? callback.call(this, false) : callback.call(this, this[typeof d === 'string' ? '_append_html_data' : '_append_json_data'](obj, typeof d === 'string' ? $(d) : d));
-				}, this));
-			}
 			if(typeof s === 'object') {
 				if(s.url) {
 					s = $.extend(true, {}, s);
@@ -1368,10 +1312,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 								if(type.indexOf('json') !== -1 || typeof d === "object") {
 									return this._append_json_data(obj, d, function (status) { callback.call(this, status); });
 									//return callback.call(this, this._append_json_data(obj, d));
-								}
-								if(type.indexOf('html') !== -1 || typeof d === "string") {
-									return this._append_html_data(obj, $(d), function (status) { callback.call(this, status); });
-									// return callback.call(this, this._append_html_data(obj, $(d)));
 								}
 								this._data.core.last_error = { 'error' : 'ajax', 'plugin' : 'core', 'id' : 'core_04', 'reason' : 'Could not load node', 'data' : JSON.stringify({ 'id' : obj.id, 'xhr' : x }) };
 								this.settings.core.error.call(this, this._data.core.last_error);
@@ -1396,19 +1336,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				}
 				//return callback.call(this, (obj.id === "#" ? this._append_json_data(obj, t) : false) );
 			}
-			if(typeof s === 'string') {
-				if(obj.id === '#') {
-					return this._append_html_data(obj, $(s), function (status) {
-						callback.call(this, status);
-					});
-				}
-				else {
-					this._data.core.last_error = { 'error' : 'nodata', 'plugin' : 'core', 'id' : 'core_06', 'reason' : 'Could not load node', 'data' : JSON.stringify({ 'id' : obj.id }) };
-					this.settings.core.error.call(this, this._data.core.last_error);
-					return callback.call(this, false);
-				}
-				//return callback.call(this, (obj.id === "#" ? this._append_html_data(obj, $(s)) : false) );
-			}
 			return callback.call(this, false);
 		},
 		/**
@@ -1422,62 +1349,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			if(obj) {
 				this._model.changed.push(obj.id);
 			}
-		},
-		/**
-		 * appends HTML content to the tree. Used internally.
-		 * @private
-		 * @name _append_html_data(obj, data)
-		 * @param  {mixed} obj the node to append to
-		 * @param  {String} data the HTML string to parse and append
-		 * @trigger model.jstree, changed.jstree
-		 */
-		_append_html_data : function (dom, data, cb) {
-			dom = this.get_node(dom);
-			dom.children = [];
-			dom.children_d = [];
-			var dat = data.is('ul') ? data.children() : data,
-				par = dom.id,
-				chd = [],
-				dpc = [],
-				m = this._model.data,
-				p = m[par],
-				s = this._data.core.selected.length,
-				tmp, i, j;
-			dat.each($.proxy(function (i, v) {
-				tmp = this._parse_model_from_html($(v), par, p.parents.concat());
-				if(tmp) {
-					chd.push(tmp);
-					dpc.push(tmp);
-					if(m[tmp].children_d.length) {
-						dpc = dpc.concat(m[tmp].children_d);
-					}
-				}
-			}, this));
-			p.children = chd;
-			p.children_d = dpc;
-			for(i = 0, j = p.parents.length; i < j; i++) {
-				m[p.parents[i]].children_d = m[p.parents[i]].children_d.concat(dpc);
-			}
-			/**
-			 * triggered when new data is inserted to the tree model
-			 * @event
-			 * @name model.jstree
-			 * @param {Array} nodes an array of node IDs
-			 * @param {String} parent the parent ID of the nodes
-			 */
-			this.trigger('model', { "nodes" : dpc, 'parent' : par });
-			if(par !== '#') {
-				this._node_changed(par);
-				this.redraw();
-			}
-			else {
-				this.get_container_ul().children('.jstree-initial-node').remove();
-				this.redraw(true);
-			}
-			if(this._data.core.selected.length !== s) {
-				this.trigger('changed', { 'action' : 'model', 'selected' : this._data.core.selected });
-			}
-			cb.call(this, true);
 		},
 		/**
 		 * appends JSON content to the tree. Used internally.
@@ -1869,116 +1740,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			}
 		},
 		/**
-		 * parses a node from a jQuery object and appends them to the in memory tree model. Used internally.
-		 * @private
-		 * @name _parse_model_from_html(d [, p, ps])
-		 * @param  {jQuery} d the jQuery object to parse
-		 * @param  {String} p the parent ID
-		 * @param  {Array} ps list of all parents
-		 * @return {String} the ID of the object added to the model
-		 */
-		_parse_model_from_html : function (d, p, ps) {
-			if(!ps) { ps = []; }
-			else { ps = [].concat(ps); }
-			if(p) { ps.unshift(p); }
-			var c, e, m = this._model.data,
-				data = {
-					id			: false,
-					text		: false,
-					icon		: true,
-					parent		: p,
-					parents		: ps,
-					children	: [],
-					children_d	: [],
-					data		: null,
-					state		: { },
-					li_attr		: { id : false },
-					a_attr		: { href : '#' },
-					original	: false
-				}, i, tmp, tid;
-			for(i in this._model.default_state) {
-				if(this._model.default_state.hasOwnProperty(i)) {
-					data.state[i] = this._model.default_state[i];
-				}
-			}
-			tmp = $.vakata.attributes(d, true);
-			$.each(tmp, function (i, v) {
-				v = $.trim(v);
-				if(!v.length) { return true; }
-				data.li_attr[i] = v;
-				if(i === 'id') {
-					data.id = v.toString();
-				}
-			});
-			tmp = d.children('a').first();
-			if(tmp.length) {
-				tmp = $.vakata.attributes(tmp, true);
-				$.each(tmp, function (i, v) {
-					v = $.trim(v);
-					if(v.length) {
-						data.a_attr[i] = v;
-					}
-				});
-			}
-			tmp = d.children("a").first().length ? d.children("a").first().clone() : d.clone();
-			tmp.children("ins, i, ul").remove();
-			tmp = tmp.html();
-      tmp = "<textarea>" + tmp + "</textarea>";
-			tmp = $('<div />').html(tmp);
-			data.text = this.settings.core.force_text ? tmp.text() : tmp.html();
-			tmp = d.data();
-			data.data = tmp ? $.extend(true, {}, tmp) : null;
-			data.state.opened = d.hasClass('jstree-open');
-			data.state.selected = d.children('a').hasClass('jstree-clicked');
-			data.state.disabled = d.children('a').hasClass('jstree-disabled');
-			if(data.data && data.data.jstree) {
-				for(i in data.data.jstree) {
-					if(data.data.jstree.hasOwnProperty(i)) {
-						data.state[i] = data.data.jstree[i];
-					}
-				}
-			}
-			tmp = d.children("a").children(".jstree-themeicon");
-			if(tmp.length) {
-				data.icon = tmp.hasClass('jstree-themeicon-hidden') ? false : tmp.attr('rel');
-			}
-			if(data.state.icon) {
-				data.icon = data.state.icon;
-			}
-			tmp = d.children("ul").children("li");
-			do {
-				tid = String(++this._cnt);
-			} while(m[tid]);
-			data.id = data.li_attr.id ? data.li_attr.id.toString() : tid;
-			if(tmp.length) {
-				tmp.each($.proxy(function (i, v) {
-					c = this._parse_model_from_html($(v), data.id, ps);
-					e = this._model.data[c];
-					data.children.push(c);
-					if(e.children_d.length) {
-						data.children_d = data.children_d.concat(e.children_d);
-					}
-				}, this));
-				data.children_d = data.children_d.concat(data.children);
-			}
-			else {
-				if(d.hasClass('jstree-closed')) {
-					data.state.loaded = false;
-				}
-			}
-			if(data.li_attr['class']) {
-				data.li_attr['class'] = data.li_attr['class'].replace('jstree-closed','').replace('jstree-open','');
-			}
-			if(data.a_attr['class']) {
-				data.a_attr['class'] = data.a_attr['class'].replace('jstree-clicked','').replace('jstree-disabled','');
-			}
-			m[data.id] = data;
-			if(data.state.selected) {
-				this._data.core.selected.push(data.id);
-			}
-			return data.id;
-		},
-		/**
 		 * parses a node from a JSON object (used when dealing with flat data, which has no nesting of children, but has id and parent properties) and appends it to the in memory tree model. Used internally.
 		 * @private
 		 * @name _parse_model_from_flat_json(d [, p, ps])
@@ -2361,18 +2122,13 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				}
 			}
 
-			if(this.settings.core.force_text) {
-				node.childNodes[1].appendChild(d.createTextNode(obj.text));
-			}
-			else {
-        if ( this.element.hasClass("cke_sup") ) {
-          node.childNodes[1].innerHTML = this.wrapText_forckeditor(node.childNodes[1].id.replace("_anchor", ""), obj.text);
-        } else {
-          var new_innerHTML = "<div id=" + obj.id + "_text class='jstree-branch-text'>" + obj.text + "</div>";
-          new_innerHTML += "<img id=" + obj.id + "_btnEdit class='jstree-btnEdit' alt='edit' title='edit'></img>";
-          node.childNodes[1].innerHTML += new_innerHTML;
-        }
-			}
+      if ( this.element.hasClass("cke_sup") ) {
+        node.childNodes[1].innerHTML = this.wrapText_forckeditor(node.childNodes[1].id.replace("_anchor", ""), obj.text);
+      } else {
+        var new_innerHTML = "<div id=" + obj.id + "_text class='jstree-branch-text'>" + obj.text + "</div>";
+        new_innerHTML += "<img id=" + obj.id + "_btnEdit class='jstree-btnEdit' alt='edit' title='edit'></img>";
+        node.childNodes[1].innerHTML += new_innerHTML;
+      }
 
 			if(deep && obj.children.length && (obj.state.opened || force_render) && obj.state.loaded) {
 				k = d.createElement('UL');
@@ -2753,49 +2509,37 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			if(this._data.core.last_clicked && !this._data.core.last_clicked.state.selected) { this._data.core.last_clicked = null; }
 			if(!this._data.core.last_clicked && this._data.core.selected.length) { this._data.core.last_clicked = this.get_node(this._data.core.selected[this._data.core.selected.length - 1]); }
 
-			if(!this.settings.core.multiple || (!e.metaKey && !e.ctrlKey && !e.shiftKey) || (e.shiftKey && (!this._data.core.last_clicked || !this.get_parent(obj) || this.get_parent(obj) !== this._data.core.last_clicked.parent ) )) {
-				if(!this.settings.core.multiple && (e.metaKey || e.ctrlKey || e.shiftKey) && this.is_selected(obj)) {
-					this.deselect_node(obj, false, e);
-				}
-				else {
-					this.deselect_all(true);
-					this.select_node(obj, false, false, e);
-					this._data.core.last_clicked = this.get_node(obj);
-				}
-			}
-			else {
-				if(e.shiftKey) {
-					var o = this.get_node(obj).id,
-						l = this._data.core.last_clicked.id,
-						p = this.get_node(this._data.core.last_clicked.parent).children,
-						c = false,
-						i, j;
-					for(i = 0, j = p.length; i < j; i += 1) {
-						// separate IFs work whem o and l are the same
-						if(p[i] === o) {
-							c = !c;
-						}
-						if(p[i] === l) {
-							c = !c;
-						}
-						if(c || p[i] === o || p[i] === l) {
-							this.select_node(p[i], true, false, e);
-						}
-						else {
-							this.deselect_node(p[i], true, e);
-						}
-					}
-					this.trigger('changed', { 'action' : 'select_node', 'node' : this.get_node(obj), 'selected' : this._data.core.selected, 'event' : e });
-				}
-				else {
-					if(!this.is_selected(obj)) {
-						this.select_node(obj, false, false, e);
-					}
-					else {
-						this.deselect_node(obj, false, e);
-					}
-				}
-			}
+      if(e.shiftKey) {
+        var o = this.get_node(obj).id,
+          l = this._data.core.last_clicked.id,
+          p = this.get_node(this._data.core.last_clicked.parent).children,
+          c = false,
+          i, j;
+        for(i = 0, j = p.length; i < j; i += 1) {
+          // separate IFs work whem o and l are the same
+          if(p[i] === o) {
+            c = !c;
+          }
+          if(p[i] === l) {
+            c = !c;
+          }
+          if(c || p[i] === o || p[i] === l) {
+            this.select_node(p[i], true, false, e);
+          }
+          else {
+            this.deselect_node(p[i], true, e);
+          }
+        }
+        this.trigger('changed', { 'action' : 'select_node', 'node' : this.get_node(obj), 'selected' : this._data.core.selected, 'event' : e });
+      }
+      else {
+        if(!this.is_selected(obj)) {
+          this.select_node(obj, false, false, e);
+        }
+        else {
+          this.deselect_node(obj, false, e);
+        }
+      }
 			/**
 			 * triggered when an node is clicked or intercated with by the user
 			 * @event
@@ -4150,7 +3894,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 							editing_line.replaceWith(text_line);
 							editing_line.remove();
 							this.set_text(obj, t);
-							if(this.rename_node(obj, $('<div></div>').text(v)[this.settings.core.force_text ? 'text' : 'html']()) === false) {
+							if(this.rename_node(obj, $('<div></div>').text(v)['html']()) === false) {
 								this.set_text(obj, t); // move this up? and fix #483
 							}
               $("#" + obj[0].id + "_btnEdit").attr("editing", false);
@@ -5154,8 +4898,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		};
 	};
 
-	// include the checkbox plugin by default
-	// $.jstree.defaults.plugins.push("checkbox");
 
 /**
  * ### Contextmenu plugin
@@ -5795,7 +5537,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				});
 		});
 	}($));
-	// $.jstree.defaults.plugins.push("contextmenu");
+
 
 /**
  * ### Drag'n'drop plugin
@@ -5871,9 +5613,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 					var obj = this.get_node(e.target),
 						mlt = this.is_selected(obj) && this.settings.drag_selection ? this.get_selected().length : 1,
 						txt = (mlt > 1 ? mlt + ' ' + this.get_string('nodes') : this.get_text(e.currentTarget));
-					if(this.settings.core.force_text) {
-						txt = $('<div />').text(txt).html();
-					}
 					if(obj && obj.id && obj.id !== "#" && (e.which === 1 || e.type === "touchstart") &&
 						(this.settings.dnd.is_draggable === true || ($.isFunction(this.settings.dnd.is_draggable) && this.settings.dnd.is_draggable.call(this, (mlt > 1 ? this.get_selected(true) : [obj]))))
 					) {
@@ -6307,9 +6046,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		};
 	}($));
 
-	// include the dnd plugin by default
-	// $.jstree.defaults.plugins.push("dnd");
-
 
 /**
  * ### Search plugin
@@ -6669,66 +6405,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		};
 	}($));
 
-	// include the search plugin by default
-	// $.jstree.defaults.plugins.push("search");
-
-/**
- * ### Sort plugin
- *
- * Automatically sorts all siblings in the tree according to a sorting function.
- */
-
-	/**
-	 * the settings function used to sort the nodes.
-	 * It is executed in the tree's context, accepts two nodes as arguments and should return `1` or `-1`.
-	 * @name $.jstree.defaults.sort
-	 * @plugin sort
-	 */
-	$.jstree.defaults.sort = function (a, b) {
-		//return this.get_type(a) === this.get_type(b) ? (this.get_text(a) > this.get_text(b) ? 1 : -1) : this.get_type(a) >= this.get_type(b);
-		return this.get_text(a) > this.get_text(b) ? 1 : -1;
-	};
-	$.jstree.plugins.sort = function (options, parent) {
-		this.bind = function () {
-			parent.bind.call(this);
-			this.element
-				.on("model.jstree", $.proxy(function (e, data) {
-						this.sort(data.parent, true);
-					}, this))
-				.on("rename_node.jstree create_node.jstree", $.proxy(function (e, data) {
-						this.sort(data.parent || data.node.parent, false);
-						this.redraw_node(data.parent || data.node.parent, true);
-					}, this))
-				.on("move_node.jstree copy_node.jstree", $.proxy(function (e, data) {
-						this.sort(data.parent, false);
-						this.redraw_node(data.parent, true);
-					}, this));
-		};
-		/**
-		 * used to sort a node's children
-		 * @private
-		 * @name sort(obj [, deep])
-		 * @param  {mixed} obj the node
-		 * @param {Boolean} deep if set to `true` nodes are sorted recursively.
-		 * @plugin sort
-		 * @trigger search.jstree
-		 */
-		this.sort = function (obj, deep) {
-			var i, j;
-			obj = this.get_node(obj);
-			if(obj && obj.children && obj.children.length) {
-				obj.children.sort($.proxy(this.settings.sort, this));
-				if(deep) {
-					for(i = 0, j = obj.children_d.length; i < j; i++) {
-						this.sort(obj.children_d[i], false);
-					}
-				}
-			}
-		};
-	};
-
-	// include the sort plugin by default
-	// $.jstree.defaults.plugins.push("sort");
 
 /**
  * ### State plugin
@@ -6829,333 +6505,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		};
 	}($));
 
-	// include the state plugin by default
-	// $.jstree.defaults.plugins.push("state");
-
-/**
- * ### Types plugin
- *
- * Makes it possible to add predefined types for groups of nodes, which make it possible to easily control nesting rules and icon for each group.
- */
-
-	/**
-	 * An object storing all types as key value pairs, where the key is the type name and the value is an object that could contain following keys (all optional).
-	 * 
-	 * * `max_children` the maximum number of immediate children this node type can have. Do not specify or set to `-1` for unlimited.
-	 * * `max_depth` the maximum number of nesting this node type can have. A value of `1` would mean that the node can have children, but no grandchildren. Do not specify or set to `-1` for unlimited.
-	 * * `valid_children` an array of node type strings, that nodes of this type can have as children. Do not specify or set to `-1` for no limits.
-	 * * `icon` a string - can be a path to an icon or a className, if using an image that is in the current directory use a `./` prefix, otherwise it will be detected as a class. Omit to use the default icon from your theme.
-	 *
-	 * There are two predefined types:
-	 * 
-	 * * `#` represents the root of the tree, for example `max_children` would control the maximum number of root nodes.
-	 * * `default` represents the default node - any settings here will be applied to all nodes that do not have a type specified.
-	 * 
-	 * @name $.jstree.defaults.types
-	 * @plugin types
-	 */
-	$.jstree.defaults.types = {
-		'#' : {},
-		'default' : {}
-	};
-
-	$.jstree.plugins.types = function (options, parent) {
-		this.init = function (el, options) {
-			var i, j;
-			if(options && options.types && options.types['default']) {
-				for(i in options.types) {
-					if(i !== "default" && i !== "#" && options.types.hasOwnProperty(i)) {
-						for(j in options.types['default']) {
-							if(options.types['default'].hasOwnProperty(j) && options.types[i][j] === undefined) {
-								options.types[i][j] = options.types['default'][j];
-							}
-						}
-					}
-				}
-			}
-			parent.init.call(this, el, options);
-			this._model.data['#'].type = '#';
-		};
-		this.refresh = function (skip_loading, forget_state) {
-			parent.refresh.call(this, skip_loading, forget_state);
-			this._model.data['#'].type = '#';
-		};
-		this.bind = function () {
-			this.element
-				.on('model.jstree', $.proxy(function (e, data) {
-						var m = this._model.data,
-							dpc = data.nodes,
-							t = this.settings.types,
-							i, j, c = 'default';
-						for(i = 0, j = dpc.length; i < j; i++) {
-							c = 'default';
-							if(m[dpc[i]].original && m[dpc[i]].original.type && t[m[dpc[i]].original.type]) {
-								c = m[dpc[i]].original.type;
-							}
-							if(m[dpc[i]].data && m[dpc[i]].data.jstree && m[dpc[i]].data.jstree.type && t[m[dpc[i]].data.jstree.type]) {
-								c = m[dpc[i]].data.jstree.type;
-							}
-							m[dpc[i]].type = c;
-							if(m[dpc[i]].icon === true && t[c].icon !== undefined) {
-								m[dpc[i]].icon = t[c].icon;
-							}
-						}
-						m['#'].type = '#';
-					}, this));
-			parent.bind.call(this);
-		};
-		this.get_json = function (obj, options, flat) {
-			var i, j,
-				m = this._model.data,
-				opt = options ? $.extend(true, {}, options, {no_id:false}) : {},
-				tmp = parent.get_json.call(this, obj, opt, flat);
-			if(tmp === false) { return false; }
-			if($.isArray(tmp)) {
-				for(i = 0, j = tmp.length; i < j; i++) {
-					tmp[i].type = tmp[i].id && m[tmp[i].id] && m[tmp[i].id].type ? m[tmp[i].id].type : "default";
-					if(options && options.no_id) {
-						delete tmp[i].id;
-						if(tmp[i].li_attr && tmp[i].li_attr.id) {
-							delete tmp[i].li_attr.id;
-						}
-						if(tmp[i].a_attr && tmp[i].a_attr.id) {
-							delete tmp[i].a_attr.id;
-						}
-					}
-				}
-			}
-			else {
-				tmp.type = tmp.id && m[tmp.id] && m[tmp.id].type ? m[tmp.id].type : "default";
-				if(options && options.no_id) {
-					tmp = this._delete_ids(tmp);
-				}
-			}
-			return tmp;
-		};
-		this._delete_ids = function (tmp) {
-			if($.isArray(tmp)) {
-				for(var i = 0, j = tmp.length; i < j; i++) {
-					tmp[i] = this._delete_ids(tmp[i]);
-				}
-				return tmp;
-			}
-			delete tmp.id;
-			if(tmp.li_attr && tmp.li_attr.id) {
-				delete tmp.li_attr.id;
-			}
-			if(tmp.a_attr && tmp.a_attr.id) {
-				delete tmp.a_attr.id;
-			}
-			if(tmp.children && $.isArray(tmp.children)) {
-				tmp.children = this._delete_ids(tmp.children);
-			}
-			return tmp;
-		};
-		this.check = function (chk, obj, par, pos, more) {
-			if(parent.check.call(this, chk, obj, par, pos, more) === false) { return false; }
-			obj = obj && obj.id ? obj : this.get_node(obj);
-			par = par && par.id ? par : this.get_node(par);
-			var m = obj && obj.id ? $.jstree.reference(obj.id) : null, tmp, d, i, j;
-			m = m && m._model && m._model.data ? m._model.data : null;
-			switch(chk) {
-				case "create_node":
-				case "move_node":
-				case "copy_node":
-					if(chk !== 'move_node' || $.inArray(obj.id, par.children) === -1) {
-						tmp = this.get_rules(par);
-						if(tmp.max_children !== undefined && tmp.max_children !== -1 && tmp.max_children === par.children.length) {
-							this._data.core.last_error = { 'error' : 'check', 'plugin' : 'types', 'id' : 'types_01', 'reason' : 'max_children prevents function: ' + chk, 'data' : JSON.stringify({ 'chk' : chk, 'pos' : pos, 'obj' : obj && obj.id ? obj.id : false, 'par' : par && par.id ? par.id : false }) };
-							return false;
-						}
-						if(tmp.valid_children !== undefined && tmp.valid_children !== -1 && $.inArray((obj.type || 'default'), tmp.valid_children) === -1) {
-							this._data.core.last_error = { 'error' : 'check', 'plugin' : 'types', 'id' : 'types_02', 'reason' : 'valid_children prevents function: ' + chk, 'data' : JSON.stringify({ 'chk' : chk, 'pos' : pos, 'obj' : obj && obj.id ? obj.id : false, 'par' : par && par.id ? par.id : false }) };
-							return false;
-						}
-						if(m && obj.children_d && obj.parents) {
-							d = 0;
-							for(i = 0, j = obj.children_d.length; i < j; i++) {
-								d = Math.max(d, m[obj.children_d[i]].parents.length);
-							}
-							d = d - obj.parents.length + 1;
-						}
-						if(d <= 0 || d === undefined) { d = 1; }
-						do {
-							if(tmp.max_depth !== undefined && tmp.max_depth !== -1 && tmp.max_depth < d) {
-								this._data.core.last_error = { 'error' : 'check', 'plugin' : 'types', 'id' : 'types_03', 'reason' : 'max_depth prevents function: ' + chk, 'data' : JSON.stringify({ 'chk' : chk, 'pos' : pos, 'obj' : obj && obj.id ? obj.id : false, 'par' : par && par.id ? par.id : false }) };
-								return false;
-							}
-							par = this.get_node(par.parent);
-							tmp = this.get_rules(par);
-							d++;
-						} while(par);
-					}
-					break;
-			}
-			return true;
-		};
-		/**
-		 * used to retrieve the type settings object for a node
-		 * @name get_rules(obj)
-		 * @param {mixed} obj the node to find the rules for
-		 * @return {Object}
-		 * @plugin types
-		 */
-		this.get_rules = function (obj) {
-			obj = this.get_node(obj);
-			if(!obj) { return false; }
-			var tmp = this.get_type(obj, true);
-			if(tmp.max_depth === undefined) { tmp.max_depth = -1; }
-			if(tmp.max_children === undefined) { tmp.max_children = -1; }
-			if(tmp.valid_children === undefined) { tmp.valid_children = -1; }
-			return tmp;
-		};
-		/**
-		 * used to retrieve the type string or settings object for a node
-		 * @name get_type(obj [, rules])
-		 * @param {mixed} obj the node to find the rules for
-		 * @param {Boolean} rules if set to `true` instead of a string the settings object will be returned
-		 * @return {String|Object}
-		 * @plugin types
-		 */
-		this.get_type = function (obj, rules) {
-			obj = this.get_node(obj);
-			return (!obj) ? false : ( rules ? $.extend({ 'type' : obj.type }, this.settings.types[obj.type]) : obj.type);
-		};
-		/**
-		 * used to change a node's type
-		 * @name set_type(obj, type)
-		 * @param {mixed} obj the node to change
-		 * @param {String} type the new type
-		 * @plugin types
-		 */
-		this.set_type = function (obj, type) {
-			var t, t1, t2, old_type, old_icon;
-			if($.isArray(obj)) {
-				obj = obj.slice();
-				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
-					this.set_type(obj[t1], type);
-				}
-				return true;
-			}
-			t = this.settings.types;
-			obj = this.get_node(obj);
-			if(!t[type] || !obj) { return false; }
-			old_type = obj.type;
-			old_icon = this.get_icon(obj);
-			obj.type = type;
-			if(old_icon === true || (t[old_type] && t[old_type].icon !== undefined && old_icon === t[old_type].icon)) {
-				this.set_icon(obj, t[type].icon !== undefined ? t[type].icon : true);
-			}
-			return true;
-		};
-	};
-	// include the types plugin by default
-	// $.jstree.defaults.plugins.push("types");
-
-/**
- * ### Unique plugin
- *
- * Enforces that no nodes with the same name can coexist as siblings.
- */
-
-	/**
-	 * stores all defaults for the unique plugin
-	 * @name $.jstree.defaults.unique
-	 * @plugin unique
-	 */
-	$.jstree.defaults.unique = {
-		/**
-		 * Indicates if the comparison should be case sensitive. Default is `false`.
-		 * @name $.jstree.defaults.unique.case_sensitive
-		 * @plugin unique
-		 */
-		case_sensitive : false,
-		/**
-		 * A callback executed in the instance's scope when a new node is created and the name is already taken, the two arguments are the conflicting name and the counter. The default will produce results like `New node (2)`.
-		 * @name $.jstree.defaults.unique.duplicate
-		 * @plugin unique
-		 */
-		duplicate : function (name, counter) {
-			return name + ' (' + counter + ')';
-		}
-	};
-
-	$.jstree.plugins.unique = function (options, parent) {
-		this.check = function (chk, obj, par, pos, more) {
-			if(parent.check.call(this, chk, obj, par, pos, more) === false) { return false; }
-			obj = obj && obj.id ? obj : this.get_node(obj);
-			par = par && par.id ? par : this.get_node(par);
-			if(!par || !par.children) { return true; }
-			var n = chk === "rename_node" ? pos : obj.text,
-				c = [],
-				s = this.settings.unique.case_sensitive,
-				m = this._model.data, i, j;
-			for(i = 0, j = par.children.length; i < j; i++) {
-				c.push(s ? m[par.children[i]].text : m[par.children[i]].text.toLowerCase());
-			}
-			if(!s) { n = n.toLowerCase(); }
-			switch(chk) {
-				case "delete_node":
-					return true;
-				case "rename_node":
-					i = ($.inArray(n, c) === -1 || (obj.text && obj.text[ s ? 'toString' : 'toLowerCase']() === n));
-					if(!i) {
-						this._data.core.last_error = { 'error' : 'check', 'plugin' : 'unique', 'id' : 'unique_01', 'reason' : 'Child with name ' + n + ' already exists. Preventing: ' + chk, 'data' : JSON.stringify({ 'chk' : chk, 'pos' : pos, 'obj' : obj && obj.id ? obj.id : false, 'par' : par && par.id ? par.id : false }) };
-					}
-					return i;
-				case "create_node":
-					i = ($.inArray(n, c) === -1);
-					if(!i) {
-						this._data.core.last_error = { 'error' : 'check', 'plugin' : 'unique', 'id' : 'unique_04', 'reason' : 'Child with name ' + n + ' already exists. Preventing: ' + chk, 'data' : JSON.stringify({ 'chk' : chk, 'pos' : pos, 'obj' : obj && obj.id ? obj.id : false, 'par' : par && par.id ? par.id : false }) };
-					}
-					return i;
-				case "copy_node":
-					i = ($.inArray(n, c) === -1);
-					if(!i) {
-						this._data.core.last_error = { 'error' : 'check', 'plugin' : 'unique', 'id' : 'unique_02', 'reason' : 'Child with name ' + n + ' already exists. Preventing: ' + chk, 'data' : JSON.stringify({ 'chk' : chk, 'pos' : pos, 'obj' : obj && obj.id ? obj.id : false, 'par' : par && par.id ? par.id : false }) };
-					}
-					return i;
-				case "move_node":
-					i = (obj.parent === par.id || $.inArray(n, c) === -1);
-					if(!i) {
-						this._data.core.last_error = { 'error' : 'check', 'plugin' : 'unique', 'id' : 'unique_03', 'reason' : 'Child with name ' + n + ' already exists. Preventing: ' + chk, 'data' : JSON.stringify({ 'chk' : chk, 'pos' : pos, 'obj' : obj && obj.id ? obj.id : false, 'par' : par && par.id ? par.id : false }) };
-					}
-					return i;
-			}
-			return true;
-		};
-		this.create_node = function (par, node, pos, callback, is_loaded) {
-			if(!node || node.text === undefined) {
-				if(par === null) {
-					par = "#";
-				}
-				par = this.get_node(par);
-				if(!par) {
-					return parent.create_node.call(this, par, node, pos, callback, is_loaded);
-				}
-				pos = pos === undefined ? "last" : pos;
-				if(!pos.toString().match(/^(before|after)$/) && !is_loaded && !this.is_loaded(par)) {
-					return parent.create_node.call(this, par, node, pos, callback, is_loaded);
-				}
-				if(!node) { node = {}; }
-				var tmp, n, dpc, i, j, m = this._model.data, s = this.settings.unique.case_sensitive, cb = this.settings.unique.duplicate;
-				n = tmp = this.get_string('New branch');
-				dpc = [];
-				for(i = 0, j = par.children.length; i < j; i++) {
-					dpc.push(s ? m[par.children[i]].text : m[par.children[i]].text.toLowerCase());
-				}
-				i = 1;
-				while($.inArray(s ? n : n.toLowerCase(), dpc) !== -1) {
-					n = cb.call(this, tmp, (++i)).toString();
-				}
-				node.text = n;
-			}
-			return parent.create_node.call(this, par, node, pos, callback, is_loaded);
-		};
-	};
-
-	// include the unique plugin by default
-	// $.jstree.defaults.plugins.push("unique");
 
 /**
  * ### ckeditor_support plugin
@@ -7252,108 +6601,8 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
           this.jstree_edit_refresh();
         }, this));
     };
-
-    /*
-    this._load_node = function (obj, callback) {
-      function wrap_text(nodes) {
-        for (var i = 0; i < nodes.length; i++) {
-          var cur_node = nodes[i];
-          var puretext = cur_node.text;
-          //cur_node.text = "<div class='jstree-editable' contenteditable='true' style='width: 100%'>" + puretext + "</div>";
-          //cur_node.text = "<div class='jstree-editable' contenteditable='true'>" + puretext + "</div>";
-          cur_node.text = "<div id='alpha' class='jstree-editable' contenteditable='true'>" + puretext + "</div>";
-          if ( cur_node.children ) {
-            wrap_text(cur_node.children);
-          }
-        }
-      }
-      if (this.settings.core.data) {
-        wrap_text(this.settings.core.data);
-      }
-			var s = this.settings.core.data, t;
-			// use original HTML
-			if(!s) {
-				if(obj.id === '#') {
-					return this._append_html_data(obj, this._data.core.original_container_html.clone(true), function (status) {
-						callback.call(this, status);
-					});
-				}
-				else {
-					return callback.call(this, false);
-				}
-				// return callback.call(this, obj.id === '#' ? this._append_html_data(obj, this._data.core.original_container_html.clone(true)) : false);
-			}
-			if($.isFunction(s)) {
-				return s.call(this, obj, $.proxy(function (d) {
-					if(d === false) {
-						callback.call(this, false);
-					}
-					this[typeof d === 'string' ? '_append_html_data' : '_append_json_data'](obj, typeof d === 'string' ? $(d) : d, function (status) {
-						callback.call(this, status);
-					});
-					// return d === false ? callback.call(this, false) : callback.call(this, this[typeof d === 'string' ? '_append_html_data' : '_append_json_data'](obj, typeof d === 'string' ? $(d) : d));
-				}, this));
-			}
-			if(typeof s === 'object') {
-				if(s.url) {
-					s = $.extend(true, {}, s);
-					if($.isFunction(s.url)) {
-						s.url = s.url.call(this, obj);
-					}
-					if($.isFunction(s.data)) {
-						s.data = s.data.call(this, obj);
-					}
-					return $.ajax(s)
-						.done($.proxy(function (d,t,x) {
-								var type = x.getResponseHeader('Content-Type');
-								if(type.indexOf('json') !== -1 || typeof d === "object") {
-									return this._append_json_data(obj, d, function (status) { callback.call(this, status); });
-									//return callback.call(this, this._append_json_data(obj, d));
-								}
-								if(type.indexOf('html') !== -1 || typeof d === "string") {
-									return this._append_html_data(obj, $(d), function (status) { callback.call(this, status); });
-									// return callback.call(this, this._append_html_data(obj, $(d)));
-								}
-								this._data.core.last_error = { 'error' : 'ajax', 'plugin' : 'core', 'id' : 'core_04', 'reason' : 'Could not load node', 'data' : JSON.stringify({ 'id' : obj.id, 'xhr' : x }) };
-								this.settings.core.error.call(this, this._data.core.last_error);
-								return callback.call(this, false);
-							}, this))
-						.fail($.proxy(function (f) {
-								callback.call(this, false);
-								this._data.core.last_error = { 'error' : 'ajax', 'plugin' : 'core', 'id' : 'core_04', 'reason' : 'Could not load node', 'data' : JSON.stringify({ 'id' : obj.id, 'xhr' : f }) };
-								this.settings.core.error.call(this, this._data.core.last_error);
-							}, this));
-				}
-				t = ($.isArray(s) || $.isPlainObject(s)) ? JSON.parse(JSON.stringify(s)) : s;
-				if(obj.id === '#') {
-					return this._append_json_data(obj, t, function (status) {
-						callback.call(this, status);
-					});
-				}
-				else {
-					this._data.core.last_error = { 'error' : 'nodata', 'plugin' : 'core', 'id' : 'core_05', 'reason' : 'Could not load node', 'data' : JSON.stringify({ 'id' : obj.id }) };
-					this.settings.core.error.call(this, this._data.core.last_error);
-					return callback.call(this, false);
-				}
-				//return callback.call(this, (obj.id === "#" ? this._append_json_data(obj, t) : false) );
-			}
-			if(typeof s === 'string') {
-				if(obj.id === '#') {
-					return this._append_html_data(obj, $(s), function (status) {
-						callback.call(this, status);
-					});
-				}
-				else {
-					this._data.core.last_error = { 'error' : 'nodata', 'plugin' : 'core', 'id' : 'core_06', 'reason' : 'Could not load node', 'data' : JSON.stringify({ 'id' : obj.id }) };
-					this.settings.core.error.call(this, this._data.core.last_error);
-					return callback.call(this, false);
-				}
-				//return callback.call(this, (obj.id === "#" ? this._append_html_data(obj, $(s)) : false) );
-			}
-			return callback.call(this, false);
-		}
-  */
   };
+
 
 /**
  * ### Wholerow plugin
@@ -7442,8 +6691,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			return obj;
 		};
 	};
-	// include the wholerow plugin by default
-	// $.jstree.defaults.plugins.push("wholerow");
 
 
 (function ($) {
