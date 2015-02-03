@@ -48,7 +48,8 @@ $.jstree.    --объект хранящий зависимые функции �
         last_error : {}
         working : false
         worker_queue : []
-        focused : null    --идентификатор последнего покрытого элемента
+        hoveredB : null,     --идентификатор последнего покрытого элемента
+        focusedT : false     --дерево в фокусе или нет
   reference(needle)   --возвращает экземпляр jstree в котором содержится переданный селектор.
     Примеры:
       $.jstree.reference('tree');
@@ -122,9 +123,12 @@ $.jstree.    --объект хранящий зависимые функции �
         ...
 
 
-
-
-
+get_container       --returns the jQuery extended instance container
+get_container_ul    --returns the jQuery extended main UL node inside the instance container. Used internally
+_firstChild(dom)    --gets the first child of a DOM node. Used internally.
+_nextSibling        --gets the next sibling of a DOM node. Used internally.
+_previousSibling    --gets the previous sibling of a DOM node. Used internally
+get_node            --get the JSON representation of a node (or the actual jQuery extended DOM node) by using any input (child DOM element, ID string, selector, etc)
 ===============
 <div id="tree">
   <ul>

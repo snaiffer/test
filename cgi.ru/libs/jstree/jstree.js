@@ -566,13 +566,9 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
             this.trigger('focus');
 					}, this))
 				.on('focus.jstree', $.proxy(function (e) {
-            console.log("focus");
             this._data.core.focusedT = true;
             if( this._data.core.hoveredB == null) {
-          console.log(this);
-              var curB = this._firstChild(this.get_container_ul()[0]);
-          console.log(curB);
-              //var curB = $(e.currentTarget).find('.jstree-anchor')[0];   // get first branch in the tree
+              var curB = $(e.currentTarget).find('.jstree-anchor')[0];   // get first branch in the tree
               $(curB).focus();
             } else {
               $('#' + this._data.core.hoveredB + '_anchor').focus();
@@ -582,26 +578,17 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
         .on('click.jstree', $.proxy(function () {
             return false;
           }, this))
-				.on('mouseleave.jstree', $.proxy(function (e) {
-          console.log("mouseleave");
-          this._data.core.focusedT = false;
-					}, this))
 				.on('blur.jstree', '.jstree-anchor', $.proxy(function (e) {
 						$(e.currentTarget).filter('.jstree-hovered').mouseleave();
 					}, this))
 				.on('focus.jstree', '.jstree-anchor', $.proxy(function (e) {
-						var curB = this.get_node(e.currentTarget);
             //this.element.find('.jstree-hovered').not(e.currentTarget).mouseleave();
 						this.hover_node(e.currentTarget);
-
 					}, this))
 				.on('mouseenter.jstree', '.jstree-anchor', $.proxy(function (e) {
             if ( mouse_enable ) {
 						this.hover_node(e.currentTarget);
             }
-					}, this))
-				.on('mouseleave.jstree', '.jstree-anchor', $.proxy(function (e) {
-						//this.dehover_node(e.currentTarget);
 					}, this))
 				.on('click.jstree', '.jstree-btnEdit', $.proxy(function (e) {
           var curB = e.target;
@@ -6618,7 +6605,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 						return false;
 					}, this))
 				.on("mouseleave.jstree", ".jstree-node", $.proxy(function (e) {
-						this.dehover_node(e.currentTarget);
+						//this.dehover_node(e.currentTarget);
 					}, this));
 		};
 		this.teardown = function () {
