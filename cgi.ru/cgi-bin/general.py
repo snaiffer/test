@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.2
 " Global settings and constants "
 
 import re
@@ -21,8 +21,8 @@ dbadmin_passwd  = "123456"
 dbuser_login   = "postgres"
 dbuser_passwd  = "123456"
 
-#testdb = "basket"
-testdb = "test"
+testdb = "basket"
+#testdb = "test"
 
 def checkout(text):
   """ Checkout if "text" consist of alphabets and numbers otherwise """

@@ -103,4 +103,43 @@ def exportFrom_basketNotes(treePath = "", treename = general.testdb):
 
     traverseTree(xml_root, db_rootb)
 
-exportFrom_basketNotes("/export/")
+
+def main(argv):
+  path = ''
+  tree = ''
+  shorthelp = 'Usage: converter.py -p <path> -t <tree>'
+  try:
+    opts, args = getopt.getopt(argv,"hp:t:",["path=","tree="])
+    for opt, arg in opts:
+      if opt == '-h':
+        print(shorthelp)
+        print('''
+    Export the tree from BasKet Note Pads
+    <path>  -- a path to the folder with BasKet hierarchy (with name "baskets")
+      Ex.:
+      --path="/tmp/baskets/"
+    <tree>  -- name of tree in which it'll be exported
+
+    Examples:
+      ./converter.py -p "/tmp/baskets/" -t mytree
+      ./converter.py --path="/tmp/baskets/" --tree=mytree
+        ''')
+        sys.exit()
+      elif opt in ("-p", "--path"):
+        path = arg
+      elif opt in ("-t", "--tree"):
+        tree = arg
+
+    if ( path == '' or tree == '' ):
+      raise getopt.GetoptError(None)
+  except getopt.GetoptError:
+    print(shorthelp)
+    sys.exit(2)
+  print('Path is ' + path )
+  print('Tree name is ' + tree )
+  print('\nExport is started...')
+  exportFrom_basketNotes(path, tree)
+
+if __name__ == "__main__":
+  import sys, getopt
+  main(sys.argv[1:])
