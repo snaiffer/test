@@ -89,8 +89,10 @@ def exportFrom_basketNotes(treePath = "", treename = general.testdb):
     indent_level = 0
     def traverseTree(xml_parent_b, db_parent_b):
       nonlocal indent_level
+      hasMainSubbs = False
       for xml_b in xml_parent_b:
         if xml_b.tag == "basket":
+          hasMainSubbs = True
           b_name = xml_b.find("properties").find("name").text
           print(indent(indent_level) )
           print(indent(indent_level) + "Branch: " + str(b_name))
@@ -100,6 +102,8 @@ def exportFrom_basketNotes(treePath = "", treename = general.testdb):
           fillin_mainB(db_b, treePath + xml_b.get("folderName"))
           traverseTree(xml_b, db_b)
           indent_level -= 1
+      if ( not hasMainSubbs ):
+        db_parent_b.folded = False
 
     traverseTree(xml_root, db_rootb)
 

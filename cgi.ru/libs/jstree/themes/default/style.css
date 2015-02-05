@@ -1025,6 +1025,8 @@
 .jstree-editable {
   display: inline-block;
   width: calc(100% - 50px);
+  white-space: pre-wrap;
+  word-wrap: break-word;
   padding: 10px;
   outline: 0;
 }
