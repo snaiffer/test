@@ -230,21 +230,21 @@ class Branch(Base):
     return self.text
 
 
-if __name__ == '__main__':
+def test(tree = general.testdb):
   import sys
 
   # cleaning
   import forest
   try:
     with forest.Forest() as f:
-      f.removeTree(general.testdb)
-      f.plantTree(general.testdb)
+      f.removeTree(tree)
+      f.plantTree(tree)
   except forest.ForestException:
     print("Error: ForestException has occured")
 
   print("Test:")
   try:
-    with Tree(general.testdb) as curtree:
+    with Tree(tree) as curtree:
       rootb = curtree.getB_root()
 
       print("  ) Creating branches:  ")
@@ -386,3 +386,6 @@ if __name__ == '__main__':
     print("\nSummary:\tFAILD")
   else:
     print("\nSummary:\tOK")
+
+if __name__ == '__main__':
+  test()
