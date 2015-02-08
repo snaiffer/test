@@ -10,12 +10,10 @@ db = SQLAlchemy(app)
 
 import os
 from flask.ext.login import LoginManager
-#from flask.ext.openid import OpenID
 from config import basedir
 
 loader_manager = LoginManager()
 loader_manager.init_app(app)
 loader_manager.login_view = 'login'
-#oid = OpenID(app, os.path.join(basedir, 'tmp'))
 
 from app import views, models

@@ -43,6 +43,7 @@ def registrate(username, passwd, email):
         return redirect(url_for('registration'))
     else:
         user = Users(nickname = username, passwd = passwd, email = email)
+        user.set_password(passwd)
         db.session.add(user)
         db.session.commit()
         return redirect(url_for('success_registration'))
@@ -61,13 +62,8 @@ def login():
                             form = form)
 
 def auth(username, passwd):
-    """
-    if username is None or username == "":
-        flash('Invalid login. Please try again.')
-        return redirect(url_for('login'))
-    """
     user = Users.query.filter_by(nickname = username).first()
-    if user is None or user.passwd != passwd:
+    if user is None or not user.check_password(passwd):
         flash('Invalid login or password. Please try again.')
         return redirect(url_for('login'))
     remember_me = False
