@@ -28,7 +28,8 @@ class Tree():
         str(general.dbuser_login) + ":" +
         str(general.dbuser_passwd) + "@" +
         str(general.dbaddr) + "/" +
-        self.name)
+        "test")
+        #self.name)
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     self.session = Session()
@@ -41,6 +42,7 @@ class Tree():
   def init(self):
     rootb = Branch(tree=self, text = "root", folded=False, main = True, parent_id = None)
     firstb = Branch(tree=self, text = "", folded=False, main = True, parent_id = rootb.id)
+    self.session.commit()
 
   def reindexing_orderb(self, parent_id):
     """ Reindex orderb column for branches under parent_id """
@@ -145,6 +147,7 @@ class Tree():
 
   def getB(self, id):
     resB = self.session.query(Branch).filter_by(id=id).scalar()
+    print(resB)
     resB.tree = self
     return resB
 
@@ -178,7 +181,37 @@ class NumOforedersIsExpired(TreeException):
     TreeException.__init__(self, connection)
     self._output("Error: numbers of orderb is expired!\n  Note: you can decrease general.orderb_step to solve this problem")
 
-class Branch(Base):
+class Branch(Table):
+  def __init__(self, name='tree', metadata = None, tree = None, text='', main=False, folded=False, parent=None, parent_id=general.rootB_id):
+    Table.__init__(self,
+        name,
+        metadata,
+        Column('id', Integer, primary_key=True),
+        Column('main', Boolean, default='False'),
+        Column('folded', Boolean, default='False'),
+        Column('parent_id', Integer, ForeignKey(str(name)+'.id')),
+        Column('orderb', Integer, index=True, default=0),
+        Column('text', String, default=''),
+        relationship('Branch',
+          # cascade deletions
+          cascade="all, delete-orphan",
+
+          # many to one + adjacency list - remote_side
+          # is required to reference the 'remote' 
+          # column in the join condition.
+          backref=backref("parent", remote_side=id),
+          )
+        )
+    self.tree = tree
+    self.text = text
+    self.main = main
+    self.folded = folded
+    self.parent = parent
+    self.parent_id = parent_id
+    #self.tree._add(self)
+    #tree._check_forRightMainStatus(self)
+    #tree._check_forContainNotMainB(self)
+  """
   __tablename__ = 'branches'
   id = Column(Integer, primary_key=True)
   main = Column(Boolean, default='False')
@@ -206,6 +239,7 @@ class Branch(Base):
     self.tree._add(self)
     tree._check_forRightMainStatus(self)
     tree._check_forContainNotMainB(self)
+  """
 
   def get_subbs(self):
     """
@@ -229,22 +263,50 @@ class Branch(Base):
   def __str__(self):
     return self.text
 
+class Company(object):
+    pass
 
 def test(tree = general.testdb):
   import sys
 
-  # cleaning
-  import forest
-  try:
-    with forest.Forest() as f:
-      f.removeTree(tree)
-      f.plantTree(tree)
-  except forest.ForestException:
-    print("Error: ForestException has occured")
+  mytable = Table("mytable", Base.metadata,
+        Column('id', Integer, primary_key=True),
+        Column('main', Boolean, default='False'),
+        Column('folded', Boolean, default='False'),
+        Column('parent_id', Integer, ForeignKey('mytable.id')),
+        Column('orderb', Integer, index=True, default=0),
+        Column('text', String, default='')
+        )
+
+  mapper(Company, mytable, properties={
+     'subbs': relationship('mytable',
+          # cascade deletions
+          cascade="all, delete-orphan",
+
+          # many to one + adjacency list - remote_side
+          # is required to reference the 'remote' 
+          # column in the join condition.
+          backref=backref("parent", remote_side='mytable.id'),
+          )
+      })
+
+  tree = "treename"
+  with Tree(tree) as curtree:
+    print("AAAAAAAAAAAAAA")
+
+  """
+  tree = "treename"
+  with Tree(tree) as curtree:
+    newtree = Branch("newtree", Base.metadata)
+    print("AAAAAAAAAAAAAA")
 
   print("Test:")
   try:
     with Tree(tree) as curtree:
+      newtree = Branch("newtree", Base.metadata)
+      print("AAAAAAAAAAAAAA")
+      curtree.session.query(Branch).delete()
+      curtree.init()
       rootb = curtree.getB_root()
 
       print("  ) Creating branches:  ")
@@ -386,6 +448,7 @@ def test(tree = general.testdb):
     print("\nSummary:\tFAILD")
   else:
     print("\nSummary:\tOK")
+  """
 
 if __name__ == '__main__':
   test()
