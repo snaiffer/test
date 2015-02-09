@@ -25,3 +25,10 @@ pip3 install flask
 # pip3 install pymongo
 pip3 install psycopg2
 
+echo "for flask:"
+pip3 install flask flask-wtf
+pip3 install sqlalchemy
+pip3 install sqlalchemy-migrate
+pip3 install flask-sqlalchemy
+pip3 install flask-login
+

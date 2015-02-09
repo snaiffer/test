@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>TreeMind</title>
+
+    <link rel="shortcut icon" type="image/x-icon" href="icon.png" />
+    <link rel="stylesheet" href="themes/default/style.css" />
+
+    <script src="libs/jquery-1.11.1.min.js"></script>
+
+    <script src="libs/jstree/jstree.js"></script>
+    <link rel="stylesheet" href="libs/jstree/themes/default/style.css" />
+
+    <script src="libs/splitter/jquery.splitter-0.14.0.js"></script>
+    <link rel="stylesheet" href="libs/splitter/themes/default/jquery.splitter.css" />
+
+    <script src="libs/ckeditor/ckeditor.js"></script>
+  </head>
+
+  <body>
+    <table id="headline">
+      <tr>
+        <td id="control_board">
+          <img id="btnTree" alt="Go to the main page" title="main page"/>
+          <img id="btnSettings" alt="Make settings" title="settings"/>
+          <img id="btnSearch" alt="Search" title="search"/>
+        </td>
+        <td id="ckeditor_board">
+          <div id="ckeditor_toolbar"></div>
+          <div id="ckedit_activator" contenteditable="false" style="display: none;"></div>
+        </td>
+      </tr>
+    </table>
+
+    <div id="wrapper">
+      <div id="tree_field">
+        <div id="tree"></div>
+      </div>
+      <div id="nestedocs_field">
+        <div id="nestedocs"></div>
+      </div>
+    </div>
+
+    <script>
+    $(function() {
+      var ckedit_inst = CKEDITOR.inline( document.getElementById("ckedit_activator") );   // tie CKEDITOR with this element while other elements aren't created
+      // waitting while ckeditor will be activated and then build 'splitter'. In other case size of '$('#headline').height()' will be wrong
+      ckedit_inst.on('instanceReady', function() {
+        $('#wrapper').height($(window).height()-$('#headline').height()).split({orientation:'vertical', position:'38%'});
+      })
+
+      var clipboard;
+      $('#tree')
+        .jstree({
+          'core' : {
+            'data' : {
+              "url" : "/cgi-bin/treemind.py?nestedocs=False&cmd=load_subbs",
+              "data" : function (node) {
+                  if( node.id == '#' ){
+                    return { "id" : 1 };
+                  } else {
+                    return { "id" : node.id };
+                  }
+                },
+              "dataType" : "json"
+            },
+            'locked' : true // access all operations with tree
+          },
+          "plugins" : ["wholerow", "contextmenu", "dnd" ],
+          "dnd" : {
+            "is_draggable" : true
+          }
+        })
+        // invoked after jstree has loaded
+        .on("ready.jstree", function (e, data) {
+          $(this).jstree(true).select_node('2'); //Replaced 2 for the latest used branch_id from the last session
+        })
+        .on("create_node.jstree", function (e, data) {
+          $.get("/cgi-bin/treemind.py?nestedocs=False&cmd=create_node&parent_id=" + data.parent, $.proxy(function(id) {
+            id = Number(id);
+            $(this).jstree(true).set_id(data.node, id);
+          }, this))
+        })
+        .on("delete_node.jstree", function (e, data) {
+          $.get("/cgi-bin/treemind.py?nestedocs=False&cmd=delete_node&id=" + data.node.id)
+          $(this).jstree(true).select_node(data.parent);
+        })
+        .on("after_close.jstree", function (e, data) {
+          $.get("/cgi-bin/treemind.py?nestedocs=False&cmd=fold&id=" + data.node.id)
+        })
+        .on("after_open.jstree", function (e, data) {
+          $.get("/cgi-bin/treemind.py?nestedocs=False&cmd=unfold&id=" + data.node.id)
+        })
+        .on("rename_node.jstree", function (e, data) {
+          $.post("/cgi-bin/treemind.py", { nestedocs : "False", cmd : "rename_node", id : data.node.id, text : data.text })
+        })
+        .on("move_node.jstree", function (e, data) {
+          $.get("/cgi-bin/treemind.py?nestedocs=False&cmd=move_node&id=" + data.node.id +
+            "&new_parent=" + data.parent +
+            "&position=" + data.position
+            )
+        })
+        .on("changed.jstree", function (e, data) {
+          if (data.selected.length == 1) {
+            var branch_id = data.selected[0];
+
+            $('#nestedocs').jstree('destroy');
+            $('#nestedocs')
+              .jstree({
+                'core' : {
+                  'data' : {
+                    "url" : "/cgi-bin/treemind.py?nestedocs=True&cmd=load_subbs",
+                    "data" : function (node) {
+                        if (node.id == '#') {
+                          return { "id" : branch_id };
+                        } else {
+                          return { "id" : node.id };
+                        }
+                      },
+                    "dataType" : "json"
+                  },
+                  'locked' : true // access all operations with tree
+                },
+                "plugins" : ["contextmenu", "dnd", "ckeditor_support" ],
+                "dnd" : {
+                  "is_draggable" : true
+                }
+                /*
+                "plugins" : ["wholerow", "contextmenu", "dnd", "search", "ckeditor_support" ],
+                */
+              })
+              .on("create_node.jstree", function (e, data) {
+                $.get("/cgi-bin/treemind.py?nestedocs=True&cmd=create_node&parent_id=" + data.parent, $.proxy(function(id) {
+                  id = Number(id);
+                  $(this).jstree(true).set_id(data.node, id);
+                }, this))
+              })
+              .on("delete_node.jstree", function (e, data) {
+                $.get("/cgi-bin/treemind.py?nestedocs=True&cmd=delete_node&id=" + data.node.id)
+                $(this).jstree(true).select_node(data.parent);
+              })
+              .on("after_close.jstree", function (e, data) {
+                $.get("/cgi-bin/treemind.py?nestedocs=True&cmd=fold&id=" + data.node.id)
+              })
+              .on("after_open.jstree", function (e, data) {
+                $.get("/cgi-bin/treemind.py?nestedocs=True&cmd=unfold&id=" + data.node.id)
+              })
+              .on("move_node.jstree", function (e, data) {
+                $.get("/cgi-bin/treemind.py?nestedocs=True&cmd=move_node&id=" + data.node.id +
+                  "&new_parent=" + data.parent +
+                  "&position=" + data.position
+                  )
+              })
+              .on("clipboard_save.jstree", function (e, data) {
+                console.log('clipboard_save');
+                clipboard = data;
+                console.log(clipboard);
+              })
+              .on("clipboard_get.jstree", function (e, data) {
+                console.log('clipboard_get');
+                return clipboard;
+              })
+              .on("savedata.jstree", function (e, data) {
+                $.post("/cgi-bin/treemind.py", { nestedocs : "True", cmd : "save_data", id : data.id, data : data.text })
+              });
+          }
+        });
+
+        // set focus to the tree
+        $('#nestedocs_field, #tree_field')
+          .on('click', function(e) {
+            var curTree = $(this).children('.jstree').jstree(true);
+            if (curTree) {
+              curTree.deselect_all();
+              if (curTree._data.core.focusedT == false) {
+                curTree.trigger('focus');
+              }
+            }
+          })
+          .on('mouseenter', function(e) {
+            var curTree = $(this).children('.jstree').jstree(true);
+            if (curTree && curTree._data.core.focusedT == false) {
+              curTree.trigger('focus');
+              curTree.trigger('click');
+            }
+          })
+          .on('mouseleave', function(e) {
+            var curTree = $(this).children('.jstree').jstree(true);
+            if (curTree && curTree._data.core.focusedT == true) {
+              curTree._data.core.focusedT = false;
+            }
+          });
+        //
+
+        $('#btnTree').on('click', function(e) {
+          location.reload();
+        });
+        $('#btnSettings').on('click', function(e) {
+          alert("Setting board is under development");
+        });
+        $('#btnSearch').on('click', function(e) {
+          alert("Search function is under development");
+        });
+    });
+    </script>
+  </body>
+</html>

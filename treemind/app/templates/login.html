@@ -1,0 +1,27 @@
+
+<!-- extend from base layout -->
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Sign In</h1>
+  <h2> or <a href='registration'>Sign Up</a></h2>
+  <form action="" method="post" name="login">
+  <!--{{ form.csrf_token }}-->
+  <p>
+      Username:<br>
+      <input type=text name=username>
+      {% for error in form.errors.username %}
+        <span style="color: red;">[{{error}}]</span>
+      {% endfor %}<br>
+  </p>
+  <p>
+      Password:<br>
+      <input type=password name=passwd>
+      {% for error in form.errors.passwd %}
+        <span style="color: red;">[{{error}}]</span>
+      {% endfor %}<br>
+  </p>
+  <p>{{form.remember_me}} Remember Me</p>
+  <p><input type="submit" value="Sign In"></p>
+  </form>
+{% endblock %}
