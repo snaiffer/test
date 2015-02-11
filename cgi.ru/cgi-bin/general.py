@@ -3,7 +3,7 @@
 
 import re
 
-rootB_id = 1
+rootBglobal_id = 1
 
 # for ordering branches
 orderb_step = 1000000   # initial step in order field between branches. It's tidy connection with orderb_MAX. And influence on performance
@@ -34,7 +34,7 @@ def checkout(text):
 if __name__ == '__main__':
   print("Settings:")
   print("========================================")
-  print("rootB_id = " + str(rootB_id))
+  print("rootBglobal_id = " + str(rootBglobal_id))
   print()
   print("orderb_step = " + str(orderb_step))
   print("orderb_MIN = " + str(orderb_MIN))

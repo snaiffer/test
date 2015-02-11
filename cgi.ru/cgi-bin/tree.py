@@ -32,6 +32,57 @@ class Forest(object):
     engine.execute("ALTER SEQUENCE " + Branch.__tablename__ + "_id_seq RESTART;")
     session.commit()
 
+  def allTrees(self):
+    return session.query(Tree).all()
+
+class Users(Base):
+  __tablename__ = 'users'
+  id = Column(Integer, primary_key=True)
+  nickname = Column(String)
+  passwd = Column(String)
+  email = Column(String, unique = True)
+  latestTree_id = Column(Integer)
+
+  def __init__(self, nickname='', passwd='', email='', tree=None):
+    self.nickname = nickname
+    self.passwd = passwd
+    self.email = email
+    self.tree = tree
+    self.latestTree_id = None
+
+    session.add(self)
+    session.commit()
+
+  def getTree(self, treeID):
+    tree = session.query(Tree).filter_by(owner_id=self.id).filter_by(id=treeID).scalar()
+    if tree != None :
+      self.latestTree_id = treeID
+      session.commit()
+    return tree
+
+  def allTrees(self):
+    return session.query(Tree).filter_by(owner_id=self.id).all()
+
+  def remove(self):
+    for curTree in self.allTrees():
+      curTree.remove()
+    session.delete(self)
+    session.commit()
+
+  def get_latestTree(self):
+    """ get the tree which has been used at the lastest time """
+    if self.latestTree_id == None:
+      allT = self.allTrees()
+      if ( len(allT) != 0 ):
+        return allT[0]
+    return self.getTree(self.latestTree_id)
+
+  def removeAll(self):
+    session.query(Users).delete()
+    #db.engine.execute("ALTER SEQUENCE branches_id_seq RESTART;")
+    engine.execute("ALTER SEQUENCE " + Users.__tablename__ + "_id_seq RESTART;")
+    session.commit()
+
 class Tree(Base):
   __tablename__ = 'trees'
   id = Column(Integer, primary_key=True)
@@ -40,6 +91,7 @@ class Tree(Base):
   rootb = relationship("Branch", single_parent=True, cascade='all, delete-orphan', backref='tree')
   owner_id = Column(Integer, ForeignKey('users.id'))
   owner = relationship("Users", backref='trees')
+  latestB_id = Column(Integer)
 
   def __init__(self, owner=None, name='', rootb=None):
     self.name = name
@@ -47,16 +99,27 @@ class Tree(Base):
       rootb = self.init()
     self.rootb = rootb
     self.owner = owner
+    self.latestB_id = None
 
     session.add(self)
     session.commit()
 
   def init(self):
-    rootbg = session.query(Branch).filter_by(id=general.rootB_id).scalar()
+    rootbg = session.query(Branch).filter_by(id=general.rootBglobal_id).scalar()
     if (rootbg == None):
       rootbg = Branch(text = "root_global", folded=False, main = True)
     rootb = Branch(text = "root_" + self.name, folded=False, main = True, parent = rootbg)
     return rootb
+
+  def set_latestB(self, id):
+    self.latestB_id = id
+    session.commit()
+
+  def get_latestB(self):
+    """ get the branch which has been used at the lastest time """
+    if self.latestB_id == None:
+      return self.rootb
+    return self.getB(self.latestB_id)
 
   def remove(self):
     session.delete(self)
@@ -70,40 +133,6 @@ class Tree(Base):
 
   def getB_root(self):
     return self.rootb
-
-class Users(Base):
-  __tablename__ = 'users'
-  id = Column(Integer, primary_key=True)
-  nickname = Column(String)
-  passwd = Column(String)
-  email = Column(String, unique = True)
-
-  def __init__(self, nickname='', passwd='', email='', tree=None):
-    self.nickname = nickname
-    self.passwd = passwd
-    self.email = email
-    self.tree = tree
-
-    session.add(self)
-    session.commit()
-
-  def getTree(self, treeID):
-    return session.query(Tree).filter_by(owner_id=self.id).filter_by(id=treeID).scalar()
-
-  def allTrees(self):
-    return session.query(Tree).filter_by(owner_id=self.id).all()
-
-  def remove(self):
-    for curTree in self.allTrees():
-      curTree.remove()
-    session.delete(self)
-    session.commit()
-
-  def removeAll(self):
-    session.query(Users).delete()
-    #db.engine.execute("ALTER SEQUENCE branches_id_seq RESTART;")
-    engine.execute("ALTER SEQUENCE " + Users.__tablename__ + "_id_seq RESTART;")
-    session.commit()
 
 class Branch(Base):
   __tablename__ = 'branches'
@@ -125,7 +154,7 @@ class Branch(Base):
   def __init__(self, text=None, main=False, folded=False, parent=None, parent_id=None):
     self.text = text
     if parent == None and parent_id == None:
-      parent_id = general.rootB_id
+      parent_id = general.rootBglobal_id
     self.folded = folded
     self.parent = parent
     self.parent_id = parent_id
@@ -133,8 +162,14 @@ class Branch(Base):
 
     session.add(self)
     session.commit()
-    if ( self.id != general.rootB_id ):
+
+    if ( self.id != general.rootBglobal_id ):
       self.move(pos = -1)
+
+    # for rootb_global case
+    if self.id == parent_id :
+      self.parent_id = None
+      session.commit()
 
   def get_subbs(self):
     """
@@ -260,16 +295,6 @@ class NumOforedersIsExpired(BranchException):
 def test(forestName = general.testdb):
   import sys
 
-  """
-  # cleaning
-  import forest
-  try:
-    with forest.Forest() as f:
-      f.removeTree(forestName)
-      f.plantTree(forestName)
-  except forest.ForestException:
-    print("Error: ForestException has occured")
-  """
   #self.session = Session()
   Base.metadata.create_all(engine)
   Session = sessionmaker(bind=engine)
@@ -298,6 +323,11 @@ def test(forestName = general.testdb):
     testTree3 = Tree(bob, "testTree3")
     testTree4 = Tree(alex, "testTree4")
 
+    sys.stdout.write("  ) Get the lastest used tree (before using):\t")
+    if ( alex.get_latestTree() == None ):
+      raise BaseException("A tree wasn't got")
+    print('OK')
+
     sys.stdout.write("  ) Test for separation trees by users:\t")
     if ( len(alex.allTrees()) != 3):
       raise BaseException("Separation trees by users has faild")
@@ -311,6 +341,11 @@ def test(forestName = general.testdb):
     sys.stdout.write("  ) Tree protection from accessiong by another user (not owner):\t")
     if ( alex.getTree(testTree3.id) != None):
       raise BaseException("Tree protection has faild")
+    print('OK')
+
+    sys.stdout.write("  ) Get the lastest used tree (after using):\t")
+    if ( alex.get_latestTree() == None ):
+      raise BaseException("A tree wasn't got")
     print('OK')
 
     curtree = testTree2
@@ -423,6 +458,18 @@ def test(forestName = general.testdb):
     b51.move(pos = 0)
     if b51.orderb != (0.5 * general.orderb_step) :
       raise BaseException("Reindexing problem")
+    print('OK')
+
+    print("  ) Get the latest used branch:\t")
+    sys.stdout.write("    )) Before set:\t")
+    if ( curtree.get_latestB().id != curtree.rootb_id ):
+      raise BaseException("The latest used branch hasn't benn got")
+    print('OK')
+
+    curtree.set_latestB(b5.id)
+    sys.stdout.write("    )) After set:\t")
+    if ( curtree.get_latestB().id != b5.id ):
+      raise BaseException("The latest used branch hasn't benn got")
     print('OK')
 
     print("  ) Removing branches:\t")

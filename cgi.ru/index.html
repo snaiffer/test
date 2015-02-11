@@ -23,9 +23,24 @@
     <table id="headline">
       <tr>
         <td id="control_board">
-          <img id="btnTree" alt="Go to the main page" title="main page"/>
-          <img id="btnSettings" alt="Make settings" title="settings"/>
-          <img id="btnSearch" alt="Search" title="search"/>
+          <table style="width: 100%">
+            <tr>
+              <td>
+                <img id="btnTree" alt="Go to the main page" title="main page"/>
+                <img id="btnSettings" alt="Make settings" title="settings"/>
+                <img id="btnSearch" alt="Search" title="search"/>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <select>
+                  <option>tree 1</option>
+                  <option>tree 2</option>
+                  <option>tree 3</option>
+                </select>
+              </td>
+            </tr>
+          </table>
         </td>
         <td id="ckeditor_board">
           <div id="ckeditor_toolbar"></div>
@@ -58,11 +73,7 @@
             'data' : {
               "url" : "/cgi-bin/treemind.py?nestedocs=False&cmd=load_subbs",
               "data" : function (node) {
-                  if( node.id == '#' ){
-                    return { "id" : 1 };
-                  } else {
-                    return { "id" : node.id };
-                  }
+                  return { "id" : node.id };
                 },
               "dataType" : "json"
             },
