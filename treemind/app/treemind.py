@@ -1,9 +1,5 @@
 #!/usr/bin/env python3.2
 
-import general
-treename = general.testdb
-
-import general
 from tree import *
 
 import json

@@ -72,7 +72,7 @@
         .jstree({
           'core' : {
             'data' : {
-              "url" : "/cgi-bin/treemind.py?nestedocs=False&cmd=load_subbs",
+              "url" : "/tree?nestedocs=False&cmd=load_subbs",
               "data" : function (node) {
                   return { "id" : node.id };
                 },
@@ -90,26 +90,26 @@
           $(this).jstree(true).select_node('2'); //Replaced 2 for the latest used branch_id from the last session
         })
         .on("create_node.jstree", function (e, data) {
-          $.get("/cgi-bin/treemind.py?nestedocs=False&cmd=create_node&parent_id=" + data.parent, $.proxy(function(id) {
+          $.get("/tree?nestedocs=False&cmd=create_node&parent_id=" + data.parent, $.proxy(function(id) {
             id = Number(id);
             $(this).jstree(true).set_id(data.node, id);
           }, this))
         })
         .on("delete_node.jstree", function (e, data) {
-          $.get("/cgi-bin/treemind.py?nestedocs=False&cmd=delete_node&id=" + data.node.id)
+          $.get("/tree?nestedocs=False&cmd=delete_node&id=" + data.node.id)
           $(this).jstree(true).select_node(data.parent);
         })
         .on("after_close.jstree", function (e, data) {
-          $.get("/cgi-bin/treemind.py?nestedocs=False&cmd=fold&id=" + data.node.id)
+          $.get("/tree?nestedocs=False&cmd=fold&id=" + data.node.id)
         })
         .on("after_open.jstree", function (e, data) {
-          $.get("/cgi-bin/treemind.py?nestedocs=False&cmd=unfold&id=" + data.node.id)
+          $.get("/tree?nestedocs=False&cmd=unfold&id=" + data.node.id)
         })
         .on("rename_node.jstree", function (e, data) {
-          $.post("/cgi-bin/treemind.py", { nestedocs : "False", cmd : "rename_node", id : data.node.id, text : data.text })
+          $.post("/tree", { nestedocs : "False", cmd : "rename_node", id : data.node.id, text : data.text })
         })
         .on("move_node.jstree", function (e, data) {
-          $.get("/cgi-bin/treemind.py?nestedocs=False&cmd=move_node&id=" + data.node.id +
+          $.get("/tree?nestedocs=False&cmd=move_node&id=" + data.node.id +
             "&new_parent=" + data.parent +
             "&position=" + data.position
             )
@@ -123,7 +123,7 @@
               .jstree({
                 'core' : {
                   'data' : {
-                    "url" : "/cgi-bin/treemind.py?nestedocs=True&cmd=load_subbs",
+                    "url" : "/tree?nestedocs=True&cmd=load_subbs",
                     "data" : function (node) {
                         if (node.id == '#') {
                           return { "id" : branch_id };
@@ -144,23 +144,23 @@
                 */
               })
               .on("create_node.jstree", function (e, data) {
-                $.get("/cgi-bin/treemind.py?nestedocs=True&cmd=create_node&parent_id=" + data.parent, $.proxy(function(id) {
+                $.get("/tree?nestedocs=True&cmd=create_node&parent_id=" + data.parent, $.proxy(function(id) {
                   id = Number(id);
                   $(this).jstree(true).set_id(data.node, id);
                 }, this))
               })
               .on("delete_node.jstree", function (e, data) {
-                $.get("/cgi-bin/treemind.py?nestedocs=True&cmd=delete_node&id=" + data.node.id)
+                $.get("/tree?nestedocs=True&cmd=delete_node&id=" + data.node.id)
                 $(this).jstree(true).select_node(data.parent);
               })
               .on("after_close.jstree", function (e, data) {
-                $.get("/cgi-bin/treemind.py?nestedocs=True&cmd=fold&id=" + data.node.id)
+                $.get("/tree?nestedocs=True&cmd=fold&id=" + data.node.id)
               })
               .on("after_open.jstree", function (e, data) {
-                $.get("/cgi-bin/treemind.py?nestedocs=True&cmd=unfold&id=" + data.node.id)
+                $.get("/tree?nestedocs=True&cmd=unfold&id=" + data.node.id)
               })
               .on("move_node.jstree", function (e, data) {
-                $.get("/cgi-bin/treemind.py?nestedocs=True&cmd=move_node&id=" + data.node.id +
+                $.get("/tree?nestedocs=True&cmd=move_node&id=" + data.node.id +
                   "&new_parent=" + data.parent +
                   "&position=" + data.position
                   )
@@ -175,7 +175,7 @@
                 return clipboard;
               })
               .on("savedata.jstree", function (e, data) {
-                $.post("/cgi-bin/treemind.py", { nestedocs : "True", cmd : "save_data", id : data.id, data : data.text })
+                $.post("/tree", { nestedocs : "True", cmd : "save_data", id : data.id, data : data.text })
               });
           }
         });
