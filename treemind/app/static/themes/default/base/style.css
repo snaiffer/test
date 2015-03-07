@@ -9,12 +9,54 @@ html {
   */
 }
 
-/*
 body {
   margin: 0;
   padding: 0;
 }
 
+#dashboard > p,
+#dashboard > img {
+  display: inline;
+}
+
+#btnAbout {
+  font-weight: bold;
+  font-size: 115%;
+  color: #006600;
+}
+
+#btnUser {
+  content: url("btnUser.png");
+  background-repeat: no-repeat;
+  width: 24px;
+  height: auto;
+}
+#btnUser:hover {
+  background-color: orange;
+}
+
+#btnTree {
+  content: url("btnTree.png");
+  background-repeat: no-repeat;
+  width: 24px;
+  height: auto;
+}
+#btnTree:hover {
+  background-color: orange;
+}
+
+#btnLogOut {
+  content: url("btnLogOut.png");
+  background-repeat: no-repeat;
+  width: 24px;
+  height: auto;
+  float: right;
+}
+#btnLogOut:hover {
+  background-color: orange;
+}
+
+/*
 #headline {
   width: 100%;
   border-bottom: 2px solid black;

@@ -1,10 +1,12 @@
+<!DOCTYPE html>
 
 <html>
   <head>
+    <meta charset="utf-8">
     {% if title %}
-      <title>{{title}} - treemind</title>
+      <title>{{title}} - TreeMind</title>
     {% else %}
-      <title>Welcome to treemind</title>
+      <title>TreeMind</title>
     {% endif %}
     <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='icon.png') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='themes/default/base/style.css') }}" />
@@ -12,6 +14,28 @@
     <script src="{{ url_for('static', filename='libs/jquery-1.11.1.min.js') }}"></script>
   </head>
   <body>
+    {% if user %}
+      <div id="dashboard" style="padding: 10px; color: #545454; background: linear-gradient(to top, #DDDDDD, white);">
+        <button type="button" id="btnAbout">TreeMind</button>
+
+        <p style="padding: 0 0 0 50px;">&nbsp</p>
+        <img id="btnUser" alt="User manager" title="user manager"/>
+        <p id="lblUser">{{user.nickname}}</p>
+
+        <p style="padding: 0 0 0 20px;">&nbsp</p>
+        <img id="btnTree" alt="Tree manager" title="tree manager"/>
+        <select>
+          <option>tree 1</option>
+          <option>tree 2</option>
+          <option>tree 3</option>
+        </select>
+
+        <img id="btnLogOut" alt="Log out" title="log out"/>
+      </div>
+    {% else %}
+      <p>Not logged {{user}}</p>
+    {% endif %}
+
     <!--
     <div>Microblog: <a href="/index">Home</a></div>
     <hr>
@@ -27,5 +51,23 @@
     {% endwith %}
 
     {% block content %}{% endblock %}
+
+
+    <script>
+      $(function() {
+        $('#btnAbout').on('click', function(e) {
+          location.href='/about';
+        });
+        $('#btnUser').on('click', function(e) {
+          location.href='/user';
+        });
+        $('#btnTree').on('click', function(e) {
+          location.href='/trees';
+        });
+        $('#btnLogOut').on('click', function(e) {
+          location.href='/logout';
+        });
+      });
+    </script>
   </body>
 </html>

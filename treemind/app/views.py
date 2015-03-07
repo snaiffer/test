@@ -12,7 +12,9 @@ def load_user(user_id):
 @app.route('/index')
 @app.route('/about')
 def about():
-  return render_template("about.html")
+  return render_template("about.html",
+                          title = 'About',
+                          user = g.user)
 
 # registration
 @app.route('/signup', methods = ['GET', 'POST'])
@@ -26,13 +28,13 @@ def signup():
              form.passwd.data,
              form.passwd_chk.data)
   return render_template('signup.html',
-    title = 'Sign Up',
-    form = form)
+                          title = 'Sign Up',
+                          form = form)
 
 @app.route('/success_signup')
 def success_signup():
   return render_template("success_signup.html",
-        title = 'Success')
+                          title = 'Success')
 
 def registrate(email, nickname, passwd, passwd_chk):
   email_splitted = email.split('@')
