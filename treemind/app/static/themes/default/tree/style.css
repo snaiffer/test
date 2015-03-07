@@ -22,6 +22,15 @@ body {
   padding: 0 10px 0 10px;
 }
 
+#btnUser {
+  content: url("btnUser.png");
+  background-repeat: no-repeat;
+  background-size: 100%;
+}
+#btnUser:hover {
+  background-color: orange;
+}
+
 #btnTree {
   content: url("btnTree.png");
   background-repeat: no-repeat;
