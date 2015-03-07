@@ -6,7 +6,10 @@
     {% else %}
       <title>Welcome to treemind</title>
     {% endif %}
+    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='icon.png') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='themes/default/base/style.css') }}" />
+
+    <script src="{{ url_for('static', filename='libs/jquery-1.11.1.min.js') }}"></script>
   </head>
   <body>
     <!--

@@ -14,45 +14,46 @@ def load_user(user_id):
 def about():
   return render_template("about.html")
 
-@app.route('/registration', methods = ['GET', 'POST'])
-def registration():
+# registration
+@app.route('/signup', methods = ['GET', 'POST'])
+def signup():
   if g.user is not None and g.user.is_authenticated():
-    return redirect(url_for('index'))
-  form = RegistrationForm(request.form)
+    return redirect(url_for('about'))
+  form = SignupForm(request.form)
   if request.method == "POST" and form.validate():
     return registrate(form.email.data,
              form.nickname.data,
              form.passwd.data,
              form.passwd_chk.data)
-  return render_template('registration.html',
+  return render_template('signup.html',
     title = 'Sign Up',
     form = form)
 
-@app.route('/success_registration')
-def success_registration():
-  return render_template("success_registration.html",
+@app.route('/success_signup')
+def success_signup():
+  return render_template("success_signup.html",
         title = 'Success')
 
 def registrate(email, nickname, passwd, passwd_chk):
+  email_splitted = email.split('@')
+  if len(email_splitted) != 2:
+    flash('Email address isn\'t correct. Try again')
+    return redirect(url_for('signup'))
   if nickname == '':
-    email_splitted = email.split('@')
-    if len(email_splitted) != 2:
-      flash('Email address isn\'t correct. Try again')
-      return redirect(url_for('registration'))
     nickname = email_splitted[0]
 
   if Users.query.filter_by(nickname = nickname).first() is not None:
     flash('The user with such nickname already exist. Try another nickname')
-    return redirect(url_for('registration'))
+    return redirect(url_for('signup'))
 
   if passwd != passwd_chk:
     flash('The passwords don\'t match. Try again')
-    return redirect(url_for('registration'))
+    return redirect(url_for('signup'))
 
   user = Users.query.filter_by(email = email).first()
   if user is not None:
     flash('The user with such email already exist. Try another email')
-    return redirect(url_for('registration'))
+    return redirect(url_for('signup'))
   else:
     user = Users(email = email, nickname = nickname, passwd = passwd)
     user.set_password(passwd)
@@ -67,19 +68,19 @@ def registrate(email, nickname, passwd, passwd_chk):
     #
 
     db.session.commit()
-    return redirect(url_for('success_registration'))
+    return redirect(url_for('success_signup'))
 
 @app.route('/login', methods = ['GET', 'POST'])
 def login():
   if g.user is not None and g.user.is_authenticated():
-    return redirect(url_for('index'))
+    return redirect(url_for('about'))
   form = LoginForm(request.form)
   if request.method == "POST" and form.validate():
     session['remember_me'] = form.remember_me.data
     return auth(form.email_nickname.data,
           form.passwd.data)
   return render_template('login.html',
-              title = 'Sign In',
+              title = 'Log In',
               form = form)
 
 def auth(email_nickname, passwd):
@@ -95,13 +96,20 @@ def auth(email_nickname, passwd):
     remember_me = session['remember_me']
     session.pop('remember_me', None)
   login_user(user, remember = remember_me)
-  return redirect(request.args.get('next') or url_for('index'))
+  return redirect(request.args.get('next') or url_for('tree'))
+
+@app.route('/user')
+@login_required
+def user():
+  user = g.user
+  return render_template("user.html",
+                       user=user)
 
 @app.route("/logout")
 @login_required
 def logout():
   logout_user()
-  return redirect(url_for('login'))
+  return redirect(url_for('about'))
 
 @app.route('/removeuser')
 @login_required
@@ -109,7 +117,7 @@ def removeuser():
   user = g.user
   db.session.delete(user)
   db.session.commit()
-  return redirect(url_for('login'))
+  return redirect(url_for('about'))
 
 @app.before_request
 def before_request():
@@ -180,6 +188,7 @@ def getList_subbsOf(branch, nestedocs_mode = False):
       if newsubb :
         list.append(newsubb)
   return list
+
 
 @app.route('/')
 @app.route('/tree')

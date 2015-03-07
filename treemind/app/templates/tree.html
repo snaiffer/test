@@ -210,8 +210,11 @@
           });
         //
 
+        $('#btnUser').on('click', function(e) {
+          location.href='/user';
+        });
         $('#btnTree').on('click', function(e) {
-          location.reload();
+          location.href='/trees';
         });
         $('#btnSettings').on('click', function(e) {
           alert("Setting board is under development");

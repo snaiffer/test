@@ -3,8 +3,8 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <h1>Sign In</h1>
-  <h2> or <a href='registration'>Sign Up</a></h2>
+  <h1>Log In</h1>
+  <h2> or <a href='signup'>Sign Up</a></h2>
   <form action="" method="post" name="login">
   <!--{{ form.csrf_token }}-->
   <p>
@@ -22,6 +22,6 @@
       {% endfor %}<br>
   </p>
   <p>{{form.remember_me}} Remember Me</p>
-  <p><input type="submit" value="Sign In"></p>
+  <p><input type="submit" value="Log In"></p>
   </form>
 {% endblock %}
