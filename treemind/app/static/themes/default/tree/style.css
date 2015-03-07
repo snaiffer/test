@@ -25,7 +25,9 @@ body {
 #btnUser {
   content: url("btnUser.png");
   background-repeat: no-repeat;
-  background-size: 100%;
+  display: block;
+  width: 100%;
+  height: auto;
 }
 #btnUser:hover {
   background-color: orange;
@@ -34,7 +36,9 @@ body {
 #btnTree {
   content: url("btnTree.png");
   background-repeat: no-repeat;
-  background-size: 100%;
+  display: block;
+  width: 100%;
+  height: auto;
 }
 #btnTree:hover {
   background-color: orange;
@@ -43,9 +47,9 @@ body {
 #btnSettings {
   content: url("btnSettings.png");
   background-repeat: no-repeat;
-  background-size: 100%;
-  float:  right;
-  padding: 0 5px 0 5px;
+  display: block;
+  width: 100%;
+  height: auto;
 }
 #btnSettings:hover {
   background-color: orange;
@@ -54,9 +58,9 @@ body {
 #btnSearch {
   content: url("btnSearch.png");
   background-repeat: no-repeat;
-  background-size: 100%;
-  float:  right;
-  padding: 0 5px 0 5px;
+  display: block;
+  width: 100%;
+  height: auto;
 }
 #btnSearch:hover {
   background-color: orange;
@@ -66,9 +70,10 @@ body {
 #btnLogOut {
   content: url("btnLogOut.png");
   background-repeat: no-repeat;
-  background-size: 100%;
-  float:  right;
-  padding: 0 5px 0 5px;
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 2px;
 }
 #btnLogOut:hover {
   background-color: orange;
