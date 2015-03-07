@@ -2,14 +2,17 @@
 <html>
   <head>
     {% if title %}
-      <title>{{title}} - microblog</title>
+      <title>{{title}} - treemind</title>
     {% else %}
-      <title>Welcome to microblog</title>
+      <title>Welcome to treemind</title>
     {% endif %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='themes/default/base/style.css') }}" />
   </head>
   <body>
+    <!--
     <div>Microblog: <a href="/index">Home</a></div>
     <hr>
+    -->
     {% with messages = get_flashed_messages() %}
     {% if messages %}
       <ul>

@@ -1,0 +1,72 @@
+html {
+  background: linear-gradient(to top, #EAFFEA, white);
+  /*
+  background: url("tree_background.png") no-repeat center left fixed;
+  -webkit-background-size: contain;
+  -moz-background-size: contain;
+  -o-background-size: contain;
+  background-size: contain;
+  */
+}
+
+/*
+body {
+  margin: 0;
+  padding: 0;
+}
+
+#headline {
+  width: 100%;
+  border-bottom: 2px solid black;
+}
+
+#control_board {
+  width: 38%;
+  background: linear-gradient(white, #C2F0C2);
+  padding: 0 10px 0 10px;
+}
+
+#btnTree {
+  content: url("btnTree.png");
+  background-repeat: no-repeat;
+  background-size: 100%;
+}
+#btnTree:hover {
+  background-color: orange;
+}
+
+#btnSettings {
+  content: url("btnSettings.png");
+  background-repeat: no-repeat;
+  background-size: 100%;
+  float:  right;
+  padding: 0 5px 0 5px;
+}
+#btnSettings:hover {
+  background-color: orange;
+}
+
+#btnSearch {
+  content: url("btnSearch.png");
+  background-repeat: no-repeat;
+  background-size: 100%;
+  float:  right;
+  padding: 0 5px 0 5px;
+}
+#btnSearch:hover {
+  background-color: orange;
+}
+
+
+#btnLogOut {
+  content: url("btnLogOut.png");
+  background-repeat: no-repeat;
+  background-size: 100%;
+  float:  right;
+  padding: 0 5px 0 5px;
+}
+#btnLogOut:hover {
+  background-color: orange;
+}
+
+*/

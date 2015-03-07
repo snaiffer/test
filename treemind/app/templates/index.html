@@ -7,7 +7,7 @@
 
     <!--<link rel="shortcut icon" type="image/x-icon" href="icon.png" />-->
     <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='icon.png') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='themes/default/style.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='themes/default/tree/style.css') }}" />
 
     <script src="{{ url_for('static', filename='libs/jquery-1.11.1.min.js') }}"></script>
 
@@ -28,6 +28,7 @@
             <tr>
               <td>
                 <img id="btnTree" alt="Go to the main page" title="main page"/>
+                <img id="btnLogOut" alt="Log out" title="log out"/>
                 <img id="btnSettings" alt="Make settings" title="settings"/>
                 <img id="btnSearch" alt="Search" title="search"/>
               </td>
@@ -214,6 +215,9 @@
         });
         $('#btnSearch').on('click', function(e) {
           alert("Search function is under development");
+        });
+        $('#btnLogOut').on('click', function(e) {
+          location.href='/logout';
         });
     });
     </script>
