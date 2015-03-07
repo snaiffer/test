@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-" Global settings and constants "
+""" Global settings and constants """
 
 import re
 
@@ -30,6 +30,9 @@ def checkout(text):
     return True
   return False
 
+def str2bool(v):
+  return v.lower() in ("yes", "true", "t", "1")
+
 
 if __name__ == '__main__':
   print("Settings:")
@@ -44,7 +47,20 @@ if __name__ == '__main__':
   print("========================================")
 
   print("\nTests:")
-  if checkout("asdf893") and checkout("345fgfsddf34fd") and not checkout(";sdf()sdf]\[\;/;sd"):
-    print("OK")
+  try:
+    import sys
+
+    sys.stdout.write("  ) Checkout function:\t")
+    if not (checkout("asdf893") and checkout("345fgfsddf34fd") and not checkout(";sdf()sdf]\[\;/;sd")):
+      raise BaseException("Checkout function of 'text' has failed!")
+    print('OK')
+
+    sys.stdout.write("  ) str2bool function:\t")
+    if not (str2bool('yes') == True and str2bool('true') == True and str2bool('t') == True and str2bool('1') == True and str2bool('False') == False):
+      raise BaseException("str2bool function has failed!")
+    print('OK')
+  except BaseException as e:
+    print(e)
+    print("\nSummary:\tFAILD")
   else:
-    print("FAILD")
+    print("\nSummary:\tOK")

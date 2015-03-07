@@ -106,7 +106,7 @@
           $.get("/tree?nestedocs=False&cmd=unfold&id=" + data.node.id)
         })
         .on("rename_node.jstree", function (e, data) {
-          $.post("/tree", { nestedocs : "False", cmd : "rename_node", id : data.node.id, text : data.text })
+          $.post("/tree", { nestedocs : "False", cmd : "rename_node", id : data.node.id, data : data.text })
         })
         .on("move_node.jstree", function (e, data) {
           $.get("/tree?nestedocs=False&cmd=move_node&id=" + data.node.id +

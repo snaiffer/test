@@ -1,7 +1,7 @@
 
 from flask import render_template, flash, redirect, session, url_for, request, g
 from app import app, db, loader_manager
-from app.forms import LoginForm, RegistrationForm
+from app.forms import *
 from app.models import Users, Tree, Branch
 from flask.ext.login import login_user, logout_user, current_user, login_required
 
@@ -170,23 +170,40 @@ def getList_subbsOf(branch, nestedocs_mode = False):
 
 
 import json
-@app.route('/tree')
+@app.route('/tree', methods = ['GET', 'POST'])
 @login_required
 def tree():
   user = g.user
 
   #for_test()
-  curtree_id = request.args.get('tree')
-  curtree_id = user.get_latestTree().id if curtree_id == None else curtree_id
-  curtree = user.getTree(curtree_id)
-  cmd = request.args.get('cmd')
-  id = request.args.get('id')
 
-  # after integration with flask symbole '%' has started to add to id. So we need to remove it
-  if id[:1] == "%":
-    id = id [1:]
-  if id == '#' or id == None:
-    id = curtree.rootb_id
+  if request.method == "GET":
+    curtree_id = request.args.get('tree_id', default=user.get_latestTree().id, type=int)
+    curtree = user.getTree(curtree_id)
+
+    import app.general
+    nestedocs = app.general.str2bool(request.args.get('nestedocs', default='False', type=str))
+    cmd = request.args.get('cmd', default='', type=str)
+    id = request.args.get('id', default='', type=str)
+
+    # after integration with flask symbole '%' has started to add to id. So we need to remove it
+    if id[:1] == "%":
+      id = int(id[1:])
+    if id == '#' or id == None:
+      id = curtree.rootb_id
+
+  else:
+    form = SaveDataForm(request.form)
+    if request.method == "POST" and form.validate():
+      curtree_id = form.curtree_id.data
+      if curtree_id == -1:
+        curtree_id = user.get_latestTree().id
+      curtree = user.getTree(curtree_id)
+
+      nestedocs = form.nestedocs.data
+      cmd = form.cmd.data
+      id = form.id.data
+      data = form.data.data
 
   """
   cmd = "load_subbs"
@@ -202,18 +219,14 @@ def tree():
       b = curtree.getB(id)
       b.folded = False
     elif cmd == "rename_node":
-      text = request.args.get('text')
-      curtree.getB(id).text = text
+      data = request.args.get('data', default='', type=str)
+      curtree.getB(id).text = data
     elif cmd == "move_node":
       b = curtree.getB(id)
-      new_parent_id = request.args.get('new_parent')
-      new_parent_id = curtree.rootb_id if new_parent_id == None else new_parent_id
-      position = request.args.get('position')
-      position = -1 if position == None else int(position)
+      new_parent_id = request.args.get('new_parent', default=curtree.rootb_id, type=int)
+      position = request.args.get('position', default=-1, type=int)
       b.move(new_parent_id, position)
     else:
-      nestedocs_req = request.args.get('nestedocs')
-      nestedocs = False if nestedocs_req == None or nestedocs_req == 'False' else True
       if not nestedocs :
         if cmd == "load_subbs":
           return json.dumps(getList_subbsOf(curtree.getB(id), nestedocs))
@@ -221,8 +234,7 @@ def tree():
         if cmd == "load_data":
           return curtree.getB(id).text
         if cmd == "create_node":
-          parent_id = request.args.get('parent_id')
-          parent_id = curtree.rootb_id if parent_id == None else parent_id
+          parent_id = request.args.get('parent_id', default=curtree.rootb_id, type=int)
           parentB = curtree.getB(parent_id)
           newB = Branch(main = True, parent_id = parent_id)
           return str( newB.id )
@@ -235,11 +247,9 @@ def tree():
         if cmd == "load_data":
           return curtree.getB(id).text
         if cmd == "save_data":
-          data = request.args.get('data')
           curtree.getB(id).text = data
         if cmd == "create_node":
-          parent_id = request.args.get('parent_id')
-          parent_id = curtree.rootb_id if parent_id == None else parent_id
+          parent_id = request.args.get('parent_id', default=curtree.rootb_id, type=int)
           parentB = curtree.getB(parent_id)
           newB = Branch(main = False, parent_id = parent_id)
           return str( newB.id )
@@ -247,6 +257,7 @@ def tree():
           branch = curtree.getB(id)
           branch.remove()
   db.session.commit()
+  return ""
 
 
 """
