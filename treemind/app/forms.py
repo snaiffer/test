@@ -4,14 +4,15 @@ from wtforms import TextField, BooleanField, IntegerField, Form
 from wtforms.validators import Required
 
 class LoginForm(Form):
-  username = TextField('username', validators = [Required()])
+  email_nickname = TextField('email_nickname', validators = [Required()])
   passwd = TextField('passwd', validators = [Required()])
   remember_me = BooleanField('remember_me', default = False)
 
 class RegistrationForm(Form):
-  username = TextField('username', validators = [Required()])
-  passwd = TextField('passwd', validators = [Required()])
   email = TextField('email', validators = [Required()])
+  nickname = TextField('nickname', default = '')
+  passwd = TextField('passwd', validators = [Required()])
+  passwd_chk = TextField('passwd_chk', validators = [Required()])
 
 class SaveDataForm(Form):
   curtree_id = IntegerField('tree_id', default=-1)

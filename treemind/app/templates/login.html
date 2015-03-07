@@ -8,9 +8,9 @@
   <form action="" method="post" name="login">
   <!--{{ form.csrf_token }}-->
   <p>
-      Username:<br>
-      <input type=text name=username>
-      {% for error in form.errors.username %}
+      Email or nickname:<br>
+      <input type=text name=email_nickname>
+      {% for error in form.errors.email_nickname %}
         <span style="color: red;">[{{error}}]</span>
       {% endfor %}<br>
   </p>

@@ -38,15 +38,15 @@ class Forest(object):
 class Users(Base):
   __tablename__ = 'users'
   id = Column(Integer, primary_key=True)
+  email = Column(String, unique = True)
   nickname = Column(String)
   passwd = Column(String)
-  email = Column(String, unique = True)
   latestTree_id = Column(Integer)
 
-  def __init__(self, nickname='', passwd='', email='', tree=None):
+  def __init__(self, email='', nickname='', passwd='', tree=None):
+    self.email = email
     self.nickname = nickname
     self.passwd = passwd
-    self.email = email
     self.tree = tree
     self.latestTree_id = None
 

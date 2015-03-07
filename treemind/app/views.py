@@ -7,100 +7,113 @@ from flask.ext.login import login_user, logout_user, current_user, login_require
 
 @loader_manager.user_loader
 def load_user(user_id):
-    return Users.query.filter_by(id=user_id).first()
+  return Users.query.filter_by(id=user_id).first()
 
-@app.route('/')
 @app.route('/index')
-@login_required
-def index():
-  user = g.user
-  return render_template("index.html",
-                       title='Home',
-                       user=user)
+@app.route('/about')
+def about():
+  return render_template("about.html")
 
 @app.route('/registration', methods = ['GET', 'POST'])
 def registration():
-    if g.user is not None and g.user.is_authenticated():
-        return redirect(url_for('index'))
-    form = RegistrationForm(request.form)
-    if request.method == "POST" and form.validate():
-        return registrate(form.username.data,
-                          form.passwd.data,
-                          form.email.data)
-    return render_template('registration.html',
-        title = 'Sign Up',
-        form = form)
+  if g.user is not None and g.user.is_authenticated():
+    return redirect(url_for('index'))
+  form = RegistrationForm(request.form)
+  if request.method == "POST" and form.validate():
+    return registrate(form.email.data,
+             form.nickname.data,
+             form.passwd.data,
+             form.passwd_chk.data)
+  return render_template('registration.html',
+    title = 'Sign Up',
+    form = form)
 
 @app.route('/success_registration')
 def success_registration():
   return render_template("success_registration.html",
         title = 'Success')
 
-def registrate(username, passwd, email):
-    user = Users.query.filter_by(nickname = username).first()
-    if user is not None:
-        flash('Such user already exist. Try another username')
-        return redirect(url_for('registration'))
-    else:
-        user = Users(nickname = username, passwd = passwd, email = email)
-        user.set_password(passwd)
-        db.session.add(user)
-        firstTree = Tree(user, "firstTree")
+def registrate(email, nickname, passwd, passwd_chk):
+  if nickname == '':
+    email_splitted = email.split('@')
+    if len(email_splitted) != 2:
+      flash('Email address isn\'t correct. Try again')
+      return redirect(url_for('registration'))
+    nickname = email_splitted[0]
 
-        # for tests
-        rootb = firstTree.rootb
-        b1 = Branch(text="branch1_" + str(firstTree.name), parent=rootb)
-        b11 = Branch(text="branch11_" + str(firstTree.name), parent=b1)
-        b12 = Branch(text="branch12_" + str(firstTree.name), parent=b1)
-        #
+  if Users.query.filter_by(nickname = nickname).first() is not None:
+    flash('The user with such nickname already exist. Try another nickname')
+    return redirect(url_for('registration'))
 
-        db.session.commit()
-        return redirect(url_for('success_registration'))
+  if passwd != passwd_chk:
+    flash('The passwords don\'t match. Try again')
+    return redirect(url_for('registration'))
+
+  user = Users.query.filter_by(email = email).first()
+  if user is not None:
+    flash('The user with such email already exist. Try another email')
+    return redirect(url_for('registration'))
+  else:
+    user = Users(email = email, nickname = nickname, passwd = passwd)
+    user.set_password(passwd)
+    db.session.add(user)
+    firstTree = Tree(user, "firstTree")
+
+    # for tests
+    rootb = firstTree.rootb
+    b1 = Branch(text="branch1_" + str(firstTree.name), parent=rootb)
+    b11 = Branch(text="branch11_" + str(firstTree.name), parent=b1)
+    b12 = Branch(text="branch12_" + str(firstTree.name), parent=b1)
+    #
+
+    db.session.commit()
+    return redirect(url_for('success_registration'))
 
 @app.route('/login', methods = ['GET', 'POST'])
 def login():
-    if g.user is not None and g.user.is_authenticated():
-        return redirect(url_for('index'))
-    form = LoginForm(request.form)
-    if request.method == "POST" and form.validate():
-        session['remember_me'] = form.remember_me.data
-        return auth(form.username.data,
-                    form.passwd.data)
-    return render_template('login.html',
-                            title = 'Sign In',
-                            form = form)
+  if g.user is not None and g.user.is_authenticated():
+    return redirect(url_for('index'))
+  form = LoginForm(request.form)
+  if request.method == "POST" and form.validate():
+    session['remember_me'] = form.remember_me.data
+    return auth(form.email_nickname.data,
+          form.passwd.data)
+  return render_template('login.html',
+              title = 'Sign In',
+              form = form)
 
-def auth(username, passwd):
-    user = Users.query.filter_by(nickname = username).first()
-    if user is None or not user.check_password(passwd):
-        flash('Invalid login or password. Please try again.')
-        return redirect(url_for('login'))
-    remember_me = False
-    if 'remember_me' in session:
-        remember_me = session['remember_me']
-        session.pop('remember_me', None)
-    login_user(user, remember = remember_me)
-    return redirect(request.args.get('next') or url_for('index'))
+def auth(email_nickname, passwd):
+  user = Users.query.filter_by(email = email_nickname).first()
+  if user is None:
+   user = Users.query.filter_by(nickname = email_nickname).first()
+
+  if user is None or not user.check_password(passwd):
+    flash('Invalid login or password. Please try again.')
+    return redirect(url_for('login'))
+  remember_me = False
+  if 'remember_me' in session:
+    remember_me = session['remember_me']
+    session.pop('remember_me', None)
+  login_user(user, remember = remember_me)
+  return redirect(request.args.get('next') or url_for('index'))
 
 @app.route("/logout")
 @login_required
 def logout():
-    logout_user()
-    return redirect(url_for('login'))
+  logout_user()
+  return redirect(url_for('login'))
 
 @app.route('/removeuser')
 @login_required
 def removeuser():
-    user = g.user
-    db.session.delete(user)
-    db.session.commit()
-    return redirect(url_for('login'))
+  user = g.user
+  db.session.delete(user)
+  db.session.commit()
+  return redirect(url_for('login'))
 
 @app.before_request
 def before_request():
-    g.user = current_user
-
-
+  g.user = current_user
 
 
 def for_test():
@@ -168,11 +181,18 @@ def getList_subbsOf(branch, nestedocs_mode = False):
         list.append(newsubb)
   return list
 
-
-import json
-@app.route('/tree', methods = ['GET', 'POST'])
+@app.route('/')
+@app.route('/tree')
 @login_required
 def tree():
+  user = g.user
+  return render_template("tree.html",
+                       user=user)
+
+import json
+@app.route('/mngtree', methods = ['GET', 'POST'])
+@login_required
+def mngtree():
   user = g.user
 
   #for_test()

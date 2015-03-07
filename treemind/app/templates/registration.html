@@ -7,9 +7,16 @@
   <form action="" method="post" name="registration">
   <!--{{ form.csrf_token }}-->
   <p>
-      Username:<br>
-      <input type=text name=username>
-      {% for error in form.errors.username %}
+      Email:<br>
+      <input type=text name=email>
+      {% for error in form.errors.email %}
+        <span style="color: red;">[{{error}}]</span>
+      {% endfor %}<br>
+  </p>
+  <p>
+      Nickname:<br>
+      <input type=text name=nickname>
+      {% for error in form.errors.nickname %}
         <span style="color: red;">[{{error}}]</span>
       {% endfor %}<br>
   </p>
@@ -21,9 +28,9 @@
       {% endfor %}<br>
   </p>
   <p>
-      Email:<br>
-      <input type=text name=email>
-      {% for error in form.errors.email %}
+      Confirm your password:<br>
+      <input type=password name=passwd_chk>
+      {% for error in form.errors.passwd_chk %}
         <span style="color: red;">[{{error}}]</span>
       {% endfor %}<br>
   </p>

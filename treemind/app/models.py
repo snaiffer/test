@@ -57,9 +57,9 @@ class Forest(object):
 class Users(db.Model):
   __tablename__ = 'users'
   id = db.Column(db.Integer, primary_key=True)
+  email = db.Column(db.String, index = True, unique = True)
   nickname = db.Column(db.String, index = True, unique = True)
   passwd = db.Column(db.String, index = True, unique = True)
-  email = db.Column(db.String, index = True, unique = True)
   latestTree_id = db.Column(db.Integer)
 
   def is_authenticated(self):
