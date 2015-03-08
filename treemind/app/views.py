@@ -1,9 +1,10 @@
 
-from flask import render_template, flash, redirect, session, url_for, request, g
+from flask import render_template, flash, redirect, session, url_for, request, g, jsonify
 from app import app, db, loader_manager
 from app.forms import *
 from app.models import Users, Tree, Branch, getUser
 from flask.ext.login import login_user, logout_user, current_user, login_required
+import json
 
 @loader_manager.user_loader
 def load_user(user_id):
@@ -215,7 +216,27 @@ def trees():
                           trees=user.allTrees(),
                           user=user)
 
-import json
+@app.route('/mngtrees', methods = ['GET', 'POST'])
+@login_required
+def mngtrees():
+  user = g.user
+
+  if request.method == "GET":
+    cmd = request.args.get('cmd', default='', type=str)
+
+    if cmd == "create_tree":
+      treename = request.args.get('name', default='NewTree', type=str)
+      user = getUser(email=user.email)
+      createdTree = Tree(user, treename)
+      return jsonify({ 'id' : createdTree.id, 'name' : createdTree.name })
+    elif cmd == "remove_tree":
+      pass
+
+  db.session.commit()
+  return ""
+
+
+
 @app.route('/mngtree', methods = ['GET', 'POST'])
 @login_required
 def mngtree():

@@ -3,18 +3,84 @@
 {% extends "base.html" %}
 
 {% block content %}
+  <head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='themes/default/trees/style.css') }}" />
+  </head>
+
   <h1>Trees manager</h1>
-  <p>List of your trees:</p>
-  <ul>
-  {% if trees %}
-    {% for tree in trees %}
-      <li>{{ tree.name }}</li>
-    {% endfor %}
-  {% endif %}
-  </ul>
+
+  <div id="dialog-form" title="Create new tree">
+    <form>
+      <fieldset>
+        <label for="treename">Tree name:</label>
+        <input type="text" name="treename" id="treename" value="" class="text ui-widget-content ui-corner-all">
+
+        <!-- Allow form submission with keyboard without duplicating the dialog button -->
+        <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+      </fieldset>
+    </form>
+  </div>
+
+  <div class="using_field">
+    <div id="listTrees">
+      {% if trees %}
+        {% for tree in trees %}
+          <div class='tree' tree_id='{{ tree.id }}'>{{ tree.name }}</div>
+        {% endfor %}
+      {% endif %}
+    </div>
+    <a id='linkCreateTree'>
+      <img id="imgCreateTree"
+        src="{{ url_for('static', filename='themes/default/trees/btnCreateTree.png') }}"
+        alt="Create tree" title="Create tree"/>
+      <p id="lblCreateTree">create tree</p>
+    </a>
+  </div>
 
   <script>
   $(function() {
+    var dialog, form,
+      treename = $( "#treename" )
+
+    function createTree() {
+      $.get("/mngtrees?cmd=create_tree&name=" + treename.val(), function(tree) {
+        console.log("\n tree" + tree.id + tree.name + '\n');
+        if (tree.id == undefined || tree.id == null) {
+          return false
+        } else {
+          $( "#listTrees" ).append(
+            "<div class='tree' tree_id=" + tree.id + ">" + tree.name + "</div>" );
+          dialog.dialog( "close" );
+        }
+      })
+    }
+
+    dialog = $( "#dialog-form" ).dialog({
+      autoOpen: false,
+      height: 250,
+      width: 350,
+      modal: true,
+      buttons: {
+        "Create a tree": createTree,
+        Cancel: function() {
+          dialog.dialog( "close" );
+        }
+      },
+      close: function() {
+        form[ 0 ].reset();
+      }
+    });
+
+    form = dialog.find( "form" ).on( "submit", function( event ) {
+      event.preventDefault();
+      createTree();
+    });
+
+    $( "#linkCreateTree" ).on( "click", function() {
+      dialog.dialog( "open" );
+    });
   });
   </script>
+
 {% endblock %}
+
