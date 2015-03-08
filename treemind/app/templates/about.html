@@ -3,21 +3,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <h1>Welcome to TreeMind, {{user.nickname}}</h1>
+  <h1 align='center'>Welcome to TreeMind</h1>
   <p>about TreeMind...</p>
-  <p>You can: </p>
-  <button type="button" id="btnLogIn">Log in</button>
-  <div> or </div>
-  <button type="button" id="btnSignUp">Sign up</button>
-
-  <script>
-  $(function() {
-    $('#btnLogIn').on('click', function(e) {
-      location.href='/login';
-    });
-    $('#btnSignUp').on('click', function(e) {
-      location.href='/signup';
-    });
-  });
-  </script>
 {% endblock %}

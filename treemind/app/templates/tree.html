@@ -1,15 +1,10 @@
-<!DOCTYPE html>
+<!-- extend from base layout -->
+{% extends "base.html" %}
 
-<html>
+{% block content %}
+
   <head>
-    <meta charset="utf-8">
-    <title>TreeMind</title>
-
-    <!--<link rel="shortcut icon" type="image/x-icon" href="icon.png" />-->
-    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='icon.png') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='themes/default/tree/style.css') }}" />
-
-    <script src="{{ url_for('static', filename='libs/jquery-1.11.1.min.js') }}"></script>
 
     <script src="{{ url_for('static', filename='libs/jstree/jstree.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='libs/jstree/themes/default/style.css') }}" />
@@ -20,20 +15,16 @@
     <script src="{{ url_for('static', filename='libs/ckeditor/ckeditor.js') }}"></script>
   </head>
 
-  <body>
     <table id="headline">
       <tr>
         <td id="control_board">
           <table>
             <tr align="center">
-              <td> <img id="btnUser" alt="User manager" title="user manager"/> </td>
               <td> <img id="btnTree" alt="Tree manager" title="tree manager"/> </td>
               <td> <img id="btnSearch" alt="Search" title="search"/> </td>
               <td> <img id="btnSettings" alt="Make settings" title="settings"/> </td>
-              <td> <img id="btnLogOut" alt="Log out" title="log out"/> </td>
             </tr>
             <tr align="center">
-              <td> <p id="lblUser">{{user.nickname}}</p> </td>
               <td>
                 <select>
                   <option>tree 1</option>
@@ -41,7 +32,6 @@
                   <option>tree 3</option>
                 </select>
               </td>
-              <td> </td>
               <td> </td>
               <td> </td>
             </tr>
@@ -227,5 +217,4 @@
         });
     });
     </script>
-  </body>
-</html>
+{% endblock %}

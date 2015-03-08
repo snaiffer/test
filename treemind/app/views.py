@@ -29,12 +29,14 @@ def signup():
              form.passwd_chk.data)
   return render_template('signup.html',
                           title = 'Sign Up',
+                          user = g.user,
                           form = form)
 
 @app.route('/success_signup')
 def success_signup():
   return render_template("success_signup.html",
-                          title = 'Success')
+                          title = 'Success sign up',
+                          user = g.user)
 
 def registrate(email, nickname, passwd, passwd_chk):
   email_splitted = email.split('@')
@@ -82,8 +84,9 @@ def login():
     return auth(form.email_nickname.data,
           form.passwd.data)
   return render_template('login.html',
-              title = 'Log In',
-              form = form)
+                          title = 'Log In',
+                          user = g.user,
+                          form = form)
 
 def auth(email_nickname, passwd):
   user = Users.query.filter_by(email = email_nickname).first()
@@ -105,7 +108,8 @@ def auth(email_nickname, passwd):
 def user():
   user = g.user
   return render_template("user.html",
-                       user=user)
+                          title = 'Account page',
+                          user=user)
 
 @app.route("/logout")
 @login_required
@@ -198,7 +202,8 @@ def getList_subbsOf(branch, nestedocs_mode = False):
 def tree():
   user = g.user
   return render_template("tree.html",
-                       user=user)
+                          title='Trees manager',
+                          user=user)
 
 import json
 @app.route('/mngtree', methods = ['GET', 'POST'])

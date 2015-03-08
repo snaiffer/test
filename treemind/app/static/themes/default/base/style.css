@@ -1,12 +1,9 @@
 html {
-  background: linear-gradient(to top, #EAFFEA, white);
-  /*
-  background: url("tree_background.png") no-repeat center left fixed;
+  background: url("background_treeCentral.png") no-repeat center center fixed;
   -webkit-background-size: contain;
   -moz-background-size: contain;
   -o-background-size: contain;
   background-size: contain;
-  */
 }
 
 body {
@@ -14,101 +11,51 @@ body {
   padding: 0;
 }
 
-#dashboard > p,
-#dashboard > img {
+#dashboard {
+  padding: 5px 10px 5px 10px;
+  color: #545454;
+  background: linear-gradient(to top, #DDDDDD, white);
+}
+
+#dashboard > *,
+.dashLink > * {
   display: inline;
 }
 
-#btnAbout {
+#linkAbout {
   font-weight: bold;
-  font-size: 115%;
-  color: #006600;
+  font-size: 140%;
+  color: #723900;
 }
 
-#btnUser {
-  content: url("btnUser.png");
-  background-repeat: no-repeat;
-  width: 24px;
-  height: auto;
+.dashLink {
+  text-decoration: none;
+  font-size: 110%;
+  color: black;
 }
-#btnUser:hover {
+.dashLink:hover {
   background-color: orange;
 }
-
-#btnTree {
-  content: url("btnTree.png");
+.dashLinkImg {
   background-repeat: no-repeat;
   width: 24px;
   height: auto;
+  vertical-align: middle;
 }
-#btnTree:hover {
-  background-color: orange;
-}
-
-#btnLogOut {
-  content: url("btnLogOut.png");
-  background-repeat: no-repeat;
-  width: 24px;
-  height: auto;
+.dashLink_right {
   float: right;
 }
-#btnLogOut:hover {
-  background-color: orange;
+
+#fieldFlashMsg > * {
+  padding: 5px 20px 5px 10px;
+  color: #E62E00;
 }
 
-/*
-#headline {
-  width: 100%;
-  border-bottom: 2px solid black;
+h1 {
+  text-align: center;
 }
 
-#control_board {
-  width: 38%;
-  background: linear-gradient(white, #C2F0C2);
-  padding: 0 10px 0 10px;
+form {
+  text-align: center;
 }
 
-#btnTree {
-  content: url("btnTree.png");
-  background-repeat: no-repeat;
-  background-size: 100%;
-}
-#btnTree:hover {
-  background-color: orange;
-}
-
-#btnSettings {
-  content: url("btnSettings.png");
-  background-repeat: no-repeat;
-  background-size: 100%;
-  float:  right;
-  padding: 0 5px 0 5px;
-}
-#btnSettings:hover {
-  background-color: orange;
-}
-
-#btnSearch {
-  content: url("btnSearch.png");
-  background-repeat: no-repeat;
-  background-size: 100%;
-  float:  right;
-  padding: 0 5px 0 5px;
-}
-#btnSearch:hover {
-  background-color: orange;
-}
-
-
-#btnLogOut {
-  content: url("btnLogOut.png");
-  background-repeat: no-repeat;
-  background-size: 100%;
-  float:  right;
-  padding: 0 5px 0 5px;
-}
-#btnLogOut:hover {
-  background-color: orange;
-}
-
-*/

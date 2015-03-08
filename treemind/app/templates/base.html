@@ -14,60 +14,57 @@
     <script src="{{ url_for('static', filename='libs/jquery-1.11.1.min.js') }}"></script>
   </head>
   <body>
-    {% if user %}
-      <div id="dashboard" style="padding: 10px; color: #545454; background: linear-gradient(to top, #DDDDDD, white);">
-        <button type="button" id="btnAbout">TreeMind</button>
+    <div id="dashboard">
+      <a id='linkAbout' class="dashLink" href='/about'>
+        <p id="lblAbout">TreeMind</p>
+      </a>
+      <hr>
 
+      {% if user.is_authenticated() %}
         <p style="padding: 0 0 0 50px;">&nbsp</p>
-        <img id="btnUser" alt="User manager" title="user manager"/>
-        <p id="lblUser">{{user.nickname}}</p>
+        <a id='linkUser' class="dashLink" href='/user'>
+          <img id="btnUser" class='dashLinkImg'
+            src="{{ url_for('static', filename='themes/default/base/btnUser.png') }}"
+            alt="User manager" title="user manager"/>
+          <p id="lblUser">{{user.nickname}}</p>
+        </a>
 
         <p style="padding: 0 0 0 20px;">&nbsp</p>
-        <img id="btnTree" alt="Tree manager" title="tree manager"/>
-        <select>
-          <option>tree 1</option>
-          <option>tree 2</option>
-          <option>tree 3</option>
-        </select>
+        <a id='linkTrees' class="dashLink" href='/trees'>
+          <img id="btnTrees" class='dashLinkImg'
+            src="{{ url_for('static', filename='themes/default/base/btnTrees.png') }}"
+            alt="Trees manager" title="trees manager"/>
+          <p id="lblTrees">trees</p>
+        </a>
 
-        <img id="btnLogOut" alt="Log out" title="log out"/>
-      </div>
-    {% else %}
-      <p>Not logged {{user}}</p>
-    {% endif %}
+        <a id='linkLogOut' class="dashLink dashLink_right" href='/logout'>
+          <img id="btnLogOut" class='dashLinkImg'
+            src="{{ url_for('static', filename='themes/default/base/btnLogOut.png') }}"
+            alt="Log out" title="log out"/>
+        </a>
+      {% else %}
+        <a id='linkLogIn' class="dashLink dashLink_right" href='/login'>
+          <p id="lblLogIn">Log in</p>
+        </a>
 
-    <!--
-    <div>Microblog: <a href="/index">Home</a></div>
-    <hr>
-    -->
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <ul>
-        {% for message in messages %}
+        <p style="padding: 0 0 0 20px; float: right">&nbsp</p>
+        <a id='linkSignUp' class="dashLink dashLink_right" href='/signup'>
+          <p id="lblSignUp">Sign up</p>
+        </a>
+      {% endif %}
+
+      <div id='fieldFlashMsg'>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for message in messages %}
             <li>{{ message }} </li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-    {% endwith %}
+          {% endfor %}
+        {% endif %}
+        {% endwith %}
+      </div>
+    </div>
 
     {% block content %}{% endblock %}
 
-
-    <script>
-      $(function() {
-        $('#btnAbout').on('click', function(e) {
-          location.href='/about';
-        });
-        $('#btnUser').on('click', function(e) {
-          location.href='/user';
-        });
-        $('#btnTree').on('click', function(e) {
-          location.href='/trees';
-        });
-        $('#btnLogOut').on('click', function(e) {
-          location.href='/logout';
-        });
-      });
-    </script>
   </body>
 </html>
