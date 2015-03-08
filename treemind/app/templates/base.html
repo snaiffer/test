@@ -23,7 +23,7 @@
       {% if user.is_authenticated() %}
         <p style="padding: 0 0 0 50px;">&nbsp</p>
         <a id='linkUser' class="dashLink" href='/user'>
-          <img id="btnUser" class='dashLinkImg'
+          <img id="dash_btnUser" class='dashLinkImg'
             src="{{ url_for('static', filename='themes/default/base/btnUser.png') }}"
             alt="User manager" title="user manager"/>
           <p id="lblUser">{{user.nickname}}</p>
@@ -31,14 +31,14 @@
 
         <p style="padding: 0 0 0 20px;">&nbsp</p>
         <a id='linkTrees' class="dashLink" href='/trees'>
-          <img id="btnTrees" class='dashLinkImg'
+          <img id="dash_btnTrees" class='dashLinkImg'
             src="{{ url_for('static', filename='themes/default/base/btnTrees.png') }}"
             alt="Trees manager" title="trees manager"/>
           <p id="lblTrees">trees</p>
         </a>
 
         <a id='linkLogOut' class="dashLink dashLink_right" href='/logout'>
-          <img id="btnLogOut" class='dashLinkImg'
+          <img id="dash_btnLogOut" class='dashLinkImg'
             src="{{ url_for('static', filename='themes/default/base/btnLogOut.png') }}"
             alt="Log out" title="log out"/>
         </a>

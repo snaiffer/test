@@ -55,7 +55,7 @@ class Forest(object):
     return db.session.query(Tree).all()
 
 def getUser(email):
-  user = session.query(User).filter_by(email=email).scalar()
+  user = db.session.query(Users).filter_by(email=email).scalar()
   return user
 
 class Users(db.Model):
@@ -122,6 +122,8 @@ class Users(db.Model):
       allT = self.allTrees()
       if ( len(allT) != 0 ):
         return allT[0]
+      else:
+        return None
     return self.getTree(self.latestTree_id)
 
   def removeAll(self):
@@ -173,6 +175,8 @@ class Tree(db.Model):
     return self.getB(self.latestB_id)
 
   def remove(self):
+    rootb = self.getB_root()
+    rootb.remove()
     db.session.delete(self)
     db.session.commit()
 

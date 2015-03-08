@@ -2,7 +2,7 @@
 from flask import render_template, flash, redirect, session, url_for, request, g
 from app import app, db, loader_manager
 from app.forms import *
-from app.models import Users, Tree, Branch
+from app.models import Users, Tree, Branch, getUser
 from flask.ext.login import login_user, logout_user, current_user, login_required
 
 @loader_manager.user_loader
@@ -121,8 +121,8 @@ def logout():
 @login_required
 def removeuser():
   user = g.user
-  db.session.delete(user)
-  db.session.commit()
+  user = getUser(email=user.email)
+  user.remove()
   return redirect(url_for('about'))
 
 @app.before_request
@@ -224,7 +224,14 @@ def mngtree():
   #for_test()
 
   if request.method == "GET":
-    curtree_id = request.args.get('tree_id', default=user.get_latestTree().id, type=int)
+    try:
+      curtree_id = request.args.get('tree_id', default=user.get_latestTree().id, type=int)
+    except AttributeError as e:
+      msg='Can\'t find any trees. Try to create one.'
+      print(msg)
+      print(e)
+      flash(msg)
+      return ""
     curtree = user.getTree(curtree_id)
 
     import app.general
