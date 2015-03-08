@@ -54,6 +54,10 @@ class Forest(object):
   def allTrees(self):
     return db.session.query(Tree).all()
 
+def getUser(email):
+  user = session.query(User).filter_by(email=email).scalar()
+  return user
+
 class Users(db.Model):
   __tablename__ = 'users'
   id = db.Column(db.Integer, primary_key=True)

@@ -19,38 +19,25 @@ body {
 #control_board {
   width: 38%;
   background: linear-gradient(white, #C2F0C2);
-  padding: 0 10px 0 10px;
 }
 
 #btnTree {
-  content: url("btnTree.png");
   background-repeat: no-repeat;
   display: block;
-  width: 100%;
+  width: 48px;
   height: auto;
 }
-#btnTree:hover {
+
+.CBbtn {
+  background-repeat: no-repeat;
+  display: block;
+  width: 48px;
+  height: auto;
+  display: inline;
+  float: right;
+  padding: 0 5px 0 5px;
+}
+.CBbtn:hover {
   background-color: orange;
 }
 
-#btnSettings {
-  content: url("btnSettings.png");
-  background-repeat: no-repeat;
-  display: block;
-  width: 100%;
-  height: auto;
-}
-#btnSettings:hover {
-  background-color: orange;
-}
-
-#btnSearch {
-  content: url("btnSearch.png");
-  background-repeat: no-repeat;
-  display: block;
-  width: 100%;
-  height: auto;
-}
-#btnSearch:hover {
-  background-color: orange;
-}

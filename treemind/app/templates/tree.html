@@ -18,23 +18,27 @@
     <table id="headline">
       <tr>
         <td id="control_board">
-          <table>
-            <tr align="center">
-              <td> <img id="btnTree" alt="Tree manager" title="tree manager"/> </td>
-              <td> <img id="btnSearch" alt="Search" title="search"/> </td>
-              <td> <img id="btnSettings" alt="Make settings" title="settings"/> </td>
-            </tr>
-            <tr align="center">
-              <td>
-                <select>
-                  <option>tree 1</option>
-                  <option>tree 2</option>
-                  <option>tree 3</option>
-                </select>
-              </td>
-              <td> </td>
-              <td> </td>
-            </tr>
+          <table style="width: 100%;">
+            <td>
+              <img id="btnTree"
+                src="{{ url_for('static', filename='themes/default/tree/btnTree.png') }}"
+                alt="Tree manager" title="tree manager"/>
+              <select>
+                {% if trees %}
+                  {% for tree in trees %}
+                    <option>{{ tree.name }}</option>
+                  {% endfor %}
+                {% endif %}
+              </select>
+            </td>
+            <td>
+              <img id="btnSettings" class='CBbtn'
+                src="{{ url_for('static', filename='themes/default/tree/btnSettings.png') }}"
+                alt="Make settings" title="settings"/>
+              <img id="btnSearch" class='CBbtn'
+                src="{{ url_for('static', filename='themes/default/tree/btnSearch.png') }}"
+                alt="Search" title="search"/>
+            </td>
           </table>
         </td>
         <td id="ckeditor_board">
@@ -202,9 +206,6 @@
 
         $('#btnUser').on('click', function(e) {
           location.href='/user';
-        });
-        $('#btnTree').on('click', function(e) {
-          location.href='/trees';
         });
         $('#btnSettings').on('click', function(e) {
           alert("Setting board is under development");

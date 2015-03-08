@@ -1,0 +1,20 @@
+
+<!-- extend from base layout -->
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Trees manager</h1>
+  <p>List of your trees:</p>
+  <ul>
+  {% if trees %}
+    {% for tree in trees %}
+      <li>{{ tree.name }}</li>
+    {% endfor %}
+  {% endif %}
+  </ul>
+
+  <script>
+  $(function() {
+  });
+  </script>
+{% endblock %}

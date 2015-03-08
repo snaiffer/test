@@ -202,7 +202,17 @@ def getList_subbsOf(branch, nestedocs_mode = False):
 def tree():
   user = g.user
   return render_template("tree.html",
+                          title='Tree',
+                          trees=user.allTrees(),
+                          user=user)
+
+@app.route('/trees')
+@login_required
+def trees():
+  user = g.user
+  return render_template("trees.html",
                           title='Trees manager',
+                          trees=user.allTrees(),
                           user=user)
 
 import json
