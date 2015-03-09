@@ -8,6 +8,7 @@
   text-decoration: none;
   font-size: 90%;
   color: black;
+  margin: 20px;
 }
 #linkCreateTree:hover {
   background-color: orange;
@@ -19,6 +20,20 @@
   vertical-align: middle;
 }
 
-#listTrees > * {
-  margin: 10px;
+.tree_name {
+  display: inline-block;
+  margin: 8px;
+}
+
+.tree:hover > .controlBtns {
+  display: inline-block;
+}
+.controlBtns {
+  display: none;
+  width: auto;
+  height: 1.2em;
+}
+.controlBtns:hover {
+  background-color: orange;
+  height: 1.4em;
 }

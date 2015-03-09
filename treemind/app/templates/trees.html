@@ -9,11 +9,23 @@
 
   <h1>Trees manager</h1>
 
-  <div id="dialog-form" title="Create new tree">
-    <form>
+  <div id="dialogCreateTree" title="Create new tree">
+    <form id="formCreateTree">
       <fieldset>
         <label for="treename">Tree name:</label>
         <input type="text" name="treename" id="treename" value="" class="text ui-widget-content ui-corner-all">
+
+        <!-- Allow form submission with keyboard without duplicating the dialog button -->
+        <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+      </fieldset>
+    </form>
+  </div>
+
+  <div id="dialogRenameTree" title="Rename the tree">
+    <form id="formRenameTree">
+      <fieldset>
+        <label for="newtreename">New tree name:</label>
+        <input type="text" name="newtreename" id="newtreename" value="" class="text ui-widget-content ui-corner-all">
 
         <!-- Allow form submission with keyboard without duplicating the dialog button -->
         <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
@@ -25,7 +37,15 @@
     <div id="listTrees">
       {% if trees %}
         {% for tree in trees %}
-          <div class='tree' tree_id='{{ tree.id }}'>{{ tree.name }}</div>
+        <div class='tree' tree_id='{{ tree.id }}'>
+          <p class='tree_name' tree_id='{{ tree.id }}'>{{ tree.name }}</p>
+          <img class='controlBtns btnRename' tree_id='{{ tree.id }}'
+            src="{{ url_for('static', filename='themes/default/trees/btnRename.png') }}"
+            alt="Rename tree" title="rename tree"/>
+          <img class='controlBtns btnRemove' tree_id='{{ tree.id }}'
+            src="{{ url_for('static', filename='themes/default/trees/btnRemove.png') }}"
+            alt="Remove tree" title="remove tree"/>
+        </div>
         {% endfor %}
       {% endif %}
     </div>
@@ -39,23 +59,34 @@
 
   <script>
   $(function() {
-    var dialog, form,
-      treename = $( "#treename" )
+    var dialogCreateTree,
+      formCreateTree,
+      dialogRenameTree,
+      formRenameTree,
+      treename = $( "#treename" ),
+      newtreename = $( "#newtreename" ),
+      buf_tree_id
 
     function createTree() {
       $.get("/mngtrees?cmd=create_tree&name=" + treename.val(), function(tree) {
-        console.log("\n tree" + tree.id + tree.name + '\n');
         if (tree.id == undefined || tree.id == null) {
           return false
         } else {
           $( "#listTrees" ).append(
-            "<div class='tree' tree_id=" + tree.id + ">" + tree.name + "</div>" );
-          dialog.dialog( "close" );
+            "<div class='tree' tree_id='" + tree.id + "'>" +
+              "<p class='tree_name' tree_id='" + tree.id + "'>" + tree.name + "</p>" +
+              "<img class='controlBtns btnRename' tree_id='" + tree.id + "'" +
+                "src='static/themes/default/trees/btnRename.png'" +
+                "alt='Rename tree' title='rename tree'/>" +
+              "<img class='controlBtns btnRemove' tree_id='" + tree.id + "'" +
+                "src='static/themes/default/trees/btnRemove.png'" +
+                "alt='Remove tree' title='remove tree'/>" +
+            "</div>");
+          dialogCreateTree.dialog( "close" );
         }
       })
     }
-
-    dialog = $( "#dialog-form" ).dialog({
+    dialogCreateTree = $( "#dialogCreateTree" ).dialog({
       autoOpen: false,
       height: 250,
       width: 350,
@@ -63,21 +94,67 @@
       buttons: {
         "Create a tree": createTree,
         Cancel: function() {
-          dialog.dialog( "close" );
+          dialogCreateTree.dialog( "close" );
         }
       },
       close: function() {
-        form[ 0 ].reset();
+        formCreateTree[ 0 ].reset();
       }
     });
-
-    form = dialog.find( "form" ).on( "submit", function( event ) {
+    formCreateTree = dialogCreateTree.find( "#formCreateTree" ).on( "submit", function( event ) {
       event.preventDefault();
       createTree();
     });
 
+    function renameTree() {
+      newtreename = newtreename.val();
+      $.get("/mngtrees?cmd=rename_tree&tree_id=" + buf_tree_id + "&newname=" + newtreename, function(success) {
+        if ( success == false || success == undefined || success == null) {
+          return false
+        } else {
+          $("p[tree_id='" + buf_tree_id + "']").text(newtreename);
+          dialogRenameTree.dialog( "close" );
+        }
+      })
+    }
+    dialogRenameTree = $( "#dialogRenameTree" ).dialog({
+      autoOpen: false,
+      height: 250,
+      width: 350,
+      modal: true,
+      buttons: {
+        "Rename the tree": renameTree,
+        Cancel: function() {
+          dialogRenameTree.dialog( "close" );
+        }
+      },
+      close: function() {
+        formRenameTree[ 0 ].reset();
+      }
+    });
+    formRenameTree = dialogRenameTree.find( "#formRenameTree" ).on( "submit", function( event ) {
+      event.preventDefault();
+      renameTree();
+    });
+
     $( "#linkCreateTree" ).on( "click", function() {
-      dialog.dialog( "open" );
+      var tree_id = $(this).attr('tree_id');
+      dialogCreateTree.dialog( "open" );
+    });
+    $('body').on( "click", ".btnRename", function() {
+      buf_tree_id = $(this).attr('tree_id');
+      dialogRenameTree.dialog( "open" );
+    });
+    $('body').on( "click", ".btnRemove", function() {
+      var tree_id = $(this).attr('tree_id');
+      $.get("/mngtrees?cmd=remove_tree&tree_id=" + tree_id, function(success) {
+        if ( success == false || success == undefined || success == null) {
+          return false
+        } else {
+          $(".tree[tree_id='" + tree_id + "']").remove();
+          return true
+        }
+      });
     });
   });
   </script>

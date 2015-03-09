@@ -219,18 +219,32 @@ def trees():
 @app.route('/mngtrees', methods = ['GET', 'POST'])
 @login_required
 def mngtrees():
-  user = g.user
+  user = getUser(email=g.user.email)
 
   if request.method == "GET":
     cmd = request.args.get('cmd', default='', type=str)
 
     if cmd == "create_tree":
       treename = request.args.get('name', default='NewTree', type=str)
-      user = getUser(email=user.email)
       createdTree = Tree(user, treename)
       return jsonify({ 'id' : createdTree.id, 'name' : createdTree.name })
     elif cmd == "remove_tree":
-      pass
+      try:
+        tree_id = request.args.get('tree_id', default=None, type=int)
+        tree = user.getTree(tree_id)
+        tree.remove()
+        return "True"
+      except BaseException:
+        return "False"
+    elif cmd == "rename_tree":
+      try:
+        tree_id = request.args.get('tree_id', default=None, type=int)
+        newname = request.args.get('newname', default='Tree', type=str)
+        tree = user.getTree(tree_id)
+        tree.rename(newname)
+        return "True"
+      except BaseException:
+        return "False"
 
   db.session.commit()
   return ""

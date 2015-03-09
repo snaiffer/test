@@ -180,6 +180,10 @@ class Tree(db.Model):
     db.session.delete(self)
     db.session.commit()
 
+  def rename(self, newname):
+    self.name = newname
+    db.session.commit()
+
   def moveB(self, branch, parent_id = None, pos = -1):
     branch.move(parent_id, pos)
 
