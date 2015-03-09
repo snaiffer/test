@@ -102,7 +102,7 @@ def auth(email_nickname, passwd):
     remember_me = session['remember_me']
     session.pop('remember_me', None)
   login_user(user, remember = remember_me)
-  return redirect(request.args.get('next') or url_for('tree'))
+  return redirect(request.args.get('next') or url_for('trees'))
 
 @app.route('/user')
 @login_required
@@ -198,12 +198,13 @@ def getList_subbsOf(branch, nestedocs_mode = False):
 
 
 @app.route('/')
-@app.route('/tree')
+@app.route('/trees/<targettree>')
 @login_required
-def tree():
+def tree(targettree=None):
   user = g.user
   return render_template("tree.html",
                           title='Tree',
+                          curtree=targettree,
                           trees=user.allTrees(),
                           user=user)
 

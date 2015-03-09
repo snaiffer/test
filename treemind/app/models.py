@@ -162,6 +162,7 @@ class Tree(db.Model):
     if (rootbg == None):
       rootbg = Branch(text = "root_global", folded=False, main = True)
     rootb = Branch(text = "root_" + self.name, folded=False, main = True, parent = rootbg)
+    firstb = Branch(text = "first branch", folded=False, main = True, parent = rootb)
     return rootb
 
   def set_latestB(self, id):
