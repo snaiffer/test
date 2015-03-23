@@ -211,6 +211,8 @@ def tree(targettree=None):
   user = g.user
   if targettree == None or targettree == '':
     targettree = user.get_latestTree().name
+  elif user.getTreeByName(targettree) == None:
+      return ""
   return render_template("tree.html",
                           title='Tree',
                           curtree_name=targettree,
@@ -237,6 +239,8 @@ def mngtrees():
     if cmd == "create_tree":
       try:
         treename = request.args.get('name', default='NewTree', type=str)
+        if user.getTreeByName(treename) != None:
+          raise BaseException
         createdTree = Tree(user, treename)
         return jsonify({ 'id' : createdTree.id, 'name' : createdTree.name })
       except BaseException:
@@ -253,6 +257,8 @@ def mngtrees():
       try:
         tree_id = request.args.get('tree_id', default=None, type=int)
         newname = request.args.get('newname', default='Tree', type=str)
+        if user.getTreeByName(newname) != None:
+          raise BaseException
         tree = user.getTreeByID(tree_id)
         tree.rename(newname)
         return ""

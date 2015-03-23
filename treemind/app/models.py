@@ -141,7 +141,7 @@ class Users(db.Model):
 class Tree(db.Model):
   __tablename__ = 'trees'
   id = db.Column(db.Integer, primary_key=True)
-  name = db.Column(db.String, unique = True)
+  name = db.Column(db.String)
   rootb_id = db.Column(db.Integer, db.ForeignKey('branches.id'))
   rootb = db.relationship("Branch", single_parent=True, cascade='all, delete-orphan', backref='tree')
   owner_id = db.Column(db.Integer, db.ForeignKey('users.id'))
