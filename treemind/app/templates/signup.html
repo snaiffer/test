@@ -4,36 +4,38 @@
 
 {% block content %}
   <h1>Sign Up</h1>
-  <form action="" method="post" name="signup">
-  <!--{{ form.csrf_token }}-->
-  <p>
-      Email:<br>
-      <input type=text name=email>
-      {% for error in form.errors.email %}
-        <span style="color: red;">[{{error}}]</span>
-      {% endfor %}<br>
-  </p>
-  <p>
-      Nickname:<br>
-      <input type=text name=nickname>
-      {% for error in form.errors.nickname %}
-        <span style="color: red;">[{{error}}]</span>
-      {% endfor %}<br>
-  </p>
-  <p>
-      Password:<br>
-      <input type=password name=passwd>
-      {% for error in form.errors.passwd %}
-        <span style="color: red;">[{{error}}]</span>
-      {% endfor %}<br>
-  </p>
-  <p>
-      Confirm your password:<br>
-      <input type=password name=passwd_chk>
-      {% for error in form.errors.passwd_chk %}
-        <span style="color: red;">[{{error}}]</span>
-      {% endfor %}<br>
-  </p>
-  <p><input type="submit" value="Sign Up"></p>
-  </form>
+  <div class="using_field">
+    <form action="" method="post" name="signup">
+    <!--{{ form.csrf_token }}-->
+    <p>
+        Email:<br>
+        <input type=text name=email>
+        {% for error in form.errors.email %}
+          <span style="color: red;">[{{error}}]</span>
+        {% endfor %}<br>
+    </p>
+    <p>
+        Nickname:<br>
+        <input type=text name=nickname>
+        {% for error in form.errors.nickname %}
+          <span style="color: red;">[{{error}}]</span>
+        {% endfor %}<br>
+    </p>
+    <p>
+        Password:<br>
+        <input type=password name=passwd>
+        {% for error in form.errors.passwd %}
+          <span style="color: red;">[{{error}}]</span>
+        {% endfor %}<br>
+    </p>
+    <p>
+        Confirm your password:<br>
+        <input type=password name=passwd_chk>
+        {% for error in form.errors.passwd_chk %}
+          <span style="color: red;">[{{error}}]</span>
+        {% endfor %}<br>
+    </p>
+    <p><input type="submit" value="Sign Up"></p>
+    </form>
+  </div>
 {% endblock %}

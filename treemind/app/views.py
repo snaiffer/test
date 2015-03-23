@@ -211,7 +211,6 @@ def tree(targettree=None):
   user = g.user
   if targettree == None or targettree == '':
     targettree = user.get_latestTree().name
-  print('\n' + str(targettree) + '\n')
   return render_template("tree.html",
                           title='Tree',
                           curtree_name=targettree,
@@ -245,7 +244,7 @@ def mngtrees():
     elif cmd == "remove_tree":
       try:
         tree_id = request.args.get('tree_id', default=None, type=int)
-        tree = user.getTree(tree_id)
+        tree = user.getTreeByID(tree_id)
         tree.remove()
         return "True"
       except BaseException:
@@ -254,7 +253,7 @@ def mngtrees():
       try:
         tree_id = request.args.get('tree_id', default=None, type=int)
         newname = request.args.get('newname', default='Tree', type=str)
-        tree = user.getTree(tree_id)
+        tree = user.getTreeByID(tree_id)
         tree.rename(newname)
         return ""
       except BaseException:
@@ -274,11 +273,12 @@ def mngtree():
 
   if request.method == "GET":
     try:
-      curtree_id = request.args.get('tree_id', default=user.get_latestTree().id, type=int)
+      curtree_name = request.args.get('tree_name', default=user.get_latestTree().name, type=str)
     except AttributeError as e:
       msg='Can\'t find any trees. Try to create one.'
+      print('\n' + str(msg) + '\n')
       return ""
-    curtree = user.getTree(curtree_id)
+    curtree = user.getTreeByName(curtree_name)
 
     import app.general
     nestedocs = app.general.str2bool(request.args.get('nestedocs', default='False', type=str))
@@ -291,13 +291,15 @@ def mngtree():
     if id == '#' or id == None:
       id = curtree.rootb_id
 
+    data = request.args.get('data', default='', type=str)
+
   else:
     form = SaveDataForm(request.form)
     if request.method == "POST" and form.validate():
-      curtree_id = form.curtree_id.data
-      if curtree_id == -1:
-        curtree_id = user.get_latestTree().id
-      curtree = user.getTree(curtree_id)
+      curtree_name = form.curtree_name.data
+      if curtree_name == '':
+        curtree_name = user.get_latestTree().name
+      curtree = user.getTreeByName(curtree_name)
 
       nestedocs = form.nestedocs.data
       cmd = form.cmd.data
@@ -318,7 +320,6 @@ def mngtree():
       b = curtree.getB(id)
       b.folded = False
     elif cmd == "rename_node":
-      data = request.args.get('data', default='', type=str)
       curtree.getB(id).text = data
     elif cmd == "move_node":
       b = curtree.getB(id)

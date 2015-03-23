@@ -4,23 +4,25 @@
 
 {% block content %}
   <h1>Log In</h1>
-  <form action="" method="post" name="login">
-  <!--{{ form.csrf_token }}-->
-  <p>
-      Email or nickname:<br>
-      <input type=text name=email_nickname>
-      {% for error in form.errors.email_nickname %}
-        <span style="color: red;">[{{error}}]</span>
-      {% endfor %}<br>
-  </p>
-  <p>
-      Password:<br>
-      <input type=password name=passwd>
-      {% for error in form.errors.passwd %}
-        <span style="color: red;">[{{error}}]</span>
-      {% endfor %}<br>
-  </p>
-  <p>{{form.remember_me}} Remember Me</p>
-  <p><input type="submit" value="Log In"></p>
-  </form>
+  <div class="using_field">
+    <form action="" method="post" name="login">
+    <!--{{ form.csrf_token }}-->
+    <p>
+        Email or nickname:<br>
+        <input type=text name=email_nickname>
+        {% for error in form.errors.email_nickname %}
+          <span style="color: red;">[{{error}}]</span>
+        {% endfor %}<br>
+    </p>
+    <p>
+        Password:<br>
+        <input type=password name=passwd>
+        {% for error in form.errors.passwd %}
+          <span style="color: red;">[{{error}}]</span>
+        {% endfor %}<br>
+    </p>
+    <p>{{form.remember_me}} Remember Me</p>
+    <p><input type="submit" value="Log In"></p>
+    </form>
+  </div>
 {% endblock %}

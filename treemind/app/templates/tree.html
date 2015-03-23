@@ -74,7 +74,7 @@
         .jstree({
           'core' : {
             'data' : {
-              "url" : "/mngtree?nestedocs=False&cmd=load_subbs",
+              "url" : "/mngtree?tree_name={{curtree_name}}&nestedocs=false&cmd=load_subbs",
               "data" : function (node) {
                   return { "id" : node.id };
                 },
@@ -92,26 +92,26 @@
           $(this).jstree(true).select_node('2'); //Replaced 2 for the latest used branch_id from the last session
         })
         .on("create_node.jstree", function (e, data) {
-          $.get("/mngtree?nestedocs=False&cmd=create_node&parent_id=" + data.parent, $.proxy(function(id) {
+          $.get("/mngtree?tree_name={{curtree_name}}&nestedocs=false&cmd=create_node&parent_id=" + data.parent, $.proxy(function(id) {
             id = Number(id);
             $(this).jstree(true).set_id(data.node, id);
           }, this))
         })
         .on("delete_node.jstree", function (e, data) {
-          $.get("/mngtree?nestedocs=False&cmd=delete_node&id=" + data.node.id)
+          $.get("/mngtree?tree_name={{curtree_name}}&nestedocs=false&cmd=delete_node&id=" + data.node.id)
           $(this).jstree(true).select_node(data.parent);
         })
         .on("after_close.jstree", function (e, data) {
-          $.get("/mngtree?nestedocs=False&cmd=fold&id=" + data.node.id)
+          $.get("/mngtree?tree_name={{curtree_name}}&nestedocs=false&cmd=fold&id=" + data.node.id)
         })
         .on("after_open.jstree", function (e, data) {
-          $.get("/mngtree?nestedocs=False&cmd=unfold&id=" + data.node.id)
+          $.get("/mngtree?tree_name={{curtree_name}}&nestedocs=false&cmd=unfold&id=" + data.node.id)
         })
         .on("rename_node.jstree", function (e, data) {
-          $.post("/mngtree", { nestedocs : "False", cmd : "rename_node", id : data.node.id, data : data.text })
+          $.post("/mngtree", { tree_name : "{{curtree_name}}", nestedocs : "false", cmd : "rename_node", id : data.node.id, data : data.text })
         })
         .on("move_node.jstree", function (e, data) {
-          $.get("/mngtree?nestedocs=False&cmd=move_node&id=" + data.node.id +
+          $.get("/mngtree?tree_name={{curtree_name}}&nestedocs=false&cmd=move_node&id=" + data.node.id +
             "&new_parent=" + data.parent +
             "&position=" + data.position
             )
@@ -125,7 +125,7 @@
               .jstree({
                 'core' : {
                   'data' : {
-                    "url" : "/mngtree?nestedocs=True&cmd=load_subbs",
+                    "url" : "/mngtree?tree_name={{curtree_name}}&nestedocs=true&cmd=load_subbs",
                     "data" : function (node) {
                         if (node.id == '#') {
                           return { "id" : branch_id };
@@ -146,23 +146,23 @@
                 */
               })
               .on("create_node.jstree", function (e, data) {
-                $.get("/mngtree?nestedocs=True&cmd=create_node&parent_id=" + data.parent, $.proxy(function(id) {
+                $.get("/mngtree?tree_name={{curtree_name}}&nestedocs=true&cmd=create_node&parent_id=" + data.parent, $.proxy(function(id) {
                   id = Number(id);
                   $(this).jstree(true).set_id(data.node, id);
                 }, this))
               })
               .on("delete_node.jstree", function (e, data) {
-                $.get("/mngtree?nestedocs=True&cmd=delete_node&id=" + data.node.id)
+                $.get("/mngtree?tree_name={{curtree_name}}&nestedocs=true&cmd=delete_node&id=" + data.node.id)
                 $(this).jstree(true).select_node(data.parent);
               })
               .on("after_close.jstree", function (e, data) {
-                $.get("/mngtree?nestedocs=True&cmd=fold&id=" + data.node.id)
+                $.get("/mngtree?tree_name={{curtree_name}}&nestedocs=true&cmd=fold&id=" + data.node.id)
               })
               .on("after_open.jstree", function (e, data) {
-                $.get("/mngtree?nestedocs=True&cmd=unfold&id=" + data.node.id)
+                $.get("/mngtree?tree_name={{curtree_name}}&nestedocs=true&cmd=unfold&id=" + data.node.id)
               })
               .on("move_node.jstree", function (e, data) {
-                $.get("/mngtree?nestedocs=True&cmd=move_node&id=" + data.node.id +
+                $.get("/mngtree?tree_name={{curtree_name}}&nestedocs=true&cmd=move_node&id=" + data.node.id +
                   "&new_parent=" + data.parent +
                   "&position=" + data.position
                   )
@@ -177,7 +177,7 @@
                 return clipboard;
               })
               .on("savedata.jstree", function (e, data) {
-                $.post("/mngtree", { nestedocs : "True", cmd : "save_data", id : data.id, data : data.text })
+                $.post("/mngtree", { tree_name : "{{curtree_name}}", nestedocs : "true", cmd : "save_data", id : data.id, data : data.text })
               });
           }
         });

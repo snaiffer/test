@@ -97,10 +97,16 @@ class Users(db.Model):
     db.session.add(self)
     db.session.commit()
 
-  def getTree(self, treeID):
+  def getTreeByID(self, treeID):
     tree = db.session.query(Tree).filter_by(owner_id=self.id).filter_by(id=treeID).scalar()
     if tree != None :
       self.set_latestTree(treeID)
+    return tree
+
+  def getTreeByName(self, treeName):
+    tree = db.session.query(Tree).filter_by(owner_id=self.id).filter_by(name=treeName).scalar()
+    if tree != None :
+      self.set_latestTree(tree.id)
     return tree
 
   def allTrees(self):
@@ -124,7 +130,7 @@ class Users(db.Model):
         return allT[0]
       else:
         return None
-    return self.getTree(self.latestTree_id)
+    return self.getTreeByID(self.latestTree_id)
 
   def removeAll(self):
     db.session.query(Users).delete()
@@ -385,12 +391,12 @@ def test(forestName = app.general.testdb):
     print('OK')
 
     sys.stdout.write("  ) Get tree for user:\t")
-    if ( alex.getTree(testTree2.id) == None ):
+    if ( alex.getTreeByID(testTree2.id) == None ):
       raise BaseException("The tree hasn't been got")
     print('OK')
 
     sys.stdout.write("  ) Tree protection from accessiong by another user (not owner):\t")
-    if ( alex.getTree(testTree3.id) != None):
+    if ( alex.getTreeByID(testTree3.id) != None):
       raise BaseException("Tree protection has faild")
     print('OK')
 
