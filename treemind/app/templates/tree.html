@@ -22,11 +22,15 @@
             <td>
               <img id="btnTree"
                 src="{{ url_for('static', filename='themes/default/tree/btnTree.png') }}"
-                alt="Tree manager" title="tree manager"/>
-              <select>
+                alt="The tree"/>
+              <select id="selectTrees">
                 {% if trees %}
                   {% for tree in trees %}
-                    <option>{{ tree.name }}</option>
+                    {% if tree.name == curtree_name %}
+                      <option selected="selected">{{ tree.name }}</option>
+                    {% else %}
+                      <option>{{ tree.name }}</option>
+                    {% endif %}
                   {% endfor %}
                 {% endif %}
               </select>
@@ -215,6 +219,11 @@
         });
         $('#btnLogOut').on('click', function(e) {
           location.href='/logout';
+        });
+        $('#selectTrees').on('change', function(e) {
+          var optionSelected = $("option:selected", this);
+          var valueSelected = this.value;
+          location.href='/trees/' + valueSelected;
         });
     });
     </script>

@@ -14,6 +14,7 @@
       <fieldset>
         <label for="treename">Tree name:</label>
         <input type="text" name="treename" id="treename" value="" class="text ui-widget-content ui-corner-all">
+        <p class='errField'></p>
 
         <!-- Allow form submission with keyboard without duplicating the dialog button -->
         <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
@@ -26,6 +27,7 @@
       <fieldset>
         <label for="newtreename">New tree name:</label>
         <input type="text" name="newtreename" id="newtreename" value="" class="text ui-widget-content ui-corner-all">
+        <p class='errField'></p>
 
         <!-- Allow form submission with keyboard without duplicating the dialog button -->
         <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
@@ -38,7 +40,9 @@
       {% if trees %}
         {% for tree in trees %}
         <div class='tree' tree_id='{{ tree.id }}'>
-          <p class='tree_name' tree_id='{{ tree.id }}'>{{ tree.name }}</p>
+          <a class='tree_name' tree_id='{{ tree.id }}'
+            href="{{ 'trees/' + tree.name }}"
+            >{{ tree.name }}</a>
           <img class='controlBtns btnRename' tree_id='{{ tree.id }}'
             src="{{ url_for('static', filename='themes/default/trees/btnRename.png') }}"
             alt="Rename tree" title="rename tree"/>
@@ -69,9 +73,10 @@
 
     function createTree() {
       $.get("/mngtrees?cmd=create_tree&name=" + treename.val(), function(tree) {
-        if (tree.id == undefined || tree.id == null) {
-          return false
+        if (tree.error != undefined && tree.error != null) {
+          $(".errField").text(tree.error);
         } else {
+          $(".errField").text("");
           $( "#listTrees" ).append(
             "<div class='tree' tree_id='" + tree.id + "'>" +
               "<p class='tree_name' tree_id='" + tree.id + "'>" + tree.name + "</p>" +
@@ -88,7 +93,7 @@
     }
     dialogCreateTree = $( "#dialogCreateTree" ).dialog({
       autoOpen: false,
-      height: 250,
+      height: 280,
       width: 350,
       modal: true,
       buttons: {
@@ -99,6 +104,7 @@
       },
       close: function() {
         formCreateTree[ 0 ].reset();
+        $(".errField").text("");
       }
     });
     formCreateTree = dialogCreateTree.find( "#formCreateTree" ).on( "submit", function( event ) {
@@ -108,9 +114,11 @@
 
     function renameTree() {
       newtreename = newtreename.val();
-      $.get("/mngtrees?cmd=rename_tree&tree_id=" + buf_tree_id + "&newname=" + newtreename, function(success) {
-        if ( success == false || success == undefined || success == null) {
-          return false
+      $.get("/mngtrees?cmd=rename_tree&tree_id=" + buf_tree_id + "&newname=" + newtreename, function(error) {
+        if (error == undefined || error == null) {
+          $(".errField").text("Undefined error");
+        } else if (error != '') {
+          $(".errField").text(error);
         } else {
           $("p[tree_id='" + buf_tree_id + "']").text(newtreename);
           dialogRenameTree.dialog( "close" );
@@ -119,7 +127,7 @@
     }
     dialogRenameTree = $( "#dialogRenameTree" ).dialog({
       autoOpen: false,
-      height: 250,
+      height: 280,
       width: 350,
       modal: true,
       buttons: {
@@ -130,6 +138,7 @@
       },
       close: function() {
         formRenameTree[ 0 ].reset();
+        $(".errField").text("");
       }
     });
     formRenameTree = dialogRenameTree.find( "#formRenameTree" ).on( "submit", function( event ) {

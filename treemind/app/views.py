@@ -198,13 +198,23 @@ def getList_subbsOf(branch, nestedocs_mode = False):
 
 
 @app.route('/')
+def main_page():
+  if g.user.is_authenticated():
+    return redirect(url_for('tree'))
+  else:
+    return redirect(url_for('about'))
+
 @app.route('/trees/<targettree>')
+@app.route('/trees/latesttree')
 @login_required
 def tree(targettree=None):
   user = g.user
+  if targettree == None or targettree == '':
+    targettree = user.get_latestTree().name
+  print('\n' + str(targettree) + '\n')
   return render_template("tree.html",
                           title='Tree',
-                          curtree=targettree,
+                          curtree_name=targettree,
                           trees=user.allTrees(),
                           user=user)
 
@@ -226,9 +236,12 @@ def mngtrees():
     cmd = request.args.get('cmd', default='', type=str)
 
     if cmd == "create_tree":
-      treename = request.args.get('name', default='NewTree', type=str)
-      createdTree = Tree(user, treename)
-      return jsonify({ 'id' : createdTree.id, 'name' : createdTree.name })
+      try:
+        treename = request.args.get('name', default='NewTree', type=str)
+        createdTree = Tree(user, treename)
+        return jsonify({ 'id' : createdTree.id, 'name' : createdTree.name })
+      except BaseException:
+        return jsonify({ 'error' : "Error: The tree with such name exists. Try another name.", })
     elif cmd == "remove_tree":
       try:
         tree_id = request.args.get('tree_id', default=None, type=int)
@@ -243,9 +256,9 @@ def mngtrees():
         newname = request.args.get('newname', default='Tree', type=str)
         tree = user.getTree(tree_id)
         tree.rename(newname)
-        return "True"
+        return ""
       except BaseException:
-        return "False"
+        return "Error: The tree with such name exists. Try another name."
 
   db.session.commit()
   return ""
@@ -264,9 +277,6 @@ def mngtree():
       curtree_id = request.args.get('tree_id', default=user.get_latestTree().id, type=int)
     except AttributeError as e:
       msg='Can\'t find any trees. Try to create one.'
-      print(msg)
-      print(e)
-      flash(msg)
       return ""
     curtree = user.getTree(curtree_id)
 

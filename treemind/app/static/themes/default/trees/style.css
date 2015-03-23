@@ -21,8 +21,13 @@
 }
 
 .tree_name {
+  text-decoration: none;
+  color: black;
   display: inline-block;
   margin: 8px;
+}
+.tree_name:hover {
+  background-color: orange;
 }
 
 .tree:hover > .controlBtns {
@@ -36,4 +41,12 @@
 .controlBtns:hover {
   background-color: orange;
   height: 1.4em;
+}
+
+.errField {
+  font-size: 0.8em;
+  text-align: left;
+  color: red;
+  margin: 0;
+  padding: 0;
 }
