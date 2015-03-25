@@ -90,8 +90,14 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 	 */
 	$.jstree.create = function (el, options) {
 
+    // remove first button if it is there
+    var prevEl = $(el).prev();
+    if ( prevEl.hasClass('lineAddBranch') ) {
+      prevEl.remove();
+    }
     // the first button for adding a new branch
     $(el).before("<div class='lineAddBranch' tree='null'><div class='lineAddBranch_appearence'></div></div>");
+
 		var newTree = new $.jstree.core(++instance_counter),
 			opt = options;
 		options = $.extend(true, {}, $.jstree.defaults, options);
@@ -112,7 +118,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
       var contextmenu = curtree.settings.contextmenu.items();
       contextmenu.add_branch.action(curtree.get_node('#'), curtree);
     });
-    $(".lineAddBranch[tree='" + newTree.element[0].id + "']").remove();
     $(".lineAddBranch[tree='null']").attr('tree', newTree.element[0].id);
 
 		return newTree;
