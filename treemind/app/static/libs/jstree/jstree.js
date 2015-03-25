@@ -89,6 +89,9 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 	 * @return {jsTree} the new instance
 	 */
 	$.jstree.create = function (el, options) {
+
+    // the first button for adding a new branch
+    $(el).before("<div class='lineAddBranch' tree='null'><div class='lineAddBranch_appearence'></div></div>");
 		var newTree = new $.jstree.core(++instance_counter),
 			opt = options;
 		options = $.extend(true, {}, $.jstree.defaults, options);
@@ -102,6 +105,16 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			}
 		});
 		newTree.init(el, options);
+
+    // to identify for which tree to add a new branch
+    $(".lineAddBranch[tree='null']").on('click', function() {
+      var curtree = $.jstree.reference('#' + $(this).attr('tree'))
+      var contextmenu = curtree.settings.contextmenu.items();
+      contextmenu.add_branch.action(curtree.get_node('#'), curtree);
+    });
+    $(".lineAddBranch[tree='" + newTree.element[0].id + "']").remove();
+    $(".lineAddBranch[tree='null']").attr('tree', newTree.element[0].id);
+
 		return newTree;
 	};
 	/**
@@ -1255,6 +1268,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 * @return {Boolean}
 		 */
 		_load_node : function (obj, callback) {
+      console.log("_load_node");
 			var s = this.settings.core.data, t;
 			if(typeof s === 'object') {
 				if(s.url) {
@@ -1319,7 +1333,9 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 * @trigger model.jstree, changed.jstree
 		 */
 		_append_json_data : function (dom, data, cb, force_processing) {
+      console.log('_append_json_data');
 			dom = this.get_node(dom);
+      console.log(dom);
 			dom.children = [];
 			dom.children_d = [];
 			// *%$@!!!
@@ -2077,6 +2093,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				}
 			}
 
+      console.log('redraw_node');
       if ( this.element.hasClass("cke_sup") ) {
         node.childNodes[1].innerHTML = this.wrapText_forckeditor(node.childNodes[1].id.replace("_anchor", ""), obj.text);
       } else {
@@ -3173,7 +3190,11 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 * @trigger model.jstree, create_node.jstree
 		 */
 		create_node : function (par, node, pos, callback, is_loaded) {
-			if(par === null) { par = "#"; }
+      console.log('create_node');
+      console.log(par);
+      console.log(node);
+      console.log(pos);
+			if(par === null || par === false) { par = "#"; }
 			par = this.get_node(par);
 			if(!par) { return false; }
 			pos = pos === undefined ? "last" : pos;
@@ -4887,10 +4908,12 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 					"label"				: "Add branch",
 					"shortcut"			: '45',
 					"shortcut_label"	: 'Ins',
-					"action"			: function (data) {
+					"action"			: function (data, inst) {
             var prep_data = ( ! data.reference ) ? data : data.reference;
-            var inst = $.jstree.reference(prep_data),
-                obj = inst.get_node(prep_data);
+            if (inst === undefined || inst === null) {
+              inst = $.jstree.reference(prep_data);
+            }
+            var obj = inst.get_node(prep_data);
             inst.create_node(inst.get_parent(obj), {}, "last");
 					}
 				},

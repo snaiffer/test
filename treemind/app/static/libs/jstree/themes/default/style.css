@@ -1107,3 +1107,19 @@ p {
   border-color: orange;
   background: linear-gradient(#FFEBD6, white);
 }
+
+.lineAddBranch_appearence {
+  visibility: hidden;
+  background-color: orange;
+  height: 2px;
+  margin: 3px 10px 3px 20px;
+}
+.lineAddBranch {
+  padding: 1px 0px 1px 0px;
+  cursor: crosshair;
+}
+.lineAddBranch:hover > .lineAddBranch_appearence {
+  visibility: visible;
+}
+
+
