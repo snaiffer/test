@@ -79,7 +79,9 @@
           $(".errField").text("");
           $( "#listTrees" ).append(
             "<div class='tree' tree_id='" + tree.id + "'>" +
-              "<p class='tree_name' tree_id='" + tree.id + "'>" + tree.name + "</p>" +
+              "<a class='tree_name' tree_id='" + tree.id + "'" +
+                "href=\"trees/" + tree.name +
+                "\">" + tree.name + "</a>" +
               "<img class='controlBtns btnRename' tree_id='" + tree.id + "'" +
                 "src='static/themes/default/trees/btnRename.png'" +
                 "alt='Rename tree' title='rename tree'/>" +

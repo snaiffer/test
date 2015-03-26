@@ -1273,7 +1273,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 * @return {Boolean}
 		 */
 		_load_node : function (obj, callback) {
-      console.log("_load_node");
 			var s = this.settings.core.data, t;
 			if(typeof s === 'object') {
 				if(s.url) {
@@ -1338,9 +1337,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 * @trigger model.jstree, changed.jstree
 		 */
 		_append_json_data : function (dom, data, cb, force_processing) {
-      console.log('_append_json_data');
 			dom = this.get_node(dom);
-      console.log(dom);
 			dom.children = [];
 			dom.children_d = [];
 			// *%$@!!!
@@ -2098,7 +2095,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 				}
 			}
 
-      console.log('redraw_node');
       if ( this.element.hasClass("cke_sup") ) {
         node.childNodes[1].innerHTML = this.wrapText_forckeditor(node.childNodes[1].id.replace("_anchor", ""), obj.text);
       } else {
@@ -3183,88 +3179,80 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			}
 			return options && options.flat ? flat : (obj.id === '#' ? tmp.children : tmp);
 		},
-		/**
+		/*
 		 * create a new node (do not confuse with load_node)
-		 * @name create_node([obj, node, pos, callback, is_loaded])
-		 * @param  {mixed}   par       the parent node (to create a root node use either "#" (string) or `null`)
-		 * @param  {mixed}   node      the data for the new node (a valid JSON object, or a simple string with the name)
-		 * @param  {mixed}   pos       the index at which to insert the node, "first" and "last" are also supported, default is "last"
-		 * @param  {Function} callback a function to be called once the node is created
-		 * @param  {Boolean} is_loaded internal argument indicating if the parent node was succesfully loaded
-		 * @return {String}            the ID of the newly create node
+    initNode  -- the node from which creation was initilised.
+      = '#'   -- it will be root
+    pos       -- position of a new node
+      = 'after'   -- create a new node after 'initNode' at the same level
+      = 'under'   -- create a new node as a child of 'initNode'
+      'after' by default
+    node      -- the data for the new node (a valid JSON object, or a simple string with the name)
+    callback -- a function to be called once the node is created
+
+    Ex.:
+      create_node('#', 'under', 'New node');
+     *
 		 * @trigger model.jstree, create_node.jstree
 		 */
-		create_node : function (par, node, pos, callback, is_loaded) {
+		create_node : function (initNode, node, pos, callback) {
       console.log('create_node');
-      console.log(par);
+      console.log(initNode);
       console.log(node);
       console.log(pos);
-			if(par === null || par === false) { par = "#"; }
-			par = this.get_node(par);
-			if(!par) { return false; }
-			pos = pos === undefined ? "last" : pos;
-			if(!pos.toString().match(/^(before|after)$/) && !is_loaded && !this.is_loaded(par)) {
-				return this.load_node(par, function () { this.create_node(par, node, pos, callback, true); });
-			}
-      //if(!node) { node = { "text" : this.get_string('New branch') }; }
+      console.log('======');
+			if(initNode === null || initNode === false) { initNode = "#"; }
+			initNode = this.get_node(initNode);
+			if(!initNode) { return false; }
+			pos = pos === undefined ? "after" : pos;
+
       if(!node) { node = { "text" : ''}; }
       if(typeof node === "string") { node = { "text" : node }; }
-      //if(node.text === undefined) { node.text = this.get_string('New branch'); }
       if(node.text === undefined) { node.text = '' }
-			var tmp, dpc, i, j;
 
-			if(par.id === '#') {
-				if(pos === "before") { pos = "first"; }
-				if(pos === "after") { pos = "last"; }
-			}
-			switch(pos) {
-				case "before":
-					tmp = this.get_node(par.parent);
-					pos = $.inArray(par.id, tmp.children);
-					par = tmp;
-					break;
-				case "after" :
-					tmp = this.get_node(par.parent);
-					pos = $.inArray(par.id, tmp.children) + 1;
-					par = tmp;
-					break;
-				case "inside":
-				case "first":
-					pos = 0;
-					break;
-				case "last":
-					pos = par.children.length;
-					break;
-				default:
-					if(!pos) { pos = 0; }
-					break;
-			}
-			if(pos > par.children.length) { pos = par.children.length; }
+			if( initNode == '#' || initNode.id === '#') { pos = 'under'; }
+      initNode = this.get_node(initNode);
+
+      var posNum;
+      var par;
+      switch(pos) {
+        case 'under':
+          par = initNode;
+          posNum = initNode.children.length;
+          break;
+        case 'after':
+        default:
+          par = this.get_node(initNode.parent);
+          posNum = $.inArray(initNode.id, par.children) + 1;
+          break;
+      }
+
+      // check if it is allowed
 			if(!node.id) { node.id = true; }
 			if(!this.check("create_node", node, par, pos)) {
 				this.settings.core.error.call(this, this._data.core.last_error);
 				return false;
 			}
-			if(node.id === true) { delete node.id; }
-			node = this._parse_model_from_json(node, par.id, par.parents.concat());
-			if(!node) { return false; }
-			tmp = this.get_node(node);
-			dpc = [];
-			dpc.push(node);
-			dpc = dpc.concat(tmp.children_d);
-			this.trigger('model', { "nodes" : dpc, "parent" : par.id });
 
-			par.children_d = par.children_d.concat(dpc);
-			for(i = 0, j = par.parents.length; i < j; i++) {
-				this._model.data[par.parents[i]].children_d = this._model.data[par.parents[i]].children_d.concat(dpc);
+      // get ID of a new node
+			if(node.id === true) { delete node.id; }
+			var nodeID = this._parse_model_from_json(node, par.id, par.parents.concat());
+			if(!nodeID) { return false; }
+
+      // do some stuff for supporting jstree model
+			this.trigger('model', { "nodes" : nodeID, "parent" : par });
+
+			par.children_d = par.children_d.concat(nodeID);
+			for(var i = 0; i < par.parents.length; i++) {
+				this._model.data[par.parents[i]].children_d = this._model.data[par.parents[i]].children_d.concat(nodeID);
 			}
-			node = tmp;
-			tmp = [];
-			for(i = 0, j = par.children.length; i < j; i++) {
-				tmp[i >= pos ? i+1 : i] = par.children[i];
+			node = this.get_node(nodeID);
+			var new_children = [];
+			for(var i = 0; i < par.children.length; i++) {
+				new_children[i >= posNum ? i+1 : i] = par.children[i];
 			}
-			tmp[pos] = node.id;
-			par.children = tmp;
+			new_children[posNum] = node.id;
+			par.children = new_children;
 
       par.state.opened = true;
 			var newid  = this.redraw_node(par, true);
@@ -3277,7 +3265,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			 * @param {String} parent the parent's ID
 			 * @param {Number} position the position of the new node among the parent's children
 			 */
-			this.trigger('create_node', { "node" : this.get_node(node), "parent" : par.id, "position" : pos });
+			this.trigger('create_node', { "node" : this.get_node(node), "parent" : par.id, "position" : posNum });
 			return node.id;
 		},
 		/**
@@ -4919,7 +4907,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
               inst = $.jstree.reference(prep_data);
             }
             var obj = inst.get_node(prep_data);
-            inst.create_node(inst.get_parent(obj), {}, "last");
+            inst.create_node(obj, {}, "after");
 					}
 				},
 				"add_subbranch" : {
@@ -4933,7 +4921,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
             var prep_data = ( ! data.reference ) ? data : data.reference;
             var inst = $.jstree.reference(prep_data),
                 obj = inst.get_node(prep_data);
-            inst.create_node(obj, {}, "last");
+            inst.create_node(obj, {}, "under");
 					}
 				},
 				"rename" : {
