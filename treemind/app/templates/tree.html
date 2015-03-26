@@ -92,7 +92,10 @@
           $(this).jstree(true).select_node('2'); //Replaced 2 for the latest used branch_id from the last session
         })
         .on("create_node.jstree", function (e, data) {
-          $.get("/mngtree?tree_name={{curtree_name}}&nestedocs=false&cmd=create_node&parent_id=" + data.parent, $.proxy(function(id) {
+          $.get("/mngtree?tree_name={{curtree_name}}&nestedocs=false&cmd=create_node" +
+            "&position=" + data.position +
+            "&parent_id=" + data.parent
+            , $.proxy(function(id) {
             id = Number(id);
             $(this).jstree(true).set_id(data.node, id);
           }, this))
@@ -112,8 +115,8 @@
         })
         .on("move_node.jstree", function (e, data) {
           $.get("/mngtree?tree_name={{curtree_name}}&nestedocs=false&cmd=move_node&id=" + data.node.id +
-            "&new_parent=" + data.parent +
-            "&position=" + data.position
+            "&position=" + data.position +
+            "&new_parent=" + data.parent
             )
         })
         .on("changed.jstree", function (e, data) {

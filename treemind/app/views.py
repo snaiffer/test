@@ -343,6 +343,8 @@ def mngtree():
           parent_id = request.args.get('parent_id', default=curtree.rootb_id, type=int)
           parentB = curtree.getB(parent_id)
           newB = Branch(main = True, parent_id = parent_id)
+          position = request.args.get('position', default=-1, type=int)
+          newB.move(pos=position)
           return str( newB.id )
         if cmd == "delete_node":
           branch = curtree.getB(id)
