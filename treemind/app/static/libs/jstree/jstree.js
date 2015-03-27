@@ -116,7 +116,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
     $(".lineAddBranch[tree='null']").on('click', function() {
       var curtree = $.jstree.reference('#' + $(this).attr('tree'))
       var contextmenu = curtree.settings.contextmenu.items();
-      contextmenu.add_branch.action(curtree.get_node('#'), curtree);
+      contextmenu.add_branch.action(curtree.get_node('#'), curtree, 'under_first');
     });
     $(".lineAddBranch[tree='null']").attr('tree', newTree.element[0].id);
 
@@ -2103,6 +2103,20 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
         node.childNodes[1].innerHTML += new_innerHTML;
       }
 
+      var lineAddBranch = "<div class='lineAddBranch' node_id='" + obj.id +"'><div class='lineAddBranch_appearence'></div></div>";
+      node.childNodes[1].innerHTML += lineAddBranch;
+
+      var curtree = this;
+      //$(".lineAddBranch[nodeID=" + obj.id + "]").on('click', function() {
+      $(".lineAddBranch").on('click', function() {
+        console.log("lineAddBranch");
+        console.log($(this).attr('node_id'));
+        var initNodeID = $(this).attr('node_id');
+        var contextmenu = curtree.settings.contextmenu.items();
+        contextmenu.add_branch.action(curtree.get_node(initNodeID), curtree, 'after');
+
+      });
+
 			if(deep && obj.children.length && (obj.state.opened || force_render) && obj.state.loaded) {
 				k = d.createElement('UL');
 				k.className = 'jstree-children';
@@ -3186,6 +3200,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
     pos       -- position of a new node
       = 'after'   -- create a new node after 'initNode' at the same level
       = 'under'   -- create a new node as a child of 'initNode'
+      = 'under_first'   -- create a new node as a child of 'initNode' but insert into the first position
       'after' by default
     node      -- the data for the new node (a valid JSON object, or a simple string with the name)
     callback -- a function to be called once the node is created
@@ -3210,7 +3225,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
       if(typeof node === "string") { node = { "text" : node }; }
       if(node.text === undefined) { node.text = '' }
 
-			if( initNode == '#' || initNode.id === '#') { pos = 'under'; }
+			if( pos == 'after' && (initNode == '#' || initNode.id === '#')) { pos = 'under'; }
       initNode = this.get_node(initNode);
 
       var posNum;
@@ -3219,6 +3234,10 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
         case 'under':
           par = initNode;
           posNum = initNode.children.length;
+          break;
+        case 'under_first':
+          par = initNode;
+          posNum = 0;
           break;
         case 'after':
         default:
@@ -4901,13 +4920,14 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 					"label"				: "Add branch",
 					"shortcut"			: '45',
 					"shortcut_label"	: 'Ins',
-					"action"			: function (data, inst) {
+					"action"			: function (data, inst, pos) {
             var prep_data = ( ! data.reference ) ? data : data.reference;
             if (inst === undefined || inst === null) {
               inst = $.jstree.reference(prep_data);
             }
             var obj = inst.get_node(prep_data);
-            inst.create_node(obj, {}, "after");
+            if ( pos != 'under_first') { pos = 'after'; }
+            inst.create_node(obj, {}, pos);
 					}
 				},
 				"add_subbranch" : {
