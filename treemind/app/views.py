@@ -332,38 +332,28 @@ def mngtree():
       new_parent_id = request.args.get('new_parent', default=curtree.rootb_id, type=int)
       position = request.args.get('position', default=-1, type=int)
       b.move(new_parent_id, position)
+    elif cmd == "load_data":
+      return curtree.getB(id).text
+    elif cmd == "delete_node":
+      branch = curtree.getB(id)
+      branch.remove()
+    elif cmd == "create_node":
+      parent_id = request.args.get('parent_id', default=curtree.rootb_id, type=int)
+      parentB = curtree.getB(parent_id)
+      newB = Branch(main = (not nestedocs), parent_id = parent_id)
+      position = request.args.get('position', default=-1, type=int)
+      newB.move(pos=position)
+      return str( newB.id )
     else:
       if not nestedocs :
         if cmd == "load_subbs":
           return json.dumps(getList_subbsOf(curtree.getB(id), nestedocs))
           #curtree.set_latestB(id)
-        if cmd == "load_data":
-          return curtree.getB(id).text
-        if cmd == "create_node":
-          parent_id = request.args.get('parent_id', default=curtree.rootb_id, type=int)
-          parentB = curtree.getB(parent_id)
-          newB = Branch(main = True, parent_id = parent_id)
-          position = request.args.get('position', default=-1, type=int)
-          newB.move(pos=position)
-          return str( newB.id )
-        if cmd == "delete_node":
-          branch = curtree.getB(id)
-          branch.remove()
       else:
         if cmd == "load_subbs":
           return json.dumps(getList_subbsOf(curtree.getB(id), nestedocs))
-        if cmd == "load_data":
-          return curtree.getB(id).text
         if cmd == "save_data":
           curtree.getB(id).text = data
-        if cmd == "create_node":
-          parent_id = request.args.get('parent_id', default=curtree.rootb_id, type=int)
-          parentB = curtree.getB(parent_id)
-          newB = Branch(main = False, parent_id = parent_id)
-          return str( newB.id )
-        if cmd == "delete_node":
-          branch = curtree.getB(id)
-          branch.remove()
   db.session.commit()
   return ""
 
