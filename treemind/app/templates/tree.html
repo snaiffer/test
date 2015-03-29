@@ -149,6 +149,7 @@
                 */
               })
               .on("create_node.jstree", function (e, data) {
+                if ( data.parent == '#' ) { data.parent = branch_id; }
                 $.get("/mngtree?tree_name={{curtree_name}}&nestedocs=true&cmd=create_node" +
                   "&position=" + data.position +
                   "&parent_id=" + data.parent
@@ -169,8 +170,8 @@
               })
               .on("move_node.jstree", function (e, data) {
                 $.get("/mngtree?tree_name={{curtree_name}}&nestedocs=true&cmd=move_node&id=" + data.node.id +
-                  "&new_parent=" + data.parent +
-                  "&position=" + data.position
+                  "&position=" + data.position +
+                  "&new_parent=" + data.parent
                   )
               })
               .on("clipboard_save.jstree", function (e, data) {
