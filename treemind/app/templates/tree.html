@@ -89,7 +89,7 @@
         })
         // invoked after jstree has loaded
         .on("ready.jstree", function (e, data) {
-          $(this).jstree(true).select_node('2'); //Replaced 2 for the latest used branch_id from the last session
+          $(this).jstree(true).select_node({{latestUsedB}});
         })
         .on("create_node.jstree", function (e, data) {
           $.get("/mngtree?tree_name={{curtree_name}}&nestedocs=false&cmd=create_node" +

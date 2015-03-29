@@ -204,20 +204,23 @@ def main_page():
   else:
     return redirect(url_for('about'))
 
-@app.route('/trees/<targettree>')
+@app.route('/trees/<tree_name>')
 @app.route('/trees/latesttree')
 @login_required
-def tree(targettree=None):
+def tree(tree_name=None):
   user = g.user
-  if targettree == None or targettree == '':
-    targettree = user.get_latestTree().name
-  elif user.getTreeByName(targettree) == None:
+  if tree_name == None or tree_name == '':
+    tree_name = user.get_latestTree().name
+
+  tree = user.getTreeByName(tree_name)
+  if tree == None:
       return ""
   return render_template("tree.html",
                           title='Tree',
-                          curtree_name=targettree,
+                          curtree_name=tree_name,
                           trees=user.allTrees(),
-                          user=user)
+                          user=user,
+                          latestUsedB=tree.get_latestB().id)
 
 @app.route('/trees')
 @login_required
@@ -344,16 +347,15 @@ def mngtree():
       position = request.args.get('position', default=-1, type=int)
       newB.move(pos=position)
       return str( newB.id )
+    if cmd == "load_subbs":
+      curtree.set_latestB(id)
+      return json.dumps(getList_subbsOf(curtree.getB(id), nestedocs))
     else:
-      if not nestedocs :
-        if cmd == "load_subbs":
-          return json.dumps(getList_subbsOf(curtree.getB(id), nestedocs))
-          #curtree.set_latestB(id)
-      else:
-        if cmd == "load_subbs":
-          return json.dumps(getList_subbsOf(curtree.getB(id), nestedocs))
+      if nestedocs :
         if cmd == "save_data":
           curtree.getB(id).text = data
+        else:
+          pass
   db.session.commit()
   return ""
 

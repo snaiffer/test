@@ -172,8 +172,11 @@ class Tree(db.Model):
     return rootb
 
   def set_latestB(self, id):
-    self.latestB_id = id
-    db.session.commit()
+    while self.getB(id).main == False:
+      id = self.getB(id).parent_id
+    if id != self.rootb_id:
+      self.latestB_id = id
+      db.session.commit()
 
   def get_latestB(self):
     """ get the branch which has been used at the lastest time """
