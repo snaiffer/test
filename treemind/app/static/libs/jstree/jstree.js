@@ -2164,7 +2164,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
       var parentID = this.get_node(node).parent;
       var parentObj = this.get_node(parentID);
       var firstChild_ofParent = parentObj.children[0];
-      if ( nodeID == firstChild_ofParent ) {
+      if ( nodeID == firstChild_ofParent && parentID != '#') {
         $(node).prepend("<div class='lineAddBranch'" +
             " pos='before'" +
             " node_id='" + nodeID +"'>" +
