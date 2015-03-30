@@ -3125,7 +3125,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 * @trigger set_text.jstree
 		 */
 		set_text : function (obj, val) {
-      console.log("set_text");
 			if($.isArray(obj)) {
 				for(var i = 0; i < obj.length; i++) {
 					this.set_text(obj[i], val);
@@ -6550,9 +6549,10 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
           var orig_id = this.id;
           data.id = orig_id.replace("_edit", "");
           data.text = this.innerHTML;
-
+          // for compatibility with jstree
           var tree = $.jstree.reference(data.id);
           tree.set_text(tree.get_node(data.id), data.text);
+          //
           $(this).trigger('savedata.jstree', data);
 
           var curB = e.currentTarget.id.replace('_edit', '_anchor')
@@ -6576,6 +6576,10 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
               //console.log(e.which + " shift:" + e.shiftKey);
               break;
           }
+        });
+        // before reload the web-page
+        $(window).unload(function() {
+          $(".jstree-editable").trigger('blur');
         });
     };
 
