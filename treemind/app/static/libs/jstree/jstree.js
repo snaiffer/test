@@ -3125,16 +3125,18 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		 * @trigger set_text.jstree
 		 */
 		set_text : function (obj, val) {
+      console.log("set_text");
 			if($.isArray(obj)) {
 				for(var i = 0; i < obj.length; i++) {
 					this.set_text(obj[i], val);
 				}
 				return true;
 			}
+
 			obj = this.get_node(obj);
 			if(!obj || obj.id === '#') { return false; }
 			obj.text = val;
-      $("#" + obj.id + "_text")[0].innerHTML = val;
+      //$("#" + obj.id + "_text")[0].innerHTML = val;
 			/**
 			 * triggered when a node text value is changed
 			 * @event
@@ -4944,16 +4946,16 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
               = 'under'   -- create a new node as a child of 'initNode'
               = 'under_first'   -- create a new node as a child of 'initNode' but insert into the first position
               'after' by default
-            inst   -- obj of the tree in which a new branches will be inserted
-                     Generaly 'inst' will be identified automatically, but you can to declare it straight
+            tree   -- obj of the tree in which a new branches will be inserted
+                     Generaly 'tree' will be identified automatically, but you can to declare it straight
            */
-					"action"			: function (initNode, pos, inst) {
+					"action"			: function (initNode, pos, tree) {
             //var initNode = ( ! initNode.reference ) ? initNode : initNode.reference;
-            if (inst === undefined || inst === null) {
-              inst = $.jstree.reference(initNode);
+            if (tree === undefined || tree === null) {
+              tree = $.jstree.reference(initNode);
             }
-            var initNodeObj = inst.get_node(initNode);
-            inst.create_node(initNodeObj, {}, pos);
+            var initNodeObj = tree.get_node(initNode);
+            tree.create_node(initNodeObj, {}, pos);
 					}
 				},
 				"add_subbranch" : {
@@ -6548,6 +6550,9 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
           var orig_id = this.id;
           data.id = orig_id.replace("_edit", "");
           data.text = this.innerHTML;
+
+          var tree = $.jstree.reference(data.id);
+          tree.set_text(tree.get_node(data.id), data.text);
           $(this).trigger('savedata.jstree', data);
 
           var curB = e.currentTarget.id.replace('_edit', '_anchor')
