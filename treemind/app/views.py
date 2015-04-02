@@ -2,7 +2,7 @@
 from flask import render_template, flash, redirect, session, url_for, request, g, jsonify
 from app import app, db, loader_manager
 from app.forms import *
-from app.models import Users, Tree, Branch, getUser
+from app.models import Users, Tree, Branch
 from flask.ext.login import login_user, logout_user, current_user, login_required
 import json
 
@@ -122,7 +122,7 @@ def logout():
 @login_required
 def removeuser():
   user = g.user
-  user = getUser(email=user.email)
+  user = Users.getUser(email=user.email)
   user.remove()
   return redirect(url_for('about'))
 
@@ -155,19 +155,26 @@ def for_test():
     b3 = Branch(text="branch3_" + str(curT.name), main=True, parent=rootb)
     b31 = Branch(text="branch31_" + str(curT.name), parent=b3)
 
-def getList_subbsOf(branch, nestedocs_mode = False):
+def getList_subbsOf(branch, nestedocs_mode = False, withReadLabel = False):
   """
   getList of subbranches of "branch" in format for jstree
   nestedocs_mode:
     == True   --output not main branches only
     == False  --output main branches only
+  withReadLabel   -- output branches with "read field" == True
   """
   def getDict(branch):
+    nonlocal withReadLabel
+
     if nestedocs_mode :
       if branch.main:
         return None
     else:
       if not branch.main :
+        return None
+
+    if withReadLabel:
+      if not branch.read :
         return None
 
     dict = {}
@@ -212,15 +219,38 @@ def tree(tree_name=None):
   if tree_name == None or tree_name == '':
     tree_name = user.get_latestTree().name
 
-  tree = user.getTreeByName(tree_name)
+  tree = user.getTree(name=tree_name)
   if tree == None:
       return ""
   return render_template("tree.html",
                           title='Tree',
-                          curtree_name=tree_name,
+                          curtree=tree,
                           trees=user.allTrees(),
                           user=user,
                           latestUsedB=tree.get_latestB().id)
+
+@app.route('/<user_name>/<tree_name>/<int:branch_id>')
+def showBranch_byPath(user_name=None, tree_name=None, branch_id=None):
+  user = None
+  trees = None
+  if g.user is not None and g.user.is_authenticated():
+    user = g.user
+    trees = user.allTrees()
+
+  tree_owner = Users.getUser(nickname = user_name)
+  if tree_owner != None:
+    tree = tree_owner.getTree(name=tree_name)
+    if tree != None:
+      branch = tree.getB(branch_id)
+      if branch != None:
+        return render_template("tree.html",
+                                title='Tree',
+                                curtree=tree,
+                                trees=trees,
+                                user=user,
+                                latestUsedB=branch.id)
+  flash("Can't find the branch by current path")
+  return render_template("base.html")
 
 @app.route('/trees')
 @login_required
@@ -234,7 +264,7 @@ def trees():
 @app.route('/mngtrees', methods = ['GET', 'POST'])
 @login_required
 def mngtrees():
-  user = getUser(email=g.user.email)
+  user = Users.getUser(email=g.user.email)
 
   if request.method == "GET":
     cmd = request.args.get('cmd', default='', type=str)
@@ -242,7 +272,7 @@ def mngtrees():
     if cmd == "create_tree":
       try:
         treename = request.args.get('name', default='NewTree', type=str)
-        if user.getTreeByName(treename) != None:
+        if user.getTree(name=treename) != None:
           raise BaseException
         createdTree = Tree(user, treename)
         return jsonify({ 'id' : createdTree.id, 'name' : createdTree.name })
@@ -251,7 +281,7 @@ def mngtrees():
     elif cmd == "remove_tree":
       try:
         tree_id = request.args.get('tree_id', default=None, type=int)
-        tree = user.getTreeByID(tree_id)
+        tree = user.getTree(id=tree_id)
         tree.remove()
         return "True"
       except BaseException:
@@ -260,9 +290,9 @@ def mngtrees():
       try:
         tree_id = request.args.get('tree_id', default=None, type=int)
         newname = request.args.get('newname', default='Tree', type=str)
-        if user.getTreeByName(newname) != None:
+        if user.getTree(name=newname) != None:
           raise BaseException
-        tree = user.getTreeByID(tree_id)
+        tree = user.getTree(id=tree_id)
         tree.rename(newname)
         return ""
       except BaseException:
@@ -271,23 +301,20 @@ def mngtrees():
   db.session.commit()
   return ""
 
-
-
 @app.route('/mngtree', methods = ['GET', 'POST'])
-@login_required
 def mngtree():
-  user = g.user
-
   #for_test()
 
+  # get data from request
+  ## via GET method
   if request.method == "GET":
+    # curtree_id is require only for cases when jstree return '#' as a sign of root branch_id. To get rid of it we have to rewrite a big part of jstree
     try:
-      curtree_name = request.args.get('tree_name', default=user.get_latestTree().name, type=str)
+      curtree_id = request.args.get('tree_id', default='', type=str)
     except AttributeError as e:
       msg='Can\'t find any trees. Try to create one.'
       print('\n' + str(msg) + '\n')
       return ""
-    curtree = user.getTreeByName(curtree_name)
 
     import app.general
     nestedocs = app.general.str2bool(request.args.get('nestedocs', default='False', type=str))
@@ -297,23 +324,25 @@ def mngtree():
     # after integration with flask symbole '%' has started to add to id. So we need to remove it
     if id[:1] == "%":
       id = int(id[1:])
-    if id == '#' or id == None:
+    if id == '#' or id == None or id == '':
+      curtree = Tree.getTree(id = curtree_id)
       id = curtree.rootb_id
 
     data = request.args.get('data', default='', type=str)
 
+  ## via POST method
   else:
     form = SaveDataForm(request.form)
     if request.method == "POST" and form.validate():
-      curtree_name = form.curtree_name.data
-      if curtree_name == '':
-        curtree_name = user.get_latestTree().name
-      curtree = user.getTreeByName(curtree_name)
-
       nestedocs = form.nestedocs.data
       cmd = form.cmd.data
       id = form.id.data
       data = form.data.data
+  ##
+
+  branch = Branch.get(id=id)
+  curtree = Tree.getTree(id=branch.tree_id)
+  tree_owner = curtree.owner
 
   """
   cmd = "load_subbs"
@@ -321,24 +350,33 @@ def mngtree():
   id = '#'
   """
 
+  # set permission for actions
+  if g.user is not None and g.user.is_authenticated():
+    curuser = g.user
+  else:
+    curuser = 'guest'
+
+  owner = True
+  if tree_owner.id != curuser.id:
+    owner = False
+    if not ( branch.read and cmd == "load_subbs" ):
+      cmd = ''
+  #
+
   if cmd != "" :
     if cmd == "fold":
-      b = curtree.getB(id)
-      b.folded = True
+      branch.folded = True
     elif cmd == "unfold":
-      b = curtree.getB(id)
-      b.folded = False
+      branch.folded = False
     elif cmd == "rename_node":
-      curtree.getB(id).text = data
+      branch.text = data
     elif cmd == "move_node":
-      b = curtree.getB(id)
       new_parent_id = request.args.get('new_parent', default=curtree.rootb_id, type=int)
       position = request.args.get('position', default=-1, type=int)
-      b.move(new_parent_id, position)
+      branch.move(new_parent_id, position)
     elif cmd == "load_data":
-      return curtree.getB(id).text
+      return branch.text
     elif cmd == "delete_node":
-      branch = curtree.getB(id)
       branch.remove()
     elif cmd == "create_node":
       parent_id = request.args.get('parent_id', default=curtree.rootb_id, type=int)
@@ -347,13 +385,13 @@ def mngtree():
       position = request.args.get('position', default=-1, type=int)
       newB.move(pos=position)
       return str( newB.id )
-    if cmd == "load_subbs":
+    elif cmd == "load_subbs":
       curtree.set_latestB(id)
-      return json.dumps(getList_subbsOf(curtree.getB(id), nestedocs))
+      return json.dumps(getList_subbsOf(branch, nestedocs, withReadLabel=(not owner)))
     else:
       if nestedocs :
         if cmd == "save_data":
-          curtree.getB(id).text = data
+          branch.text = data
         else:
           pass
   db.session.commit()

@@ -54,10 +54,6 @@ class Forest(object):
   def allTrees(self):
     return db.session.query(Tree).all()
 
-def getUser(email):
-  user = db.session.query(Users).filter_by(email=email).scalar()
-  return user
-
 class Users(db.Model):
   __tablename__ = 'users'
   id = db.Column(db.Integer, primary_key=True)
@@ -97,16 +93,17 @@ class Users(db.Model):
     db.session.add(self)
     db.session.commit()
 
-  def getTreeByID(self, treeID):
-    tree = db.session.query(Tree).filter_by(owner_id=self.id).filter_by(id=treeID).scalar()
-    if tree != None :
-      self.set_latestTree(treeID)
-    return tree
+  def getTree(self, id=None, name=None):
+    if id != None:
+      tree = db.session.query(Tree).filter_by(owner_id=self.id).filter_by(id=id).scalar()
+    elif name != None:
+      tree = db.session.query(Tree).filter_by(owner_id=self.id).filter_by(name=name).scalar()
+    else:
+      return None
 
-  def getTreeByName(self, treeName):
-    tree = db.session.query(Tree).filter_by(owner_id=self.id).filter_by(name=treeName).scalar()
-    if tree != None :
+    if tree != None:
       self.set_latestTree(tree.id)
+
     return tree
 
   def allTrees(self):
@@ -130,13 +127,20 @@ class Users(db.Model):
         return allT[0]
       else:
         return None
-    return self.getTreeByID(self.latestTree_id)
+    return self.getTree(id = self.latestTree_id)
 
   def removeAll(self):
     db.session.query(Users).delete()
     #db.db.engine.execute("ALTER SEQUENCE branches_id_seq RESTART;")
     db.engine.execute("ALTER SEQUENCE " + Users.__tablename__ + "_id_seq RESTART;")
     db.session.commit()
+
+  def getUser(self=None, email=None, nickname=None):
+    if email != None:
+      return db.session.query(Users).filter_by(email=email).scalar()
+    if nickname != None:
+      return db.session.query(Users).filter_by(nickname=nickname).scalar()
+    return None
 
 class Tree(db.Model):
   __tablename__ = 'trees'
@@ -150,14 +154,15 @@ class Tree(db.Model):
 
   def __init__(self, owner=None, name='', rootb=None):
     self.name = name
-    if rootb == None:
-      rootb = self.init()
-    self.rootb = rootb
     self.owner = owner
     self.latestB_id = None
 
     db.session.add(self)
     db.session.commit()
+
+    if rootb == None:
+      rootb = self.init()
+    self.rootb = rootb
 
     owner = Users.query.filter_by(id = owner.id).first()
     owner.set_latestTree(self.id)
@@ -167,7 +172,7 @@ class Tree(db.Model):
     rootbg = db.session.query(Branch).filter_by(id=app.general.rootBglobal_id).scalar()
     if (rootbg == None):
       rootbg = Branch(text = "root_global", folded=False, main = True)
-    rootb = Branch(text = "root_" + self.name, folded=False, main = True, parent = rootbg)
+    rootb = Branch(text = "root_" + self.name, folded=False, main = True, parent = rootbg, tree_id = self.id)
     firstb = Branch(text = "first branch", folded=False, main = True, parent = rootb)
     return rootb
 
@@ -203,6 +208,11 @@ class Tree(db.Model):
   def getB_root(self):
     return self.rootb
 
+  def getTree(id=None):
+    if id == None:
+      return None
+    return db.session.query(Tree).filter_by(id=id).scalar()
+
 class Branch(db.Model):
   __tablename__ = 'branches'
   id = db.Column(db.Integer, primary_key=True)
@@ -219,8 +229,10 @@ class Branch(db.Model):
     backref=db.backref("parent", remote_side=id),
     )
   text = db.Column(db.String, default='')
+  tree_id = db.Column(db.Integer)
+  read = db.Column(db.Boolean, default='False') # Allowed read for other users
 
-  def __init__(self, text=None, main=False, folded=False, parent=None, parent_id=None):
+  def __init__(self, text=None, main=False, folded=False, parent=None, parent_id=None, tree_id = None, read=False):
     self.text = text
     if parent == None and parent_id == None:
       parent_id = app.general.rootBglobal_id
@@ -228,6 +240,14 @@ class Branch(db.Model):
     self.parent = parent
     self.parent_id = parent_id
     self.set_main(main)
+
+    if tree_id == None:
+      if self.parent == None:
+        parent = db.session.query(Branch).filter_by(id=parent_id).scalar()
+      tree_id = parent.tree_id
+    self.tree_id = tree_id
+
+    self.read = read
 
     db.session.add(self)
     db.session.commit()
@@ -337,6 +357,11 @@ class Branch(db.Model):
     self.main = main
     db.session.commit()
 
+  def get(self=None, id=None):
+    if id == None:
+      return None
+    return db.session.query(Branch).filter_by(id=id).scalar()
+
   def __repr__(self):
     return self.text
 
@@ -394,12 +419,12 @@ def test(forestName = app.general.testdb):
     print('OK')
 
     sys.stdout.write("  ) Get tree for user:\t")
-    if ( alex.getTreeByID(testTree2.id) == None ):
+    if ( alex.getTree(id = testTree2.id) == None ):
       raise BaseException("The tree hasn't been got")
     print('OK')
 
     sys.stdout.write("  ) Tree protection from accessiong by another user (not owner):\t")
-    if ( alex.getTreeByID(testTree3.id) != None):
+    if ( alex.getTree(id = testTree3.id) != None):
       raise BaseException("Tree protection has faild")
     print('OK')
 

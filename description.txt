@@ -129,6 +129,10 @@ _firstChild(dom)    --gets the first child of a DOM node. Used internally.
 _nextSibling        --gets the next sibling of a DOM node. Used internally.
 _previousSibling    --gets the previous sibling of a DOM node. Used internally
 get_node            --get the JSON representation of a node (or the actual jQuery extended DOM node) by using any input (child DOM element, ID string, selector, etc)
+
+
+_load_node  --управляет процессом загрузки данных для узла
+
 ===============
 <div id="tree">
   <ul>

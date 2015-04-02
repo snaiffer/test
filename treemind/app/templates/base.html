@@ -23,7 +23,7 @@
       </a>
       <hr>
 
-      {% if user.is_authenticated() %}
+      {% if user and user.is_authenticated() %}
         <p style="padding: 0 0 0 50px;">&nbsp</p>
         <a id='linkUser' class="dashLink" href='/user'>
           <img id="dash_btnUser" class='dashLinkImg'

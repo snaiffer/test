@@ -995,7 +995,6 @@ p {
   margin: 0px;
 }
 .jstree-btnEdit {
-  content: url("btnEdit.png");
   visibility: hidden;
 }
 .jstree-btnEdit:hover {

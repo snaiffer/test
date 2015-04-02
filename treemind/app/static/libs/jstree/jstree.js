@@ -2109,7 +2109,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
         node.childNodes[1].innerHTML = this.wrapText_forckeditor(node.childNodes[1].id.replace("_anchor", ""), obj.text);
       } else {
         var new_innerHTML = "<div id=" + obj.id + "_text class='jstree-branch-text'>" + obj.text + "</div>";
-        new_innerHTML += "<img id=" + obj.id + "_btnEdit class='jstree-btnEdit' alt='edit' title='edit'></img>";
+        new_innerHTML += "<img id=" + obj.id + "_btnEdit class='jstree-btnEdit' src='/static/libs/jstree/themes/default/btnEdit.png' alt='edit' title='edit'></img>";
         node.childNodes[1].innerHTML += new_innerHTML;
       }
 
@@ -3135,7 +3135,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			obj = this.get_node(obj);
 			if(!obj || obj.id === '#') { return false; }
 			obj.text = val;
-      //$("#" + obj.id + "_text")[0].innerHTML = val;
+      $("#" + obj.id + "_text")[0].innerHTML = val;
 			/**
 			 * triggered when a node text value is changed
 			 * @event

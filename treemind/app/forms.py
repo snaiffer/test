@@ -15,7 +15,6 @@ class SignupForm(Form):
   passwd_chk = TextField('passwd_chk', validators = [Required()])
 
 class SaveDataForm(Form):
-  curtree_name = TextField('tree_name', default='')
   nestedocs = BooleanField('nestedocs', default = False)
   cmd = TextField('cmd', validators = [Required()])
   id = IntegerField('id', validators = [Required()])
