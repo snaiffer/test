@@ -3135,7 +3135,8 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			obj = this.get_node(obj);
 			if(!obj || obj.id === '#') { return false; }
 			obj.text = val;
-      $("#" + obj.id + "_text")[0].innerHTML = val;
+      //$("#" + obj.id + "_text")[0].innerHTML = val;
+      this.redraw_node(obj, true);
 			/**
 			 * triggered when a node text value is changed
 			 * @event
