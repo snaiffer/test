@@ -1,8 +1,6 @@
 from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 
-
-
 """
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key = True)
@@ -56,7 +54,12 @@ class Forest(object):
 
 class Users(db.Model):
   __tablename__ = 'users'
-  id = db.Column(db.Integer, primary_key=True)
+  """
+  id starts from 2. It is need for private settings.
+    id with "0" means nobody has the privilage
+    id with "1" means everybody has the privilage
+  """
+  id = db.Column(db.Integer, db.Sequence('users_id_seq', start=2, increment=1), primary_key=True)
   email = db.Column(db.String, index = True, unique = True)
   nickname = db.Column(db.String, index = True, unique = True)
   passwd = db.Column(db.String, index = True, unique = True)
@@ -171,7 +174,7 @@ class Tree(db.Model):
   def init(self):
     rootbg = db.session.query(Branch).filter_by(id=app.general.rootBglobal_id).scalar()
     if (rootbg == None):
-      rootbg = Branch(text = "root_global", folded=False, main = True)
+      rootbg = Branch(id=app.general.rootBglobal_id)
     rootb = Branch(text = "root_" + self.name, folded=False, main = True, parent = rootbg, tree_id = self.id)
     firstb = Branch(text = "first branch", folded=False, main = True, parent = rootb)
     return rootb
@@ -215,7 +218,7 @@ class Tree(db.Model):
 
 class Branch(db.Model):
   __tablename__ = 'branches'
-  id = db.Column(db.Integer, primary_key=True)
+  id = db.Column(db.Integer, db.Sequence('branches_id_seq', start=app.general.rootBglobal_id, increment=1), primary_key=True)
   main = db.Column(db.Boolean, default='False')
   folded = db.Column(db.Boolean, default='False')
   orderb = db.Column(db.Integer, index=True, default=0)
@@ -232,33 +235,43 @@ class Branch(db.Model):
   tree_id = db.Column(db.Integer)
   read = db.Column(db.Boolean, default='False') # Allowed read for other users
 
-  def __init__(self, text=None, main=False, folded=False, parent=None, parent_id=None, tree_id = None, read=False):
-    self.text = text
-    if parent == None and parent_id == None:
-      parent_id = app.general.rootBglobal_id
-    self.folded = folded
-    self.parent = parent
-    self.parent_id = parent_id
-    self.set_main(main)
+  def __init__(self, id=None, text=None, main=False, folded=False, parent=None, parent_id=None, tree_id = None, read=False):
+    if id == app.general.rootBglobal_id :
+      self.text = "root_global"
+      self.folded = False
+      self.main = True
+      self.tree_id = 0
+      self.parent_id = None
+    else:
+      self.text = text
+      if parent == None and parent_id == None:
+        parent_id = app.general.rootBglobal_id
+      self.folded = folded
+      self.parent = parent
+      self.parent_id = parent_id
+      self.set_main(main)
 
-    if tree_id == None:
-      if self.parent == None:
-        parent = db.session.query(Branch).filter_by(id=parent_id).scalar()
-      tree_id = parent.tree_id
-    self.tree_id = tree_id
+      self.read = read
 
-    self.read = read
+      db.session.add(self)
+      db.session.commit()
 
-    db.session.add(self)
-    db.session.commit()
+      if tree_id == None:
+        if self.parent == None:
+          parent = db.session.query(Branch).filter_by(id=parent_id).scalar()
+        tree_id = parent.tree_id
+      self.tree_id = tree_id
 
-    if ( self.id != app.general.rootBglobal_id ):
       self.move(pos = -1)
 
-    # for rootb_global case
-    if self.id == parent_id :
-      self.parent_id = None
-      db.session.commit()
+      """
+      # for rootb_global case
+      if self.id == parent_id :
+        self.parent_id = None
+        db.session.commit()
+      """
+    db.session.add(self)
+    db.session.commit()
 
   def get_subbs(self):
     """
