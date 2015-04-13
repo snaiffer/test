@@ -994,14 +994,19 @@
 p {
   margin: 0px;
 }
-.jstree-btnEdit {
-  visibility: hidden;
+
+.jstree-btnsB_inline {
+  display: none;
 }
-.jstree-btnEdit:hover {
+.jstree-anchor:hover > .jstree-btnsB_inline {
+  display: inline;
+}
+.jstree-btnsB_inline:hover {
   background-color: orange;
   width: 22px;
   height: 20px;
 }
+
 .jstree-branch-text {
   display: inline-block;
 }

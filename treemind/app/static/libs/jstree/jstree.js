@@ -623,6 +623,11 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
           $(curB).attr("editing", true).hide();
           this.edit(curB.id.replace("_btnEdit", ""));
 					}, this))
+				.on('click.jstree', '.jstree-btnPrivileges', $.proxy(function (e) {
+          var curB = e.target;
+          console.log(curB);
+          this.trigger('open_privFor', { 'branch_id' : 1 });
+					}, this))
 				.on('keydown.jstree', '.jstree-anchor', $.proxy(function (e) {
             // if text is editting with ckedit then do nothing
             if ( $('.jstree-editing').length != 0 ) { return; }
@@ -2109,7 +2114,8 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
         node.childNodes[1].innerHTML = this.wrapText_forckeditor(node.childNodes[1].id.replace("_anchor", ""), obj.text);
       } else {
         var new_innerHTML = "<div id=" + obj.id + "_text class='jstree-branch-text'>" + obj.text + "</div>";
-        new_innerHTML += "<img id=" + obj.id + "_btnEdit class='jstree-btnEdit' src='/static/libs/jstree/themes/default/btnEdit.png' alt='edit' title='edit'></img>";
+        new_innerHTML += "<img id=" + obj.id + "_btnEdit class='jstree-btnEdit jstree-btnsB_inline' src='/static/libs/jstree/themes/default/btnEdit.png' alt='edit' title='edit'></img>";
+        new_innerHTML += "<img id=" + obj.id + "_btnPrivileges class='jstree-btnPrivileges  jstree-btnsB_inline' src='/static/libs/jstree/themes/default/btnPrivileges.png' alt='open privileges' title='open privileges'></img>";
         node.childNodes[1].innerHTML += new_innerHTML;
       }
 
@@ -2566,8 +2572,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			var oldHoveredB = this.element.find('.jstree-hovered');
 			if(oldHoveredB && oldHoveredB.length) { this.dehover_node(oldHoveredB); }
 
-      $("#" + newHoveredB[0].id + "_btnEdit").show().css("visibility", "visible");
-
 			newHoveredB.children('.jstree-anchor').addClass('jstree-hovered');
 
       this._data.core.hoveredB = newHoveredB[0].id;  // save id of hovered branch to the tree settings
@@ -2607,8 +2611,6 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			if(!obj || !obj.length || !obj.children('.jstree-hovered').length) {
 				return false;
 			}
-
-      $("#" + obj[0].id + "_btnEdit").hide();
 
 			obj.children('.jstree-anchor').removeClass('jstree-hovered');
 			/**
