@@ -54,10 +54,10 @@
   vertical-align: top;
   text-align: center;
 }
-.jstree-ocl {
+.jstree-foldermng {
   cursor: pointer;
 }
-.jstree-leaf > .jstree-ocl {
+.jstree-leaf > .jstree-foldermng {
   cursor: default;
 }
 .jstree .jstree-open > .jstree-children {
@@ -357,26 +357,26 @@
 .jstree-default .jstree-last {
   background: transparent;
 }
-.jstree-default .jstree-open > .jstree-ocl {
+.jstree-default .jstree-open > .jstree-foldermng {
   background-position: -132px -4px;
 }
-.jstree-default .jstree-closed > .jstree-ocl {
+.jstree-default .jstree-closed > .jstree-foldermng {
   background-position: -100px -4px;
 }
-.jstree-default .jstree-leaf > .jstree-ocl {
+.jstree-default .jstree-leaf > .jstree-foldermng {
   background-position: -68px -4px;
 }
 .jstree-default .jstree-themeicon {
   background-position: -260px -4px;
 }
 .jstree-default > .jstree-no-dots .jstree-node,
-.jstree-default > .jstree-no-dots .jstree-leaf > .jstree-ocl {
+.jstree-default > .jstree-no-dots .jstree-leaf > .jstree-foldermng {
   background: transparent;
 }
-.jstree-default > .jstree-no-dots .jstree-open > .jstree-ocl {
+.jstree-default > .jstree-no-dots .jstree-open > .jstree-foldermng {
   background-position: -36px -4px;
 }
-.jstree-default > .jstree-no-dots .jstree-closed > .jstree-ocl {
+.jstree-default > .jstree-no-dots .jstree-closed > .jstree-foldermng {
   background-position: -4px -4px;
 }
 .jstree-default .jstree-disabled {
@@ -416,23 +416,23 @@
 .jstree-default.jstree-rtl .jstree-last {
   background: transparent;
 }
-.jstree-default.jstree-rtl .jstree-open > .jstree-ocl {
+.jstree-default.jstree-rtl .jstree-open > .jstree-foldermng {
   background-position: -132px -36px;
 }
-.jstree-default.jstree-rtl .jstree-closed > .jstree-ocl {
+.jstree-default.jstree-rtl .jstree-closed > .jstree-foldermng {
   background-position: -100px -36px;
 }
-.jstree-default.jstree-rtl .jstree-leaf > .jstree-ocl {
+.jstree-default.jstree-rtl .jstree-leaf > .jstree-foldermng {
   background-position: -68px -36px;
 }
 .jstree-default.jstree-rtl > .jstree-no-dots .jstree-node,
-.jstree-default.jstree-rtl > .jstree-no-dots .jstree-leaf > .jstree-ocl {
+.jstree-default.jstree-rtl > .jstree-no-dots .jstree-leaf > .jstree-foldermng {
   background: transparent;
 }
-.jstree-default.jstree-rtl > .jstree-no-dots .jstree-open > .jstree-ocl {
+.jstree-default.jstree-rtl > .jstree-no-dots .jstree-open > .jstree-foldermng {
   background-position: -36px -36px;
 }
-.jstree-default.jstree-rtl > .jstree-no-dots .jstree-closed > .jstree-ocl {
+.jstree-default.jstree-rtl > .jstree-no-dots .jstree-closed > .jstree-foldermng {
   background-position: -4px -36px;
 }
 .jstree-default .jstree-themeicon-custom {
@@ -440,7 +440,7 @@
   background-image: none;
   background-position: 0 0;
 }
-.jstree-default > .jstree-container-ul .jstree-loading > .jstree-ocl {
+.jstree-default > .jstree-container-ul .jstree-loading > .jstree-foldermng {
   background: url("throbber.gif") center center no-repeat;
 }
 .jstree-default .jstree-file {
@@ -515,26 +515,26 @@
 .jstree-default-small .jstree-last {
   background: transparent;
 }
-.jstree-default-small .jstree-open > .jstree-ocl {
+.jstree-default-small .jstree-open > .jstree-foldermng {
   background-position: -135px -7px;
 }
-.jstree-default-small .jstree-closed > .jstree-ocl {
+.jstree-default-small .jstree-closed > .jstree-foldermng {
   background-position: -103px -7px;
 }
-.jstree-default-small .jstree-leaf > .jstree-ocl {
+.jstree-default-small .jstree-leaf > .jstree-foldermng {
   background-position: -71px -7px;
 }
 .jstree-default-small .jstree-themeicon {
   background-position: -263px -7px;
 }
 .jstree-default-small > .jstree-no-dots .jstree-node,
-.jstree-default-small > .jstree-no-dots .jstree-leaf > .jstree-ocl {
+.jstree-default-small > .jstree-no-dots .jstree-leaf > .jstree-foldermng {
   background: transparent;
 }
-.jstree-default-small > .jstree-no-dots .jstree-open > .jstree-ocl {
+.jstree-default-small > .jstree-no-dots .jstree-open > .jstree-foldermng {
   background-position: -39px -7px;
 }
-.jstree-default-small > .jstree-no-dots .jstree-closed > .jstree-ocl {
+.jstree-default-small > .jstree-no-dots .jstree-closed > .jstree-foldermng {
   background-position: -7px -7px;
 }
 .jstree-default-small .jstree-disabled {
@@ -574,23 +574,23 @@
 .jstree-default-small.jstree-rtl .jstree-last {
   background: transparent;
 }
-.jstree-default-small.jstree-rtl .jstree-open > .jstree-ocl {
+.jstree-default-small.jstree-rtl .jstree-open > .jstree-foldermng {
   background-position: -135px -39px;
 }
-.jstree-default-small.jstree-rtl .jstree-closed > .jstree-ocl {
+.jstree-default-small.jstree-rtl .jstree-closed > .jstree-foldermng {
   background-position: -103px -39px;
 }
-.jstree-default-small.jstree-rtl .jstree-leaf > .jstree-ocl {
+.jstree-default-small.jstree-rtl .jstree-leaf > .jstree-foldermng {
   background-position: -71px -39px;
 }
 .jstree-default-small.jstree-rtl > .jstree-no-dots .jstree-node,
-.jstree-default-small.jstree-rtl > .jstree-no-dots .jstree-leaf > .jstree-ocl {
+.jstree-default-small.jstree-rtl > .jstree-no-dots .jstree-leaf > .jstree-foldermng {
   background: transparent;
 }
-.jstree-default-small.jstree-rtl > .jstree-no-dots .jstree-open > .jstree-ocl {
+.jstree-default-small.jstree-rtl > .jstree-no-dots .jstree-open > .jstree-foldermng {
   background-position: -39px -39px;
 }
-.jstree-default-small.jstree-rtl > .jstree-no-dots .jstree-closed > .jstree-ocl {
+.jstree-default-small.jstree-rtl > .jstree-no-dots .jstree-closed > .jstree-foldermng {
   background-position: -7px -39px;
 }
 .jstree-default-small .jstree-themeicon-custom {
@@ -598,7 +598,7 @@
   background-image: none;
   background-position: 0 0;
 }
-.jstree-default-small > .jstree-container-ul .jstree-loading > .jstree-ocl {
+.jstree-default-small > .jstree-container-ul .jstree-loading > .jstree-foldermng {
   background: url("throbber.gif") center center no-repeat;
 }
 .jstree-default-small .jstree-file {
@@ -673,26 +673,26 @@
 .jstree-default-large .jstree-last {
   background: transparent;
 }
-.jstree-default-large .jstree-open > .jstree-ocl {
+.jstree-default-large .jstree-open > .jstree-foldermng {
   background-position: -128px 0px;
 }
-.jstree-default-large .jstree-closed > .jstree-ocl {
+.jstree-default-large .jstree-closed > .jstree-foldermng {
   background-position: -96px 0px;
 }
-.jstree-default-large .jstree-leaf > .jstree-ocl {
+.jstree-default-large .jstree-leaf > .jstree-foldermng {
   background-position: -64px 0px;
 }
 .jstree-default-large .jstree-themeicon {
   background-position: -256px 0px;
 }
 .jstree-default-large > .jstree-no-dots .jstree-node,
-.jstree-default-large > .jstree-no-dots .jstree-leaf > .jstree-ocl {
+.jstree-default-large > .jstree-no-dots .jstree-leaf > .jstree-foldermng {
   background: transparent;
 }
-.jstree-default-large > .jstree-no-dots .jstree-open > .jstree-ocl {
+.jstree-default-large > .jstree-no-dots .jstree-open > .jstree-foldermng {
   background-position: -32px 0px;
 }
-.jstree-default-large > .jstree-no-dots .jstree-closed > .jstree-ocl {
+.jstree-default-large > .jstree-no-dots .jstree-closed > .jstree-foldermng {
   background-position: 0px 0px;
 }
 .jstree-default-large .jstree-disabled {
@@ -732,23 +732,23 @@
 .jstree-default-large.jstree-rtl .jstree-last {
   background: transparent;
 }
-.jstree-default-large.jstree-rtl .jstree-open > .jstree-ocl {
+.jstree-default-large.jstree-rtl .jstree-open > .jstree-foldermng {
   background-position: -128px -32px;
 }
-.jstree-default-large.jstree-rtl .jstree-closed > .jstree-ocl {
+.jstree-default-large.jstree-rtl .jstree-closed > .jstree-foldermng {
   background-position: -96px -32px;
 }
-.jstree-default-large.jstree-rtl .jstree-leaf > .jstree-ocl {
+.jstree-default-large.jstree-rtl .jstree-leaf > .jstree-foldermng {
   background-position: -64px -32px;
 }
 .jstree-default-large.jstree-rtl > .jstree-no-dots .jstree-node,
-.jstree-default-large.jstree-rtl > .jstree-no-dots .jstree-leaf > .jstree-ocl {
+.jstree-default-large.jstree-rtl > .jstree-no-dots .jstree-leaf > .jstree-foldermng {
   background: transparent;
 }
-.jstree-default-large.jstree-rtl > .jstree-no-dots .jstree-open > .jstree-ocl {
+.jstree-default-large.jstree-rtl > .jstree-no-dots .jstree-open > .jstree-foldermng {
   background-position: -32px -32px;
 }
-.jstree-default-large.jstree-rtl > .jstree-no-dots .jstree-closed > .jstree-ocl {
+.jstree-default-large.jstree-rtl > .jstree-no-dots .jstree-closed > .jstree-foldermng {
   background-position: 0px -32px;
 }
 .jstree-default-large .jstree-themeicon-custom {
@@ -756,7 +756,7 @@
   background-image: none;
   background-position: 0 0;
 }
-.jstree-default-large > .jstree-container-ul .jstree-loading > .jstree-ocl {
+.jstree-default-large > .jstree-container-ul .jstree-loading > .jstree-foldermng {
   background: url("throbber.gif") center center no-repeat;
 }
 .jstree-default-large .jstree-file {
@@ -829,15 +829,15 @@
 @media (max-width: 768px) {
   .jstree-default-responsive {
     /*
-	.jstree-open > .jstree-ocl,
-	.jstree-closed > .jstree-ocl { border-radius:20px; background-color:white; }
+	.jstree-open > .jstree-foldermng,
+	.jstree-closed > .jstree-foldermng { border-radius:20px; background-color:white; }
 	*/
   }
   .jstree-default-responsive .jstree-icon {
     background-image: url("40px.png");
   }
   .jstree-default-responsive .jstree-node,
-  .jstree-default-responsive .jstree-leaf > .jstree-ocl {
+  .jstree-default-responsive .jstree-leaf > .jstree-foldermng {
     background: transparent;
   }
   .jstree-default-responsive .jstree-node {
@@ -867,21 +867,21 @@
   .jstree-default-responsive.jstree-rtl .jstree-container-ul > .jstree-node {
     margin-right: 0;
   }
-  .jstree-default-responsive .jstree-ocl,
+  .jstree-default-responsive .jstree-foldermng,
   .jstree-default-responsive .jstree-themeicon,
   .jstree-default-responsive .jstree-checkbox {
     background-size: 120px 240px;
   }
-  .jstree-default-responsive .jstree-leaf > .jstree-ocl {
+  .jstree-default-responsive .jstree-leaf > .jstree-foldermng {
     background: transparent;
   }
-  .jstree-default-responsive .jstree-open > .jstree-ocl {
+  .jstree-default-responsive .jstree-open > .jstree-foldermng {
     background-position: 0 0px !important;
   }
-  .jstree-default-responsive .jstree-closed > .jstree-ocl {
+  .jstree-default-responsive .jstree-closed > .jstree-foldermng {
     background-position: 0 -40px !important;
   }
-  .jstree-default-responsive.jstree-rtl .jstree-closed > .jstree-ocl {
+  .jstree-default-responsive.jstree-rtl .jstree-closed > .jstree-foldermng {
     background-position: -40px 0px !important;
   }
   .jstree-default-responsive .jstree-themeicon {
@@ -911,7 +911,7 @@
   }
   .jstree-default-responsive .jstree-node,
   .jstree-default-responsive .jstree-icon,
-  .jstree-default-responsive .jstree-node > .jstree-ocl,
+  .jstree-default-responsive .jstree-node > .jstree-foldermng,
   .jstree-default-responsive .jstree-themeicon,
   .jstree-default-responsive .jstree-checkbox {
     background-image: url("40px.png");
@@ -924,10 +924,10 @@
   .jstree-default-responsive .jstree-last {
     background: transparent;
   }
-  .jstree-default-responsive .jstree-leaf > .jstree-ocl {
+  .jstree-default-responsive .jstree-leaf > .jstree-foldermng {
     background-position: -40px -120px;
   }
-  .jstree-default-responsive .jstree-last > .jstree-ocl {
+  .jstree-default-responsive .jstree-last > .jstree-foldermng {
     background-position: -40px -160px;
   }
   .jstree-default-responsive .jstree-themeicon-custom {

@@ -34,6 +34,10 @@
                 {% endif %}
               </select>
             </td>
+            <td style="vertical-align: bottom" >
+              <p>Branch link:</p>
+              <textarea id="branch_link" rows=1 readonly=true placeholder="<a link to the current branch>"></textarea>
+            </td>
             <td>
               <img id="btnSettings" class='CBbtn'
                 src="{{ url_for('static', filename='themes/default/tree/btnSettings.png') }}"
@@ -121,6 +125,17 @@
         .on("changed.jstree", function (e, data) {
           if (data.selected.length == 1) {
             var branch_id = data.selected[0];
+
+            $('#branch_link').text(window.location.host + '/' +
+                                   "{{curtree.owner.nickname}}" + '/' +
+                                   "{{curtree.name}}" + '/' +
+                                  branch_id )
+            .click(function() {
+              if ( ! $(this).is(':selected') ) {
+                console.log($('#branch_link option:selected'););
+                $(this).select();
+              }
+            });
 
             $('#nestedocs').jstree('destroy');
             $('#nestedocs')

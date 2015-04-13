@@ -41,3 +41,10 @@ body {
   background-color: orange;
 }
 
+#branch_link {
+  resize: none;
+  line-height: 1em;
+  height: 1.4em;
+  vertical-align: center;
+  width: 100%;
+}

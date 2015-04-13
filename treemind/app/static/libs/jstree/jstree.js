@@ -45,7 +45,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 		_d = document, _node = _d.createElement('LI'), _temp1, _temp2;
 
 	_temp1 = _d.createElement('I');
-	_temp1.className = 'jstree-icon jstree-ocl';
+	_temp1.className = 'jstree-icon jstree-foldermng';
 	_node.appendChild(_temp1);
 	_temp1 = _d.createElement('A');
 	_temp1.className = 'jstree-anchor';
@@ -472,7 +472,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 					return this.nodeType === 3 && (!this.nodeValue || /^\s+$/.test(this.nodeValue));
 				})
 				.remove();
-			this.element.html("<ul class='jstree-container-ul jstree-children'><li id='j"+this._id+"_loading' class='jstree-initial-node jstree-loading jstree-leaf jstree-last'><i class='jstree-icon jstree-ocl'></i><a class='jstree-anchor' href='#'><i class='jstree-icon jstree-themeicon-hidden'></i>" + this.get_string("Loading ...") + "</a></li></ul>");
+			this.element.html("<ul class='jstree-container-ul jstree-children'><li id='j"+this._id+"_loading' class='jstree-initial-node jstree-loading jstree-leaf jstree-last'><i class='jstree-icon jstree-foldermng'></i><a class='jstree-anchor' href='#'><i class='jstree-icon jstree-themeicon-hidden'></i>" + this.get_string("Loading ...") + "</a></li></ul>");
 			this._data.core.li_height = this.get_container_ul().children("li").first().height() || 24;
 			/**
 			 * triggered after the loading text is shown and before loading starts
@@ -535,7 +535,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
             var contextmenu = curtree.settings.contextmenu.items();
             contextmenu.add_branch.action(curtree.get_node(nodeID), position, curtree);
           })
-				.on("click.jstree", ".jstree-ocl", $.proxy(function (e) {
+				.on("click.jstree", ".jstree-foldermng", $.proxy(function (e) {
 						this.toggle_node(e.target);
 					}, this))
 				.on("click.jstree", ".jstree-anchor", $.proxy(function (e) {
@@ -3012,7 +3012,7 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			};
 			var c = this.get_container_ul()[0].className;
 			if(!skip_loading) {
-				this.element.html("<"+"ul class='"+c+"'><"+"li class='jstree-initial-node jstree-loading jstree-leaf jstree-last' id='j"+this._id+"_loading'><i class='jstree-icon jstree-ocl'></i><"+"a class='jstree-anchor' href='#'><i class='jstree-icon jstree-themeicon-hidden'></i>" + this.get_string("Loading ...") + "</a></li></ul>");
+				this.element.html("<"+"ul class='"+c+"'><"+"li class='jstree-initial-node jstree-loading jstree-leaf jstree-last' id='j"+this._id+"_loading'><i class='jstree-icon jstree-foldermng'></i><"+"a class='jstree-anchor' href='#'><i class='jstree-icon jstree-themeicon-hidden'></i>" + this.get_string("Loading ...") + "</a></li></ul>");
 			}
 			this.load_node('#', function (o, s) {
 				if(s) {
