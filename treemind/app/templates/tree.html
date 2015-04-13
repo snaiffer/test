@@ -65,6 +65,17 @@
     </div>
 
     <script>
+    function isTextSelected(input){
+      input = input[0];
+      var startPos = input.selectionStart;
+      var endPos = input.selectionEnd;
+
+      if ( (endPos - startPos) != 0 ) {
+        return true;
+      }
+      return false;
+    }
+
     $(function() {
       var ckedit_inst = CKEDITOR.inline( document.getElementById("ckedit_activator") );   // tie CKEDITOR with this element while other elements aren't created
       // waitting while ckeditor will be activated and then build 'splitter'. In other case size of '$('#headline').height()' will be wrong
@@ -131,8 +142,7 @@
                                    "{{curtree.name}}" + '/' +
                                   branch_id )
             .click(function() {
-              if ( ! $(this).is(':selected') ) {
-                console.log($('#branch_link option:selected'););
+              if ( ! isTextSelected($(this)) ) {
                 $(this).select();
               }
             });
