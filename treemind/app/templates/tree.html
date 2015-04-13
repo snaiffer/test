@@ -141,9 +141,11 @@
                                    "{{curtree.owner.nickname}}" + '/' +
                                    "{{curtree.name}}" + '/' +
                                   branch_id )
-            .click(function() {
+            // On first click select all line; on follow clicks select what user wants
+            .on('mouseup', function(e) {
               if ( ! isTextSelected($(this)) ) {
                 $(this).select();
+                return false;
               }
             });
 
