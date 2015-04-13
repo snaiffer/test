@@ -52,14 +52,21 @@ class Forest(object):
   def allTrees(self):
     return db.session.query(Tree).all()
 
+class Privileges_forB(db.Model):
+    __tablename__ = 'privileges_forB'
+    branch_id = db.Column(db.Integer, db.ForeignKey('branches.id'), primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    """
+    accessLevel == 0    -- without access
+    accessLevel == 1    -- access for read
+    accessLevel == 2    -- access for read and write
+    """
+    accessLevel = db.Column(db.Integer, default = 0)
+    user = db.relationship("Users")
+
 class Users(db.Model):
   __tablename__ = 'users'
-  """
-  id starts from 2. It is need for private settings.
-    id with "0" means nobody has the privilage
-    id with "1" means everybody has the privilage
-  """
-  id = db.Column(db.Integer, db.Sequence('users_id_seq', start=2, increment=1), primary_key=True)
+  id = db.Column(db.Integer, primary_key=True)
   email = db.Column(db.String, index = True, unique = True)
   nickname = db.Column(db.String, index = True, unique = True)
   passwd = db.Column(db.String, index = True, unique = True)
@@ -234,6 +241,7 @@ class Branch(db.Model):
   text = db.Column(db.String, default='')
   tree_id = db.Column(db.Integer)
   read = db.Column(db.Boolean, default='False') # Allowed read for other users
+  accessList = db.relationship("Privileges_forB")
 
   def __init__(self, id=None, text=None, main=False, folded=False, parent=None, parent_id=None, tree_id = None, read=False):
     if id == app.general.rootBglobal_id :
@@ -244,23 +252,30 @@ class Branch(db.Model):
       self.parent_id = None
     else:
       self.text = text
+      self.folded = folded
+      self.set_main(main)
+
       if parent == None and parent_id == None:
         parent_id = app.general.rootBglobal_id
-      self.folded = folded
+      if parent_id == None:
+        parent_id = parent.id
+      if parent == None:
+        parent = db.session.query(Branch).filter_by(id=parent_id).scalar()
       self.parent = parent
       self.parent_id = parent_id
-      self.set_main(main)
+
+      if tree_id == None:
+        tree_id = self.parent.tree_id
+      self.tree_id = tree_id
 
       self.read = read
 
       db.session.add(self)
       db.session.commit()
 
-      if tree_id == None:
-        if self.parent == None:
-          parent = db.session.query(Branch).filter_by(id=parent_id).scalar()
-        tree_id = parent.tree_id
-      self.tree_id = tree_id
+      priv = Privileges_forB()
+      priv.user = None
+      self.accessList.append(priv)
 
       self.move(pos = -1)
 
@@ -272,6 +287,12 @@ class Branch(db.Model):
       """
     db.session.add(self)
     db.session.commit()
+
+    for curpriv in self.accessList:
+      print('\n')
+      print("User: " + str(curpriv.user))
+      print("accessLevel: " + str(curpriv.accessLevel))
+      print('\n')
 
   def get_subbs(self):
     """
