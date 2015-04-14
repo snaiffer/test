@@ -388,6 +388,10 @@ def mngtree():
     elif cmd == "load_subbs":
       curtree.set_latestB(id)
       return json.dumps(getList_subbsOf(branch, nestedocs, withReadLabel=(not owner)))
+    elif cmd == "get_privileges":
+      return json.dumps(branch.get_priv_all())
+    elif cmd == "set_privileges":
+      None
     else:
       if nestedocs :
         if cmd == "save_data":

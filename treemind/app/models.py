@@ -53,16 +53,39 @@ class Forest(object):
     return db.session.query(Tree).all()
 
 class Privileges_forB(db.Model):
-    __tablename__ = 'privileges_forB'
-    branch_id = db.Column(db.Integer, db.ForeignKey('branches.id'), primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    """
-    accessLevel == 0    -- without access
-    accessLevel == 1    -- access for read
-    accessLevel == 2    -- access for read and write
-    """
-    accessLevel = db.Column(db.Integer, default = 0)
-    user = db.relationship("Users")
+  __tablename__ = 'privileges_forB'
+  branch_id = db.Column(db.Integer, db.ForeignKey('branches.id'), primary_key=True)
+  user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+  """
+  accessLevel == 0    -- without access
+  accessLevel == 1    -- access for read
+  accessLevel == 2    -- access for read and write
+  """
+  accessLevel = db.Column(db.Integer, default = 0)
+  user = db.relationship("Users")
+
+  def get_read(self):
+    if self.accessLevel == 0:
+      return False
+    return True
+
+  def set_read(self, access):
+    if access and self.accessLevel == 0:
+      self.accessLevel = 1
+    else:
+      self.accessLevel = 0
+    db.session.commit()
+
+  def get_rw(self):
+    if self.accessLevel == 2:
+      return True
+    return False
+
+  def set_rw(self, access):
+    if access :
+      self.accessLevel = 2
+    else:
+      self.accessLevel = 0
 
 class Users(db.Model):
   __tablename__ = 'users'
@@ -273,18 +296,14 @@ class Branch(db.Model):
       db.session.add(self)
       db.session.commit()
 
+      # set privileges by default
       priv = Privileges_forB()
       priv.user = None
+      priv.set_rw(False)
       self.accessList.append(priv)
 
       self.move(pos = -1)
 
-      """
-      # for rootb_global case
-      if self.id == parent_id :
-        self.parent_id = None
-        db.session.commit()
-      """
     db.session.add(self)
     db.session.commit()
 
@@ -292,7 +311,50 @@ class Branch(db.Model):
       print('\n')
       print("User: " + str(curpriv.user))
       print("accessLevel: " + str(curpriv.accessLevel))
+      print("read: " + str(curpriv.get_read()))
+      print("rw: " + str(curpriv.get_rw()))
       print('\n')
+
+  def get_priv_foruserid(self, user_id):
+    """ Get privileges for user with id 'user_id' """
+    for curpriv in self.accessList:
+      if curpriv.user == user_id:
+        return curpriv
+
+  def get_priv_bydefault(self):
+    """ Get privileges by default """
+    for curpriv in self.accessList:
+      if curpriv.user == None:
+        return curpriv
+
+  def get_priv_all(self):
+    """
+    Get all privileges for this branch in such structure:
+      {
+      'bydefault' : { 'read' : ..., 'rw' : ...}
+      'users' :
+        [
+          { 'nickname' : ..., 'read' : ..., 'rw' : ...}
+          { 'nickname' : ..., 'read' : ..., 'rw' : ...}
+          ...
+        ]
+      }
+    """
+    priv_all = {}
+
+    def_priv = self.get_priv_bydefault()
+    priv_all['bydefault'] = {'read' : def_priv.get_read(), 'rw' : def_priv.get_rw()}
+
+    userspriv = []
+    for curpriv in self.accessList :
+      if curpriv.user != None :
+        curuser_priv['nickname'] = curpriv.user.nickname
+        curuser_priv['read'] = curpriv.get_read()
+        curuser_priv['rw'] = curpriv.get_rw()
+        userspriv.append(curuser_priv)
+    priv_all['users'] = userspriv
+
+    return priv_all
 
   def get_subbs(self):
     """
