@@ -624,9 +624,8 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
           this.edit(curB.id.replace("_btnEdit", ""));
 					}, this))
 				.on('click.jstree', '.jstree-btnPrivileges', $.proxy(function (e) {
-          var curB = e.target;
-          console.log(curB);
-          this.trigger('open_privFor', { 'branch_id' : 1 });
+          var curB_id = curtree.get_node_id(e.target);
+          this.trigger('open_privileges', { 'branch_id' : curB_id });
 					}, this))
 				.on('keydown.jstree', '.jstree-anchor', $.proxy(function (e) {
             // if text is editting with ckedit then do nothing
@@ -918,6 +917,14 @@ $/*globals jQuery, define, exports, require, window, document, postMessage */
 			}
 			return dom;
 		},
+    /*
+     * gets id of node by element (el) which is inside this node
+     */
+    get_node_id : function (el) {
+      var node = $(el).parentsUntil('.jstree-node').parent()[0];
+
+      return Number(node.id);
+    },
 		/**
 		 * get the JSON representation of a node (or the actual jQuery extended DOM node) by using any input (child DOM element, ID string, selector, etc)
 		 * @name get_node(obj [, as_dom])

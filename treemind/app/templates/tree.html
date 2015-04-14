@@ -64,6 +64,10 @@
       </div>
     </div>
 
+    <div id="form_privileges" title="Privileges">
+      <p>user</p>
+    </div>
+
     <script>
     function isTextSelected(input){
       input = input[0];
@@ -132,6 +136,10 @@
             "&position=" + data.position +
             "&new_parent=" + data.parent
             )
+        })
+        .on("open_privileges.jstree", function (e, data) {
+          $( "#form_privileges" ).dialog();
+          //$.get("/mngtree?tree_id={{curtree.id}}&nestedocs=false&cmd=open_privileges&id=" + data.branch_id)
         })
         .on("changed.jstree", function (e, data) {
           if (data.selected.length == 1) {
