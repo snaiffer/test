@@ -1,25 +1,4 @@
 
-#linkCreateTree * {
-  display: inline;
-  cursor: pointer;
-}
-#linkCreateTree {
-  background-color: transparent;
-  text-decoration: none;
-  font-size: 90%;
-  color: black;
-  margin: 20px;
-}
-#linkCreateTree:hover {
-  background-color: orange;
-}
-#imgCreateTree {
-  background-repeat: no-repeat;
-  width: 18px;
-  height: auto;
-  vertical-align: middle;
-}
-
 .tree_name {
   text-decoration: none;
   color: black;

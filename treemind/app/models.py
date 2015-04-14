@@ -86,6 +86,7 @@ class Privileges_forB(db.Model):
       self.accessLevel = 2
     else:
       self.accessLevel = 0
+    db.session.commit()
 
 class Users(db.Model):
   __tablename__ = 'users'
@@ -174,6 +175,9 @@ class Users(db.Model):
     if nickname != None:
       return db.session.query(Users).filter_by(nickname=nickname).scalar()
     return None
+
+  def getUsersList():
+    return db.session.query(Users).all()
 
 class Tree(db.Model):
   __tablename__ = 'trees'
@@ -315,17 +319,41 @@ class Branch(db.Model):
       print("rw: " + str(curpriv.get_rw()))
       print('\n')
 
-  def get_priv_foruserid(self, user_id):
+  def set_priv_adduser(self, user):
+    """
+    return:
+      0 in success
+      -1 in case of fail
+    """
+    if self.get_priv_foruserid(user.id) == None :
+      priv = Privileges_forB()
+      priv.user = user
+      self.accessList.append(priv)
+      db.session.commit()
+      return 0
+    return -1
+
+  def set_priv_foruserid(self, user_id, read=None, rw=None):
+    priv = self.get_priv_foruserid(user_id)
+    if rw != None:
+      priv.set_rw(rw)
+    elif read != None:
+      priv.set_read(read)
+    return {'read' : priv.get_read() , 'rw' :  priv.get_rw()}
+
+  def set_priv_bydefault(self, read=None, rw=None):
+    return self.set_priv_foruserid(None, read, rw)
+
+  def get_priv_foruserid(self, user_id=None):
     """ Get privileges for user with id 'user_id' """
     for curpriv in self.accessList:
-      if curpriv.user == user_id:
+      if curpriv.user_id == user_id:
         return curpriv
+    return None
 
   def get_priv_bydefault(self):
     """ Get privileges by default """
-    for curpriv in self.accessList:
-      if curpriv.user == None:
-        return curpriv
+    return self.get_priv_foruserid(None)
 
   def get_priv_all(self):
     """

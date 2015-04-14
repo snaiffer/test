@@ -31,7 +31,9 @@ def checkout(text):
   return False
 
 def str2bool(v):
-  return v.lower() in ("yes", "true", "t", "1")
+  if v != None:
+    return v.lower() in ("yes", "true", "t", "1")
+  return v
 
 
 if __name__ == '__main__':
@@ -56,7 +58,7 @@ if __name__ == '__main__':
     print('OK')
 
     sys.stdout.write("  ) str2bool function:\t")
-    if not (str2bool('yes') == True and str2bool('true') == True and str2bool('t') == True and str2bool('1') == True and str2bool('False') == False):
+    if not (str2bool('yes') == True and str2bool('true') == True and str2bool('t') == True and str2bool('1') == True and str2bool('False') == False and str2bool(None) == None):
       raise BaseException("str2bool function has failed!")
     print('OK')
   except BaseException as e:

@@ -51,9 +51,14 @@ body {
 #form_privileges table {
   width: 100%;
   border-collapse: collapse;
+  margin : auto auto 0.7em auto;
 }
 #form_privileges table tr {
   border-bottom: 1px solid black;
+}
+#form_privileges table tr > * {
+  padding-top: 0.3em;
+  padding-bottom: 0.3em;
 }
 #form_privileges table tr :not(.priv_nickname):not(.priv_bydefault) {
   text-align: center;

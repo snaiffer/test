@@ -301,6 +301,21 @@ def mngtrees():
   db.session.commit()
   return ""
 
+@app.route('/userslist', methods = ['GET', 'POST'])
+@login_required
+def userslist():
+  user = g.user
+  if request.method == "GET":
+    req_str = request.args.get('q', default='', type=str)
+    req_str = req_str.replace(' ', '')
+
+    res = []
+    for curuser in Users.getUsersList():
+      if curuser.id != user.id and ( req_str == '' or curuser.nickname.find(req_str) == 0 ):
+        res.append({ 'id' : curuser.id, 'name' : curuser.nickname })
+
+    return json.dumps(res)
+
 @app.route('/mngtree', methods = ['GET', 'POST'])
 def mngtree():
   #for_test()
@@ -391,7 +406,24 @@ def mngtree():
     elif cmd == "get_privileges":
       return json.dumps(branch.get_priv_all())
     elif cmd == "set_privileges":
-      None
+      for_class = request.args.get('for_class', default='bydefault', type=str)
+      priv_read = app.general.str2bool(request.args.get('read', default=None, type=str))
+      priv_rw = app.general.str2bool(request.args.get('rw', default=None, type=str))
+      if for_class == 'bydefault':
+        new_privs = branch.set_priv_bydefault(priv_read, priv_rw)
+      elif for_class == 'users':
+        nickname = request.args.get('nickname', default=None, type=str)
+        if nickname != None:
+          user = Users.getUser(nickname = nickname)
+          new_privs = branch.set_priv_foruserid(user.id, priv_read, priv_rw)
+      return json.dumps(new_privs)
+    elif cmd == "set_priv_adduser":
+      nickname = request.args.get('nickname', default=None, type=str)
+      if nickname != None:
+        user = Users.getUser(nickname = nickname)
+        if branch.set_priv_adduser(user) == 0:
+          return 0
+      return -1
     else:
       if nestedocs :
         if cmd == "save_data":

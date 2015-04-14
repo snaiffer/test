@@ -72,6 +72,13 @@
           <th>read & write</th>
         </tr>
       </table>
+
+      <input type="text" id="input_UserPriv"/>
+      <a id='linkAddUserPriv' class='link_as_button'>
+        <img src="{{ url_for('static', filename='themes/default/tree/btnAddUserPriv.png') }}"
+          alt="add user" title="add user"/>
+        <p id="lblAddUserPriv">add users</p>
+      </a>
     </div>
 
     <script>
@@ -147,6 +154,7 @@
             )
         })
         .on("open_privileges.jstree", function (e, data) {
+          var branch_id = data.branch_id;
           $( "#form_privileges" ).dialog({
             minHeight: 280,
             minWidth: 450,
@@ -155,11 +163,10 @@
               $('#form_privileges table td:not(th)').remove();
               }
           });
-          $.get("/mngtree?tree_id={{curtree.id}}&nestedocs=false&cmd=get_privileges&id=" + data.branch_id, function(data) {
+          $.get("/mngtree?tree_id={{curtree.id}}&cmd=get_privileges&id=" + branch_id, function(data) {
             data = $.parseJSON(data);
-            console.log(data);
             $('#form_privileges table').append(
-            "<tr branch_id=" + data.branch_id + ">" +
+            "<tr branch_id=" + branch_id + ">" +
               "<td class='priv_bydefault'>By default</td>" +
               "<td> <input type='checkbox' class='priv_read'" + isChecked(data.bydefault.read) + "> </td>" +
               "<td> <input type='checkbox' class='priv_rw'" + isChecked(data.bydefault.rw) + "> </td>" +
@@ -304,24 +311,103 @@
         });
 
       $('body').on('click', '#form_privileges tr td input[type="checkbox"]', function(e) {
+        var update_privs = function(data) {
+            data = $.parseJSON(data);
+
+            var cb_read = row.find("input[class='priv_read']");
+            var cb_rw = row.find("input[class='priv_rw']");
+            cb_read.prop('checked', data.read);
+            cb_rw.prop('checked', data.rw);
+          }
+
         var curel = $(e.target);
 
-        var action = curel.is(':checked');
+        var privilege;
+        if ( curel.hasClass("priv_read") ) { privilege = "read";
+        } else if ( curel.hasClass("priv_rw") ) { privilege = "rw";
+        } else { console.log("Error: Undefined class name"); }
+
+        var valueOf_priv = curel.is(':checked');
 
         var row = curel.closest('tr');
         var branch_id = row.attr('branch_id');
-          console.log(branch_id);
         var nickname_col = row.children('td');
         if ( nickname_col.hasClass("priv_bydefault") ) {
-          $.get("/mngtree?tree_id={{curtree.id}}&nestedocs=false&cmd=set_privileges&id=" + branch_id)
-          console.log("priv_bydefault");
+          $.get("/mngtree?tree_id={{curtree.id}}&cmd=set_privileges" +
+            "&id=" + branch_id +
+            "&for_class=" + "bydefault" +
+            "&" + privilege + "=" + valueOf_priv,
+            function(data) { update_privs(data); }
+          );
         } else if ( nickname_col.hasClass("priv_nickname") ) {
+          var nickname = row.find("td[class='priv_nickname']").text();
+          $.get("/mngtree?tree_id={{curtree.id}}&cmd=set_privileges" +
+            "&id=" + branch_id +
+            "&for_class=" + "users" +
+            "&nickname=" + nickname +
+            "&" + privilege + "=" + valueOf_priv,
+            function(data) { update_privs(data); }
+          );
           console.log("priv_nickname");
-        } else {
-          console.log("Error: Undefined class name");
-        }
+        } else { console.log("Error: Undefined class name"); }
       });
 
+    $("#input_UserPriv").tokenInput("/userslist",
+      {
+      hintText: 'Type to search',
+      noResultsText: 'No results',
+      searchingText: 'Searching…',
+      resultsLimit: null,   // null --to show all matching results
+      tokenLimit: null,     //The maximum number of results allowed to be selected by the user. null to allow unlimited selections
+      preventDuplicates: true
+      }
+    );
+
+    $("#linkAddUserPriv").click(function() {
+/*
+      var UsersList = $("#form_privileges").find("td[class='priv_nickname']");
+      var UsersList_nicknames = [];
+      for ( var i=0; i < UsersList.length; i++ ) {
+        UsersList_nicknames[i] = $(UsersList[i]).text();
+      }
+      console.log(UsersList_nicknames);
+*/
+
+      var UsersList_toadd = $('#input_UserPriv').prevAll('.token-input-list').children('.token-input-token');
+      for ( var i=0; i < UsersList_toadd.length; i++ ) {
+        var cur_nickname = $(UsersList_toadd[i]).children('p').text();
+
+        var branch_id = $('#form_privileges table tr .priv_bydefault').parent().attr('branch_id');
+        $.get("/mngtree?tree_id={{curtree.id}}&cmd=set_priv_adduser" +
+          "&id=" + branch_id +
+          "&nickname=" + cur_nickname
+          , function(status) {
+          if ( status == "0" ) {
+            $('#form_privileges table').append(
+            "<tr>" +
+              "<td class='priv_nickname'>" + cur_nickname + "</td>" +
+              "<td> <input type='checkbox' class='priv_read'></td>" +
+              "<td> <input type='checkbox' class='priv_rw'></td>" +
+            "</tr>"
+            )
+          }
+        });
+
+/*
+        if ( $.inArray(cur_nickname, UsersList_nicknames) == -1 ) {
+          $('#form_privileges table').append(
+          "<tr>" +
+            "<td class='priv_nickname'>" + cur_nickname + "</td>" +
+            "<td> <input type='checkbox' class='priv_read'></td>" +
+            "<td> <input type='checkbox' class='priv_rw'></td>" +
+          "</tr>"
+          )
+        }
+*/
+      }
+
+      $("#input_UserPriv").tokenInput("clear");
+    });
     });
     </script>
 {% endblock %}
