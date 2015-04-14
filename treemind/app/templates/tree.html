@@ -159,7 +159,7 @@
             data = $.parseJSON(data);
             console.log(data);
             $('#form_privileges table').append(
-            "<tr>" +
+            "<tr branch_id=" + data.branch_id + ">" +
               "<td class='priv_bydefault'>By default</td>" +
               "<td> <input type='checkbox' class='priv_read'" + isChecked(data.bydefault.read) + "> </td>" +
               "<td> <input type='checkbox' class='priv_rw'" + isChecked(data.bydefault.rw) + "> </td>" +
@@ -303,9 +303,23 @@
           location.href='/trees/' + valueSelected;
         });
 
-      $('body').on('click', '#form_privileges tr td input[type="checkbox"]', function() {
-                console.log("AAAAAAAAA");
-         // code here
+      $('body').on('click', '#form_privileges tr td input[type="checkbox"]', function(e) {
+        var curel = $(e.target);
+
+        var action = curel.is(':checked');
+
+        var row = curel.closest('tr');
+        var branch_id = row.attr('branch_id');
+          console.log(branch_id);
+        var nickname_col = row.children('td');
+        if ( nickname_col.hasClass("priv_bydefault") ) {
+          $.get("/mngtree?tree_id={{curtree.id}}&nestedocs=false&cmd=set_privileges&id=" + branch_id)
+          console.log("priv_bydefault");
+        } else if ( nickname_col.hasClass("priv_nickname") ) {
+          console.log("priv_nickname");
+        } else {
+          console.log("Error: Undefined class name");
+        }
       });
 
     });
