@@ -32,3 +32,11 @@ pip3 install sqlalchemy-migrate
 pip3 install flask-sqlalchemy
 pip3 install flask-login
 
+
+# RUN
+as snaiffer:
+service postgresql start
+cd ~/temp/test/treemind
+activate_flask3
+./run.py
+go to http://127.0.0.1:5000/
